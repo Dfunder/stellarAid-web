@@ -4,7 +4,7 @@ A blockchain-based crowdfunding platform built on the **Stellar Network** for tr
 StellarAid enables project creators to raise funds in **XLM** or any Stellar-based asset (USDC, NGNT, custom tokens), while donors can contribute with full on-chain transparency.
 
 # Folder structure 
-
+```bash
 /src
   /app
     /auth
@@ -19,7 +19,7 @@ StellarAid enables project creators to raise funds in **XLM** or any Stellar-bas
   /utils
   /types
   /store
-
+```
 ## 📌 Features
 
 ### 🎯 For Donors
