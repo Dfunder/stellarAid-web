@@ -1,11 +1,14 @@
 import { InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import { apiClient } from './client';
 import { useAuthStore } from '@/store/authStore';
+import { useUIStore } from '@/store/uiStore';
 
 // Request Interceptor: Attach Auth Token
 apiClient.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
         const token = useAuthStore.getState().token;
+        // Set global loading true on request
+        useUIStore.getState().setGlobalLoading(true);
 
         if (token && config.headers) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -18,6 +21,7 @@ apiClient.interceptors.request.use(
         return config;
     },
     (error: AxiosError) => {
+        useUIStore.getState().setGlobalLoading(false);
         return Promise.reject(error);
     }
 );
@@ -25,12 +29,14 @@ apiClient.interceptors.request.use(
 // Response Interceptor: Handle Errors and Token Refresh
 apiClient.interceptors.response.use(
     (response: AxiosResponse) => {
+        useUIStore.getState().setGlobalLoading(false);
         if (process.env.NODE_ENV === 'development') {
             console.log(`[API Response] ${response.status} ${response.config.url}`, response.data);
         }
         return response;
     },
     async (error: AxiosError) => {
+        useUIStore.getState().setGlobalLoading(false);
         const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
         if (process.env.NODE_ENV === 'development') {
