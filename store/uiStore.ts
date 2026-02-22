@@ -13,6 +13,7 @@ export const useUIStore = create<UIStore>()(
       notifications: [],
       isSidebarOpen: false,
       theme: 'light',
+      isGlobalLoading: false,
 
       // Actions
       openModal: (modal) => set({ activeModal: modal }),
@@ -36,6 +37,8 @@ export const useUIStore = create<UIStore>()(
         set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
 
       setTheme: (theme) => set({ theme }),
+
+      setGlobalLoading: (isLoading: boolean) => set({ isGlobalLoading: isLoading }),
     }),
     {
       name: 'UIStore',

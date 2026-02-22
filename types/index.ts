@@ -57,6 +57,7 @@ export interface UIState {
   notifications: Notification[];
   isSidebarOpen: boolean;
   theme: 'light' | 'dark';
+  isGlobalLoading: boolean;
 }
 
 export interface UIActions {
@@ -66,6 +67,7 @@ export interface UIActions {
   removeNotification: (id: string) => void;
   toggleSidebar: () => void;
   setTheme: (theme: 'light' | 'dark') => void;
+  setGlobalLoading: (isLoading: boolean) => void;
 }
 
 export type UIStore = UIState & UIActions;

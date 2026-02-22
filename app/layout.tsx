@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ErrorBoundaryProvider } from "@/components/ErrorBoundaryProvider";
+import React, { Suspense } from "react";
+import GlobalLoading from "@/components/GlobalLoading";
+import GlobalLoadingOverlay from "@/components/GlobalLoadingOverlay";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -20,11 +23,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${inter.variable} antialiased`}
-      >
+      <body className={`${inter.variable} antialiased`}>
         <ErrorBoundaryProvider>
-          {children}
+          <GlobalLoadingOverlay />
+          <Suspense fallback={<GlobalLoading message="Loading..." />}>{children}</Suspense>
         </ErrorBoundaryProvider>
       </body>
     </html>
