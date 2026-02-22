@@ -69,3 +69,43 @@ export interface UIActions {
 }
 
 export type UIStore = UIState & UIActions;
+
+// Stellar Types
+export type StellarNetworkType = 'testnet' | 'public' | 'futurenet';
+
+export interface StellarAccount {
+  address: string;
+  balance: string;
+  sequence: string;
+  subentryCount: number;
+  thresholds: {
+    low: number;
+    medium: number;
+    high: number;
+  };
+}
+
+export interface StellarAsset {
+  code: string;
+  issuer: string | null;
+  balance: string;
+  limit?: string;
+}
+
+export interface StellarTransaction {
+  id: string;
+  source: string;
+  destination: string;
+  amount: string;
+  asset: string;
+  createdAt: string;
+  memo?: string;
+  status: 'pending' | 'completed' | 'failed';
+}
+
+export interface ConnectionStatus {
+  connected: boolean;
+  network: StellarNetworkType;
+  horizonUrl: string;
+  lastError?: string;
+}
