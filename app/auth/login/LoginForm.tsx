@@ -99,7 +99,7 @@ export default function LoginForm() {
       {/* Heading */}
       <div className="text-center mb-5">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">Welcome Back</h1>
-        <p className="text-sm text-primary-600">Sign in to your account to continue</p>
+        <p className="text-sm text-gray-500">Sign in to your account to continue</p>
       </div>
 
       {/* Root-level error (rate limiting) */}
