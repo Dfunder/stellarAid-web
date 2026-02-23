@@ -1,5 +1,5 @@
 import React from "react";
-import Spinner from "./ui/Spinner";
+import { Spinner } from "./ui/Spinner";
 
 interface GlobalLoadingProps {
   message?: string;
