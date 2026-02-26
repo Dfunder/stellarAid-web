@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { WhyChooseUs } from "./components/WhyChooseUs";
+import Footer from "./components/Footer";
 
 
 export const metadata: Metadata = {
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-[#f0f4fa] flex flex-col items-center justify-center px-4 py-20">
+    <div className="min-h-screen bg-[#f0f4fa] flex flex-col">
       {/* ── Hero ─────────────────────────────────────────────────────── */}
       <section className="w-full max-w-3xl mx-auto text-center relative overflow-hidden rounded-2xl">
 
@@ -68,6 +69,7 @@ export default function HomePage() {
       <section>
         <WhyChooseUs />
       </section>
+      <Footer />
     </div>
   );
 }
