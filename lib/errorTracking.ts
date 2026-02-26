@@ -103,7 +103,7 @@ async function initSentry(): Promise<void> {
     // @ts-ignore - Module may not be installed
     let sentryModule: unknown;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      // eslint-disable-next-line
       sentryModule = require("@sentry/nextjs");
     } catch {
       console.log("[ErrorTracking] @sentry/nextjs not installed, skipping Sentry initialization");

@@ -31,8 +31,8 @@ export default function LoginForm() {
     handleSubmit,
     formState: { errors, isSubmitting },
     setError,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } = useForm<LoginFormValues, any, LoginFormValues>({
+  // eslint-disable-next-line
+  } = useForm<LoginFormValues, unknown, LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
