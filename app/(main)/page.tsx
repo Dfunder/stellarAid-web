@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { WhyChooseUs } from "./components/WhyChooseUs";
 
 
 export const metadata: Metadata = {
@@ -63,6 +64,9 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+      </section>
+      <section>
+        <WhyChooseUs />
       </section>
     </div>
   );
