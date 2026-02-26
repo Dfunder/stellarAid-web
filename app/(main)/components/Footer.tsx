@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Twitter, GitHub, Discord } from "lucide-react";
+import { Twitter, Github, Disc } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -73,12 +73,12 @@ const Footer = () => {
               </li>
               <li>
                 <Link href="https://discord.com" className="text-gray-500 hover:text-gray-900 inline-flex items-center gap-2">
-                  <Discord className="w-4 h-4" /> Discord
+                  <Disc className="w-4 h-4" /> Discord
                 </Link>
               </li>
               <li>
                 <Link href="https://github.com" className="text-gray-500 hover:text-gray-900 inline-flex items-center gap-2">
-                  <GitHub className="w-4 h-4" /> GitHub
+                  <Github className="w-4 h-4" /> GitHub
                 </Link>
               </li>
             </ul>
