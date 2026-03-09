@@ -40,7 +40,7 @@ const WhyChooseUs: React.FC = () => {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="bg-white p-8 rounded-xl border border-[#E2E8F0] shadow-sm 
+              className="bg-white cursor-pointer p-8 rounded-xl border border-[#E2E8F0] shadow-sm 
                          transition-all duration-300 ease-in-out 
                          hover:shadow-md hover:-translate-y-1 hover:border-[#CBD5E1]"
             >
