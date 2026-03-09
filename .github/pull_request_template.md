@@ -14,3 +14,7 @@ Please ensure the following before submitting your PR:
 
 ## Screenshots (if applicable)
 <!-- Add screenshots to help explain your changes -->
+
+## Closes 
+<!-- Close your Issue here  -->
+
