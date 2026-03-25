@@ -31,7 +31,7 @@ export default function Header() {
               Sign In
             </Link>
             <Link
-              href="/auth/register"
+              href="/auth/signup"
               className="inline-flex items-center justify-center text-sm font-semibold text-white bg-[#1a3a6b] hover:bg-[#15305a] rounded-lg px-5 py-2 transition-colors"
             >
               Get Started
@@ -65,7 +65,7 @@ export default function Header() {
             Sign In
           </Link>
           <Link
-            href="/auth/register"
+            href="/auth/signup"
             onClick={() => setMobileOpen(false)}
             className="block w-full text-center text-sm font-semibold text-white bg-[#1a3a6b] hover:bg-[#15305a] rounded-lg px-5 py-2.5 transition-colors"
           >

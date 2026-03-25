@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ErrorBoundaryProvider } from "@/components/ErrorBoundaryProvider";
+import { ToastProvider } from "@/components/ui";
 import React, { Suspense } from "react";
 import GlobalLoading from "@/components/GlobalLoading";
 import GlobalLoadingOverlay from "@/components/GlobalLoadingOverlay";
@@ -25,8 +26,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
         <ErrorBoundaryProvider>
-          <GlobalLoadingOverlay />
-          <Suspense fallback={<GlobalLoading message="Loading..." />}>{children}</Suspense>
+          <ToastProvider position="top-right" maxToasts={5}>
+            <GlobalLoadingOverlay />
+            <Suspense fallback={<GlobalLoading message="Loading..." />}>{children}</Suspense>
+          </ToastProvider>
         </ErrorBoundaryProvider>
       </body>
     </html>
