@@ -20,6 +20,11 @@ const nextConfig = {
     // Remove console.log in production
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  // Disable ESLint during build to avoid dependency conflicts
+  // ESLint should be run separately in CI/CD
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 }
 
 module.exports = nextConfig
