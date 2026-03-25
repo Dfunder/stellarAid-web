@@ -11,7 +11,7 @@ interface PasswordInputProps extends InputHTMLAttributes<HTMLInputElement> {
   autoComplete?: string;
 }
 
-const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(({ label, id, value, onChange, showStrength = false, autoComplete, ...props }, ref) => {
+const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(function PasswordInput({ label, id, value, onChange, showStrength = false, autoComplete, ...props }, ref) {
   const [focused, setFocused] = useState(false);
   const [visible, setVisible] = useState(false);
   return (
