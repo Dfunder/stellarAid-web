@@ -124,6 +124,10 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
 }) => {
   const [toasts, setToasts] = useState<ToastProps[]>([]);
 
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  }, []);
+
   const addToast = useCallback(
     (toast: Omit<ToastProps, "id" | "onClose">): string => {
       const id = generateId();
@@ -140,12 +144,8 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
 
       return id;
     },
-    [maxToasts]
+    [maxToasts, removeToast]
   );
-
-  const removeToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  }, []);
 
   const clearAll = useCallback(() => {
     setToasts([]);
@@ -223,6 +223,13 @@ const ToastItem = forwardRef<HTMLDivElement, ToastProps>(function ToastItem(
     });
   }, []);
 
+  const handleClose = useCallback(() => {
+    setIsLeaving(true);
+    setTimeout(() => {
+      onClose(id);
+    }, 300);
+  }, [id, onClose]);
+
   // Handle auto-dismiss
   useEffect(() => {
     const dismissTime = durationMap[duration];
@@ -232,14 +239,7 @@ const ToastItem = forwardRef<HTMLDivElement, ToastProps>(function ToastItem(
       }, dismissTime);
       return () => clearTimeout(timer);
     }
-  }, [duration]);
-
-  const handleClose = useCallback(() => {
-    setIsLeaving(true);
-    setTimeout(() => {
-      onClose(id);
-    }, 300);
-  }, [id, onClose]);
+  }, [duration, handleClose]);
 
   return (
     <div

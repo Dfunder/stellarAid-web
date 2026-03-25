@@ -355,7 +355,7 @@ declare global {
   }
 }
 
-export default {
+const errorTrackingModule = {
   initErrorTracking,
   captureException,
   captureMessage,
@@ -365,3 +365,5 @@ export default {
   createRetryableFunction,
   isRetryableError,
 };
+
+export default errorTrackingModule;
