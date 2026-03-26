@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { User, Settings, LayoutDashboard, LogOut, ChevronDown } from 'lucide-react';
+import Image from 'next/image';
 import { useAuthStore } from '@/store/authStore';
 
 export default function ProfileDropdown() {
@@ -108,10 +109,13 @@ export default function ProfileDropdown() {
         {/* User Avatar */}
         <div className="w-8 h-8 rounded-full bg-[#1a3a6b] flex items-center justify-center text-white text-sm font-medium">
           {user?.avatar ? (
-            <img
+            <Image
               src={user.avatar}
-              alt={user.name}
+              alt={user.name || "User Avatar"}
+              width={32}
+              height={32}
               className="w-full h-full rounded-full object-cover"
+              unoptimized
             />
           ) : (
             <span>{user?.name ? getUserInitials(user.name) : 'U'}</span>
