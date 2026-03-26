@@ -7,7 +7,6 @@ import React, {
   createContext,
   useContext,
   HTMLAttributes,
-  ForwardRefRenderFunction,
   forwardRef,
 } from "react";
 
@@ -292,13 +291,6 @@ const ToastItem = forwardRef<HTMLDivElement, ToastProps>(function ToastItem(
       setIsVisible(true);
     });
   }, []);
-
-  // const handleClose = useCallback(() => {
-  //   setIsLeaving(true);
-  //   setTimeout(() => {
-  //     onClose(id);
-  //   }, 300);
-  // }, [id, onClose]);
 
   // Handle auto-dismiss
   useEffect(() => {

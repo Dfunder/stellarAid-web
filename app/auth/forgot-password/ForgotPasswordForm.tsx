@@ -29,6 +29,7 @@ export default function ForgotPasswordForm() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    setError,
   } = useForm<ForgotPasswordValues>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
@@ -42,18 +43,21 @@ export default function ForgotPasswordForm() {
       await authApi.forgotPassword({
         email: data.email,
       });
-      
+
       // Show success message regardless of whether email exists
       setIsSubmitted(true);
     } catch (err) {
       const apiError = err as ApiError;
-      
-      // For security (avoiding user enumeration), always show success for 404
+
+      // Still show success message for security (don't reveal if email exists)
       if (apiError.status === 404) {
         setIsSubmitted(true);
       } else {
         // For other errors, show the error message
-        console.error('Forgot password error:', apiError);
+        setError('root', {
+          type: 'manual',
+          message: apiError.message || 'Unable to process request. Please try again.',
+        });
       }
     } finally {
       setIsLoading(false);
@@ -76,7 +80,7 @@ export default function ForgotPasswordForm() {
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M3 8l7.89 5.26a2 2 0 012.15 0 2 2 2 2 2v6a2 2 0 01-2 2 2-2 2-2-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2 2 2 2 2zm0 8a1 1 0 011-1h2a1 1 0 011 1v1a1 1 0 011 1H4a1 1 0 01-1-1V9a1 1 0 011-1-1z"
+              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
             />
           </svg>
         </div>
@@ -110,7 +114,7 @@ export default function ForgotPasswordForm() {
               Return to Sign In
             </Button>
           </Link>
-          
+
           <p className="text-center text-sm text-gray-500">
             Didn&apos;t receive the email? Check your spam folder or{' '}
             <button

@@ -31,11 +31,10 @@ const resetPasswordSchema = z
       .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
       .regex(/[0-9]/, 'Password must contain at least one number')
       .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
-    confirmPassword: z.string().min(1, 'Please confirm your password'),
-    token: z.string().min(1, 'Token is required'),
+    confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords must match",
+    message: "Passwords don't match",
     path: ["confirmPassword"],
   });
 
@@ -54,13 +53,13 @@ export default function ResetPasswordForm() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    setError,
     watch,
   } = useForm<ResetPasswordValues>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
       password: '',
       confirmPassword: '',
-      token: token || '',
     },
   });
 
@@ -84,7 +83,10 @@ export default function ResetPasswordForm() {
 
   const onSubmit = async (data: ResetPasswordValues) => {
     if (!token) {
-      setTokenError('Invalid reset link. Please request a new password reset.');
+      setError('root', {
+        type: 'manual',
+        message: 'Invalid reset link. Please request a new password reset.',
+      });
       return;
     }
 
@@ -94,17 +96,20 @@ export default function ResetPasswordForm() {
         token,
         password: data.password,
       });
-      
+
       setIsSuccess(true);
     } catch (err) {
       const apiError = err as ApiError;
-      
+
       if (apiError.status === 400 && apiError.message?.includes('expired')) {
         setTokenError('This reset link has expired. Please request a new password reset.');
       } else if (apiError.status === 400 && apiError.message?.includes('invalid')) {
         setTokenError('This reset link is invalid. Please request a new password reset.');
       } else {
-        setTokenError(apiError.message || 'Unable to reset password. Please try again.');
+        setError('root', {
+          type: 'manual',
+          message: apiError.message || 'Unable to reset password. Please try again.',
+        });
       }
     } finally {
       setIsLoading(false);
@@ -192,7 +197,7 @@ export default function ResetPasswordForm() {
               Request New Reset Link
             </Button>
           </Link>
-          
+
           <Link href="/auth/login" className="block">
             <Button variant="secondary" fullWidth>
               Return to Sign In
@@ -265,6 +270,7 @@ export default function ResetPasswordForm() {
                 Password must contain:
               </p>
               <div className="space-y-1">
+                {/* Length check */}
                 <div className="flex items-center gap-2 text-xs">
                   <div
                     className={`w-4 h-4 rounded-full flex items-center justify-center ${
@@ -277,7 +283,7 @@ export default function ResetPasswordForm() {
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path
                           fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 00-1.414 1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                           clipRule="evenodd"
                         />
                       </svg>
@@ -285,7 +291,7 @@ export default function ResetPasswordForm() {
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path
                           fillRule="evenodd"
-                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L8 12.586l4.293 4.293a1 1 0 001.414-1.414L10 8.586l8 8a1 1 0 01-1.414 0l-4-4a1 1 0 00-1.414-1.414L8 12.586l4.293 4.293a1 1 0 011.414 0z"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
                           clipRule="evenodd"
                         />
                       </svg>
@@ -295,6 +301,8 @@ export default function ResetPasswordForm() {
                     At least {passwordRequirements.minLength} characters
                   </span>
                 </div>
+
+                {/* Uppercase check */}
                 <div className="flex items-center gap-2 text-xs">
                   <div
                     className={`w-4 h-4 rounded-full flex items-center justify-center ${
@@ -307,7 +315,7 @@ export default function ResetPasswordForm() {
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path
                           fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 00-1.414 1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                           clipRule="evenodd"
                         />
                       </svg>
@@ -315,7 +323,7 @@ export default function ResetPasswordForm() {
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path
                           fillRule="evenodd"
-                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L8 12.586l4.293 4.293a1 1 0 001.414-1.414L10 8.586l8 8a1 1 0 01-1.414 0l-4-4a1 1 0 00-1.414-1.414L8 12.586l4.293 4.293a1 1 0 011.414 0z"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
                           clipRule="evenodd"
                         />
                       </svg>
@@ -325,6 +333,8 @@ export default function ResetPasswordForm() {
                     One uppercase letter
                   </span>
                 </div>
+
+                {/* Lowercase check */}
                 <div className="flex items-center gap-2 text-xs">
                   <div
                     className={`w-4 h-4 rounded-full flex items-center justify-center ${
@@ -337,7 +347,7 @@ export default function ResetPasswordForm() {
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path
                           fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 00-1.414 1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                           clipRule="evenodd"
                         />
                       </svg>
@@ -345,7 +355,7 @@ export default function ResetPasswordForm() {
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path
                           fillRule="evenodd"
-                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L8 12.586l4.293 4.293a1 1 0 001.414-1.414L10 8.586l8 8a1 1 0 01-1.414 0l-4-4a1 1 0 00-1.414-1.414L8 12.586l4.293 4.293a1 1 0 011.414 0z"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
                           clipRule="evenodd"
                         />
                       </svg>
@@ -355,6 +365,8 @@ export default function ResetPasswordForm() {
                     One lowercase letter
                   </span>
                 </div>
+
+                {/* Number check */}
                 <div className="flex items-center gap-2 text-xs">
                   <div
                     className={`w-4 h-4 rounded-full flex items-center justify-center ${
@@ -367,7 +379,7 @@ export default function ResetPasswordForm() {
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path
                           fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 00-1.414 1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                           clipRule="evenodd"
                         />
                       </svg>
@@ -375,7 +387,7 @@ export default function ResetPasswordForm() {
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path
                           fillRule="evenodd"
-                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L8 12.586l4.293 4.293a1 1 0 001.414-1.414L10 8.586l8 8a1 1 0 01-1.414 0l-4-4a1 1 0 00-1.414-1.414L8 12.586l4.293 4.293a1 1 0 011.414 0z"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
                           clipRule="evenodd"
                         />
                       </svg>
@@ -385,6 +397,8 @@ export default function ResetPasswordForm() {
                     One number
                   </span>
                 </div>
+
+                {/* Special character check */}
                 <div className="flex items-center gap-2 text-xs">
                   <div
                     className={`w-4 h-4 rounded-full flex items-center justify-center ${
@@ -397,7 +411,7 @@ export default function ResetPasswordForm() {
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path
                           fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 00-1.414 1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                           clipRule="evenodd"
                         />
                       </svg>
@@ -405,7 +419,7 @@ export default function ResetPasswordForm() {
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path
                           fillRule="evenodd"
-                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L8 12.586l4.293 4.293a1 1 0 001.414-1.414L10 8.586l8 8a1 1 0 01-1.414 0l-4-4a1 1 0 00-1.414-1.414L8 12.586l4.293 4.293a1 1 0 011.414 0z"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
                           clipRule="evenodd"
                         />
                       </svg>
