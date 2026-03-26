@@ -13,15 +13,17 @@ export interface User {
 export interface AuthState {
   user: User | null;
   token: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
 
 export interface AuthActions {
-  login: (user: User, token: string) => void;
+  login: (user: User, token: string, refreshToken?: string) => void;
   logout: () => void;
   setUser: (user: User | null) => void;
   setLoading: (loading: boolean) => void;
+  setTokens: (token: string, refreshToken: string) => void;
 }
 
 export type AuthStore = AuthState & AuthActions;

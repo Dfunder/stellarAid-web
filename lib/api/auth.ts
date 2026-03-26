@@ -49,4 +49,11 @@ export const authApi = {
     );
     return response.data;
   },
+
+  refreshToken: async (): Promise<ApiResponse<LoginResponse>> => {
+    const response = await apiClient.post<ApiResponse<LoginResponse>>(
+      "/auth/refresh-token",
+    );
+    return response.data;
+  },
 };
