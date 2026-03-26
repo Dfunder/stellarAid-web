@@ -1,6 +1,7 @@
 import { WhyChooseUs } from "./components/WhyChooseUs";
 import Footer from "./components/Footer";
 import HeroPage from "./components/HeroPage";
+import MakeAnImpact from "./components/MakeAnImpact";
 
 export default function HomePage() {
   return (
@@ -10,6 +11,8 @@ export default function HomePage() {
       <section>
         <WhyChooseUs />
       </section>
+      {/* ── Make an Impact ───────────────────────────────────────────── */}
+      <MakeAnImpact />
       <Footer />
     </div>
   );
