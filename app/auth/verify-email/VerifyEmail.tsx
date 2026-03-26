@@ -29,7 +29,7 @@ const VerifyEmail = () => {
     if (token) {
       handleVerify(token);
     }
-  }, [token]);
+  }, [token, handleVerify]);
 
   // Cooldown timer
   useEffect(() => {
@@ -39,7 +39,7 @@ const VerifyEmail = () => {
     }
   }, [cooldown]);
 
-  const handleVerify = async (verificationToken: string) => {
+  const handleVerify = useCallback(async (verificationToken: string) => {
     setIsVerifying(true);
     setStatus("pending");
     try {
@@ -57,7 +57,7 @@ const VerifyEmail = () => {
     } finally {
       setIsVerifying(false);
     }
-  };
+  }, [router, toast]);
 
   const handleResend = async () => {
     if (cooldown > 0) return;
@@ -117,7 +117,7 @@ const VerifyEmail = () => {
           </div>
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-gray-900 leading-tight">Email Verified!</h2>
-            <p className="text-gray-600">Your account is now fully activated. We're redirecting you to the login page.</p>
+            <p className="text-gray-600">Your account is now fully activated. We&apos;re redirecting you to the login page.</p>
           </div>
           <Button variant="primary" onClick={() => router.push("/auth/login")} fullWidth>
             Go to Login
@@ -137,7 +137,7 @@ const VerifyEmail = () => {
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-gray-900 leading-tight">Verification Failed</h2>
             <p className="text-red-600 text-sm font-medium">{errorMessage}</p>
-            <p className="text-gray-600 text-sm">Don't worry, you can request a new link below.</p>
+            <p className="text-gray-600 text-sm">Don&apos;t worry, you can request a new link below.</p>
           </div>
           <div className="pt-4 border-t border-gray-100 flex flex-col gap-3">
              <Button
@@ -177,7 +177,7 @@ const VerifyEmail = () => {
           </div>
           <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Check your email</h2>
           <p className="text-gray-600 leading-relaxed">
-            We've sent a verification link to <span className="font-semibold text-gray-900">{email || "your email address"}</span>.
+            We&apos;ve sent a verification link to <span className="font-semibold text-gray-900">{email || "your email address"}</span>.
           </p>
         </div>
 
