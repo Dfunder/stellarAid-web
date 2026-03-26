@@ -1,5 +1,5 @@
 import { useState, forwardRef, InputHTMLAttributes } from "react";
-import { FiEye, FiEyeOff } from "react-icons/fi";
+// import { FiEye, FiEyeOff } from "react-icons/fi";
 import PasswordStrengthBar from "./passwordStrengthBar";
 
 interface PasswordInputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -66,7 +66,7 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(function 
             color: "#6b7280",
           }}
         >
-          {visible ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+          {/* {visible ? <FiEyeOff size={20} /> : <FiEye size={20} />} */}
         </button>
       </div>
       {showStrength && <PasswordStrengthBar password={value} />}

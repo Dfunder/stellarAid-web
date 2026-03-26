@@ -1,43 +1,46 @@
-import * as yup from 'yup';
+import { z } from "zod";
 
 // shared rules
-const emailRule = yup
+const emailRule = z
   .string()
-  .required('Email is required')
-  .email('Must be a valid email');
+  .min(1, "Email is required")
+  .email("Must be a valid email");
 
-const passwordRule = yup
+const passwordRule = z
   .string()
-  .required('Password is required')
-  .min(8, 'Password must be at least 8 characters');
+  .min(1, "Password is required")
+  .min(8, "Password must be at least 8 characters");
 
-export const registerSchema = yup.object().shape({
+export const registerSchema = z
+  .object({
+    email: emailRule,
+    role: z.enum(["donor", "creator"], {
+      message: "Please select a valid role",
+    }),
+    password: passwordRule,
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords must match",
+    path: ["confirmPassword"],
+  });
+
+export const loginSchema = z.object({
   email: emailRule,
-  role: yup
-    .string()
-    .oneOf(['donor', 'creator'], 'Please select a valid role')
-    .required('Role is required'),
-  password: passwordRule,
-  confirmPassword: yup
-    .string()
-    .required('Please confirm your password')
-    .oneOf([yup.ref('password')], 'Passwords must match'),
+  password: z.string().min(1, "Password is required"),
 });
 
-export const loginSchema = yup.object().shape({
-  email: emailRule,
-  password: yup.string().required('Password is required'),
-});
-
-export const forgotPasswordSchema = yup.object().shape({
+export const forgotPasswordSchema = z.object({
   email: emailRule,
 });
 
-export const resetPasswordSchema = yup.object().shape({
-  password: passwordRule,
-  confirmPassword: yup
-    .string()
-    .required('Please confirm your password')
-    .oneOf([yup.ref('password')], 'Passwords must match'),
-  token: yup.string().required('Token is required'),
-});
+export const resetPasswordSchema = z
+  .object({
+    password: passwordRule,
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+    token: z.string().min(1, "Token is required"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords must match",
+    path: ["confirmPassword"],
+  });

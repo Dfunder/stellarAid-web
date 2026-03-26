@@ -1,9 +1,12 @@
 // User Types
+export type UserRole = "admin" | "user" | "moderator";
+
 export interface User {
   id: string;
   email: string;
   name: string;
   avatar?: string;
+  role?: UserRole;
 }
 
 // Auth Store Types
@@ -43,11 +46,11 @@ export interface WalletActions {
 export type WalletStore = WalletState & WalletActions;
 
 // UI Store Types
-export type ModalType = 'login' | 'wallet' | 'settings' | null;
+export type ModalType = "login" | "wallet" | "settings" | null;
 
 export interface Notification {
   id: string;
-  type: 'success' | 'error' | 'warning' | 'info';
+  type: "success" | "error" | "warning" | "info";
   message: string;
   duration?: number;
 }
@@ -56,24 +59,24 @@ export interface UIState {
   activeModal: ModalType;
   notifications: Notification[];
   isSidebarOpen: boolean;
-  theme: 'light' | 'dark';
+  theme: "light" | "dark";
   isGlobalLoading: boolean;
 }
 
 export interface UIActions {
   openModal: (modal: ModalType) => void;
   closeModal: () => void;
-  addNotification: (notification: Omit<Notification, 'id'>) => void;
+  addNotification: (notification: Omit<Notification, "id">) => void;
   removeNotification: (id: string) => void;
   toggleSidebar: () => void;
-  setTheme: (theme: 'light' | 'dark') => void;
+  setTheme: (theme: "light" | "dark") => void;
   setGlobalLoading: (isLoading: boolean) => void;
 }
 
 export type UIStore = UIState & UIActions;
 
 // Stellar Types
-export type StellarNetworkType = 'testnet' | 'public' | 'futurenet';
+export type StellarNetworkType = "testnet" | "public" | "futurenet";
 
 export interface StellarAccount {
   address: string;
@@ -102,7 +105,7 @@ export interface StellarTransaction {
   asset: string;
   createdAt: string;
   memo?: string;
-  status: 'pending' | 'completed' | 'failed';
+  status: "pending" | "completed" | "failed";
 }
 
 export interface ConnectionStatus {

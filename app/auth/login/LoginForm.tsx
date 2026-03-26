@@ -1,42 +1,44 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import Link from 'next/link';
-import { Eye, EyeOff } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 
-import { loginSchema, LoginFormValues } from './schemas';
-import { authApi } from '@/lib/api/auth';
-import { useAuthStore } from '@/store/authStore';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import type { ApiError } from '@/types/api';
+import { loginSchema, LoginFormValues } from "./schemas";
+import { authApi } from "@/lib/api/auth";
+import { useAuthStore } from "@/store/authStore";
+import { useRedirectToIntended } from "@/lib/auth/ProtectedRoute";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import type { ApiError } from "@/types/api";
 
 export default function LoginForm() {
   const router = useRouter();
   const { login, isAuthenticated, setLoading, isLoading } = useAuthStore();
+  const { redirect } = useRedirectToIntended();
   const [showPassword, setShowPassword] = useState(false);
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace('/dashboard');
+      redirect();
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, redirect]);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     setError,
-  // eslint-disable-next-line
+    // eslint-disable-next-line
   } = useForm<LoginFormValues, unknown, LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
       rememberMe: false,
     },
   });
@@ -53,32 +55,33 @@ export default function LoginForm() {
 
       // "Remember me" — flag session-only mode when unchecked
       if (!data.rememberMe) {
-        sessionStorage.setItem('stellaraid-session-only', 'true');
+        sessionStorage.setItem("stellaraid-session-only", "true");
       } else {
-        sessionStorage.removeItem('stellaraid-session-only');
+        sessionStorage.removeItem("stellaraid-session-only");
         const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000;
-        localStorage.setItem('stellaraid-session-expiry', String(expiry));
+        localStorage.setItem("stellaraid-session-expiry", String(expiry));
       }
 
-      router.replace('/dashboard');
+      redirect();
     } catch (err) {
       const apiError = err as ApiError;
       const status = apiError.status;
 
       if (status === 401 || status === 400) {
-        setError('password', {
-          type: 'manual',
-          message: apiError.message || 'Invalid email or password.',
+        setError("password", {
+          type: "manual",
+          message: apiError.message || "Invalid email or password.",
         });
       } else if (status === 429) {
-        setError('root', {
-          type: 'manual',
-          message: 'Too many login attempts. Please wait a few minutes and try again.',
+        setError("root", {
+          type: "manual",
+          message:
+            "Too many login attempts. Please wait a few minutes and try again.",
         });
       } else {
-        setError('root', {
-          type: 'manual',
-          message: apiError.message || 'Unable to connect. Please try again.',
+        setError("root", {
+          type: "manual",
+          message: apiError.message || "Unable to connect. Please try again.",
         });
       }
     } finally {
@@ -99,7 +102,9 @@ export default function LoginForm() {
       {/* Heading */}
       <div className="text-center mb-5">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">Welcome Back</h1>
-        <p className="text-sm text-gray-500">Sign in to your account to continue</p>
+        <p className="text-sm text-gray-500">
+          Sign in to your account to continue
+        </p>
       </div>
 
       {/* Root-level error (rate limiting) */}
@@ -124,14 +129,14 @@ export default function LoginForm() {
             placeholder="you@example.com"
             autoComplete="email"
             className={[
-              'w-full px-4 py-2 border rounded-lg transition-all duration-200 text-sm',
-              'focus:outline-none focus:ring-2 bg-white text-gray-900 placeholder-gray-400',
+              "w-full px-4 py-2 border rounded-lg transition-all duration-200 text-sm",
+              "focus:outline-none focus:ring-2 bg-white text-gray-900 placeholder-gray-400",
               errors.email
-                ? 'border-danger-500 focus:border-danger-500 focus:ring-danger-100'
-                : 'border-gray-300 focus:border-primary-500 focus:ring-primary-200',
-            ].join(' ')}
+                ? "border-danger-500 focus:border-danger-500 focus:ring-danger-100"
+                : "border-gray-300 focus:border-primary-500 focus:ring-primary-200",
+            ].join(" ")}
             aria-invalid={!!errors.email}
-            {...register('email')}
+            {...register("email")}
           />
           {errors.email && (
             <p role="alert" className="mt-1 text-sm text-danger-500">
@@ -143,7 +148,9 @@ export default function LoginForm() {
         {/* Password */}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className="block text-sm font-medium text-gray-900">Password</label>
+            <label className="block text-sm font-medium text-gray-900">
+              Password
+            </label>
             <Link
               href="/auth/forgot-password"
               className="text-sm text-primary-600 hover:text-primary-700 font-medium"
@@ -153,24 +160,24 @@ export default function LoginForm() {
           </div>
           <div className="relative">
             <input
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               placeholder="••••••••"
               autoComplete="current-password"
               className={[
-                'w-full px-4 py-2 pr-10 border rounded-lg transition-all duration-200 text-sm',
-                'focus:outline-none focus:ring-2 bg-white text-gray-900 placeholder-gray-400',
+                "w-full px-4 py-2 pr-10 border rounded-lg transition-all duration-200 text-sm",
+                "focus:outline-none focus:ring-2 bg-white text-gray-900 placeholder-gray-400",
                 errors.password
-                  ? 'border-danger-500 focus:border-danger-500 focus:ring-danger-100'
-                  : 'border-gray-300 focus:border-primary-500 focus:ring-primary-200',
-              ].join(' ')}
+                  ? "border-danger-500 focus:border-danger-500 focus:ring-danger-100"
+                  : "border-gray-300 focus:border-primary-500 focus:ring-primary-200",
+              ].join(" ")}
               aria-invalid={!!errors.password}
-              {...register('password')}
+              {...register("password")}
             />
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? (
                 <EyeOff className="w-4 h-4" />
@@ -192,9 +199,12 @@ export default function LoginForm() {
             id="rememberMe"
             type="checkbox"
             className="w-4 h-4 rounded border-gray-300 accent-primary-700"
-            {...register('rememberMe')}
+            {...register("rememberMe")}
           />
-          <label htmlFor="rememberMe" className="text-sm text-gray-600 cursor-pointer select-none">
+          <label
+            htmlFor="rememberMe"
+            className="text-sm text-gray-600 cursor-pointer select-none"
+          >
             Remember me for 30 days
           </label>
         </div>
@@ -270,7 +280,7 @@ export default function LoginForm() {
 
       {/* Sign up link */}
       <p className="text-center text-sm text-gray-500 mt-5">
-        Don&apos;t have an account?{' '}
+        Don&apos;t have an account?{" "}
         <Link
           href="/auth/register"
           className="text-primary-600 hover:text-primary-700 font-semibold"

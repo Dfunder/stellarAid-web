@@ -32,7 +32,9 @@ let config: ErrorTrackingConfig = {
 };
 
 // Initialize error tracking (call this in app initialization)
-export function initErrorTracking(customConfig?: Partial<ErrorTrackingConfig>): void {
+export function initErrorTracking(
+  customConfig?: Partial<ErrorTrackingConfig>,
+): void {
   if (customConfig) {
     config = { ...config, ...customConfig };
   }
@@ -40,7 +42,7 @@ export function initErrorTracking(customConfig?: Partial<ErrorTrackingConfig>): 
   // Setup global error handlers if enabled
   if (config.enabled) {
     setupGlobalErrorHandlers();
-    
+
     // Initialize Sentry if available
     initSentry();
   }
@@ -58,10 +60,10 @@ function setupGlobalErrorHandlers(): void {
     source?: string,
     lineno?: number,
     colno?: number,
-    error?: Error
+    error?: Error,
   ) => {
     const errorObj = error || new Error(String(message));
-    
+
     captureException(errorObj, {
       type: "uncaught-error",
       source,
@@ -75,9 +77,10 @@ function setupGlobalErrorHandlers(): void {
 
   // Handle unhandled promise rejections
   window.onunhandledrejection = (event: PromiseRejectionEvent) => {
-    const error = event.reason instanceof Error 
-      ? event.reason 
-      : new Error(String(event.reason));
+    const error =
+      event.reason instanceof Error
+        ? event.reason
+        : new Error(String(event.reason));
 
     captureException(error, {
       type: "unhandled-promise-rejection",
@@ -94,7 +97,9 @@ async function initSentry(): Promise<void> {
   const sentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
 
   if (!sentryDsn) {
-    console.log("[ErrorTracking] Sentry DSN not configured, skipping Sentry init");
+    console.log(
+      "[ErrorTracking] Sentry DSN not configured, skipping Sentry init",
+    );
     return;
   }
 
@@ -106,38 +111,49 @@ async function initSentry(): Promise<void> {
       // eslint-disable-next-line
       sentryModule = require("@sentry/nextjs");
     } catch {
-      console.log("[ErrorTracking] @sentry/nextjs not installed, skipping Sentry initialization");
+      console.log(
+        "[ErrorTracking] @sentry/nextjs not installed, skipping Sentry initialization",
+      );
       return;
     }
-    
-    if (!sentryModule || typeof sentryModule !== 'object') {
-      console.log("[ErrorTracking] Sentry module invalid, skipping initialization");
+
+    if (!sentryModule || typeof sentryModule !== "object") {
+      console.log(
+        "[ErrorTracking] Sentry module invalid, skipping initialization",
+      );
       return;
     }
-    
+
     const Sentry = sentryModule as {
       init?: (config: Record<string, unknown>) => Promise<void>;
       browserTracingIntegration?: () => unknown;
-      replayIntegration?: (options: { maskAllText: boolean; blockAllMedia: boolean }) => unknown;
+      replayIntegration?: (options: {
+        maskAllText: boolean;
+        blockAllMedia: boolean;
+      }) => unknown;
     };
-    
+
     if (!Sentry.init) {
-      console.log("[ErrorTracking] Sentry.init not found, skipping initialization");
+      console.log(
+        "[ErrorTracking] Sentry.init not found, skipping initialization",
+      );
       return;
     }
-    
+
     const integrations: unknown[] = [];
-    
+
     if (Sentry.browserTracingIntegration) {
       integrations.push(Sentry.browserTracingIntegration());
     }
     if (Sentry.replayIntegration) {
-      integrations.push(Sentry.replayIntegration({
-        maskAllText: true,
-        blockAllMedia: true,
-      }));
+      integrations.push(
+        Sentry.replayIntegration({
+          maskAllText: true,
+          blockAllMedia: true,
+        }),
+      );
     }
-    
+
     await Sentry.init({
       dsn: sentryDsn,
       environment: config.environment,
@@ -151,17 +167,16 @@ async function initSentry(): Promise<void> {
 
     console.log("[ErrorTracking] Sentry initialized successfully");
   } catch (error) {
-    console.log("[ErrorTracking] Sentry not available, skipping initialization");
+    console.log(
+      "[ErrorTracking] Sentry not available, skipping initialization",
+    );
   }
 }
 
 /**
  * Capture and report an exception
  */
-export function captureException(
-  error: Error,
-  context?: ErrorContext
-): void {
+export function captureException(error: Error, context?: ErrorContext): void {
   if (!config.enabled) {
     console.error("[ErrorTracking] Error (tracking disabled):", error, context);
     return;
@@ -190,10 +205,13 @@ export function captureException(
 export function captureMessage(
   message: string,
   level: "info" | "warning" | "error" = "info",
-  context?: ErrorContext
+  context?: ErrorContext,
 ): void {
   if (!config.enabled) {
-    console.log(`[ErrorTracking] Message (tracking disabled): ${message}`, context);
+    console.log(
+      `[ErrorTracking] Message (tracking disabled): ${message}`,
+      context,
+    );
     return;
   }
 
@@ -231,7 +249,9 @@ export function addBreadcrumb(breadcrumb: Breadcrumb): void {
 /**
  * Set user context for error tracking
  */
-export function setUserContext(user: { id: string; email?: string; username?: string } | null): void {
+export function setUserContext(
+  user: { id: string; email?: string; username?: string } | null,
+): void {
   if (!config.enabled) return;
 
   if (typeof window !== "undefined") {
@@ -263,7 +283,9 @@ export function setExtraContext(context: ErrorContext): void {
 /**
  * Create a retry wrapper for async functions with exponential backoff
  */
-export function createRetryableFunction<T extends (...args: unknown[]) => Promise<unknown>>(
+export function createRetryableFunction<
+  T extends (...args: unknown[]) => Promise<unknown>,
+>(
   fn: T,
   options: {
     maxRetries?: number;
@@ -271,7 +293,7 @@ export function createRetryableFunction<T extends (...args: unknown[]) => Promis
     maxDelay?: number;
     backoffMultiplier?: number;
     onRetry?: (attempt: number, error: Error) => void;
-  } = {}
+  } = {},
 ): T {
   const {
     maxRetries = 3,
@@ -287,7 +309,7 @@ export function createRetryableFunction<T extends (...args: unknown[]) => Promis
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        return await fn(...args) as ReturnType<T>;
+        return (await fn(...args)) as ReturnType<T>;
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
 
@@ -308,7 +330,7 @@ export function createRetryableFunction<T extends (...args: unknown[]) => Promis
 
         // Wait with exponential backoff
         await new Promise((resolve) => setTimeout(resolve, delay));
-        
+
         // Increase delay for next attempt
         delay = Math.min(delay * backoffMultiplier, maxDelay);
       }
@@ -345,17 +367,26 @@ declare global {
   interface Window {
     Sentry?: {
       captureException: (error: Error, context?: ErrorContext) => void;
-      captureMessage: (message: string, level?: string, context?: ErrorContext) => void;
+      captureMessage: (
+        message: string,
+        level?: string,
+        context?: ErrorContext,
+      ) => void;
       addBreadcrumb: (breadcrumb: Breadcrumb) => void;
-      setUser: (user: { id: string; email?: string; username?: string } | null) => void;
+      setUser: (
+        user: { id: string; email?: string; username?: string } | null,
+      ) => void;
       setExtra: (key: string, value: unknown) => void;
       browserTracingIntegration?: () => unknown;
-      replayIntegration?: (options: { maskAllText: boolean; blockAllMedia: boolean }) => unknown;
+      replayIntegration?: (options: {
+        maskAllText: boolean;
+        blockAllMedia: boolean;
+      }) => unknown;
     };
   }
 }
 
-const errorTrackingModule = {
+const errorTracking = {
   initErrorTracking,
   captureException,
   captureMessage,
@@ -366,4 +397,4 @@ const errorTrackingModule = {
   isRetryableError,
 };
 
-export default errorTrackingModule;
+export default errorTracking;

@@ -1,17 +1,26 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, createContext, useContext, HTMLAttributes, ForwardRefRenderFunction, forwardRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  createContext,
+  useContext,
+  HTMLAttributes,
+  ForwardRefRenderFunction,
+  forwardRef,
+} from "react";
 
 /** Toast types */
 export type ToastType = "success" | "error" | "warning" | "info";
 
 /** Toast positions */
-export type ToastPosition = 
-  | "top-left" 
-  | "top-center" 
-  | "top-right" 
-  | "bottom-left" 
-  | "bottom-center" 
+export type ToastPosition =
+  | "top-left"
+  | "top-center"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-center"
   | "bottom-right";
 
 /** Toast duration options */
@@ -55,23 +64,63 @@ const durationMap: Record<ToastDuration, number | null> = {
 /** Toast icon components */
 const icons: Record<ToastType, React.ReactNode> = {
   success: (
-    <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+    <svg
+      className="w-5 h-5 text-green-500"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M5 13l4 4L19 7"
+      />
     </svg>
   ),
   error: (
-    <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+    <svg
+      className="w-5 h-5 text-red-500"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M6 18L18 6M6 6l12 12"
+      />
     </svg>
   ),
   warning: (
-    <svg className="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    <svg
+      className="w-5 h-5 text-yellow-500"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+      />
     </svg>
   ),
   info: (
-    <svg className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <svg
+      className="w-5 h-5 text-blue-500"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
     </svg>
   ),
 };
@@ -128,6 +177,10 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
+  // const removeToast = useCallback((id: string) => {
+  //   setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  // }, []);
+
   const addToast = useCallback(
     (toast: Omit<ToastProps, "id" | "onClose">): string => {
       const id = generateId();
@@ -144,7 +197,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
 
       return id;
     },
-    [maxToasts, removeToast]
+    [maxToasts, removeToast],
   );
 
   const clearAll = useCallback(() => {
@@ -155,7 +208,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
     (type: ToastType) => (message: string, title?: string) => {
       return addToast({ type, message, title });
     },
-    [addToast]
+    [addToast],
   );
 
   const value: ToastContextType = {
@@ -184,7 +237,10 @@ interface ToastContainerProps {
 }
 
 /** Toast container component */
-const ToastContainer: React.FC<ToastContainerProps> = ({ position, toasts }) => {
+const ToastContainer: React.FC<ToastContainerProps> = ({
+  position,
+  toasts,
+}) => {
   const positionClasses: Record<ToastPosition, string> = {
     "top-left": "top-4 left-4",
     "top-center": "top-4 left-1/2 -translate-x-1/2",
@@ -210,11 +266,29 @@ const ToastContainer: React.FC<ToastContainerProps> = ({ position, toasts }) => 
 
 /** Individual toast item */
 const ToastItem = forwardRef<HTMLDivElement, ToastProps>(function ToastItem(
-  { id, type = "info", title, message, duration = "medium", onClose, isClosable = true, action, className = "", ...props },
-  ref
+  {
+    id,
+    type = "info",
+    title,
+    message,
+    duration = "medium",
+    onClose,
+    isClosable = true,
+    action,
+    className = "",
+    ...props
+  },
+  ref,
 ) {
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+
+  // const handleClose = useCallback(() => {
+  //   setIsLeaving(true);
+  //   setTimeout(() => {
+  //     onClose(id);
+  //   }, 300);
+  // }, [id, onClose]);
 
   // Handle animation on mount
   useEffect(() => {
@@ -271,7 +345,9 @@ const ToastItem = forwardRef<HTMLDivElement, ToastProps>(function ToastItem(
                 {title}
               </p>
             )}
-            <p className={`text-sm ${title ? "mt-1" : ""} text-gray-700 dark:text-gray-300`}>
+            <p
+              className={`text-sm ${title ? "mt-1" : ""} text-gray-700 dark:text-gray-300`}
+            >
               {message}
             </p>
 
@@ -298,8 +374,18 @@ const ToastItem = forwardRef<HTMLDivElement, ToastProps>(function ToastItem(
                 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
               aria-label="Dismiss notification"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           )}
@@ -311,8 +397,19 @@ const ToastItem = forwardRef<HTMLDivElement, ToastProps>(function ToastItem(
 
 /** Standalone Toast component for manual control */
 export const Toast = forwardRef<HTMLDivElement, ToastProps>(function Toast(
-  { id, type = "info", title, message, duration = "medium", onClose, isClosable = true, action, className = "", ...props },
-  ref
+  {
+    id,
+    type = "info",
+    title,
+    message,
+    duration = "medium",
+    onClose,
+    isClosable = true,
+    action,
+    className = "",
+    ...props
+  },
+  ref,
 ) {
   return (
     <ToastItem
