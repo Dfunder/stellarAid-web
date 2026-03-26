@@ -3,8 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
+import { useAuthStore } from '@/store/authStore';
+import ProfileDropdown from './ProfileDropdown';
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { isAuthenticated } = useAuthStore();
 
   return (
     <header
@@ -24,18 +27,24 @@ export default function Header() {
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
-            <Link
-              href="/auth/login"
-              className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/auth/signup"
-              className="inline-flex items-center justify-center text-sm font-semibold text-white bg-[#1a3a6b] hover:bg-[#15305a] rounded-lg px-5 py-2 transition-colors"
-            >
-              Get Started
-            </Link>
+            {isAuthenticated ? (
+              <ProfileDropdown />
+            ) : (
+              <>
+                <Link
+                  href="/auth/login"
+                  className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/auth/signup"
+                  className="inline-flex items-center justify-center text-sm font-semibold text-white bg-[#1a3a6b] hover:bg-[#15305a] rounded-lg px-5 py-2 transition-colors"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile hamburger */}
@@ -57,20 +66,28 @@ export default function Header() {
           className="md:hidden border-t border-gray-200 px-4 py-4 space-y-3"
           style={{ backgroundColor: '#eef3fa' }}
         >
-          <Link
-            href="/auth/login"
-            onClick={() => setMobileOpen(false)}
-            className="block text-sm font-medium text-gray-700 hover:text-gray-900 py-2 transition-colors"
-          >
-            Sign In
-          </Link>
-          <Link
-            href="/auth/signup"
-            onClick={() => setMobileOpen(false)}
-            className="block w-full text-center text-sm font-semibold text-white bg-[#1a3a6b] hover:bg-[#15305a] rounded-lg px-5 py-2.5 transition-colors"
-          >
-            Get Started
-          </Link>
+          {isAuthenticated ? (
+            <div className="flex justify-center">
+              <ProfileDropdown />
+            </div>
+          ) : (
+            <>
+              <Link
+                href="/auth/login"
+                onClick={() => setMobileOpen(false)}
+                className="block text-sm font-medium text-gray-700 hover:text-gray-900 py-2 transition-colors"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/auth/signup"
+                onClick={() => setMobileOpen(false)}
+                className="block w-full text-center text-sm font-semibold text-white bg-[#1a3a6b] hover:bg-[#15305a] rounded-lg px-5 py-2.5 transition-colors"
+              >
+                Get Started
+              </Link>
+            </>
+          )}
         </div>
       )}
     </header>
