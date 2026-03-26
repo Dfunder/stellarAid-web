@@ -3,8 +3,7 @@ import ResetPasswordForm from './ResetPasswordForm';
 
 export const metadata: Metadata = {
   title: 'Reset Password | StellarAid',
-  description:
-    'Create a new password for your StellarAid account.',
+  description: 'Create a new password for your StellarAid account.',
 };
 
 export default function ResetPasswordPage() {

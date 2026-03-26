@@ -96,11 +96,11 @@ export default function ResetPasswordForm() {
         token,
         password: data.password,
       });
-      
+
       setIsSuccess(true);
     } catch (err) {
       const apiError = err as ApiError;
-      
+
       if (apiError.status === 400 && apiError.message?.includes('expired')) {
         setTokenError('This reset link has expired. Please request a new password reset.');
       } else if (apiError.status === 400 && apiError.message?.includes('invalid')) {
@@ -197,7 +197,7 @@ export default function ResetPasswordForm() {
               Request New Reset Link
             </Button>
           </Link>
-          
+
           <Link href="/auth/login" className="block">
             <Button variant="secondary" fullWidth>
               Return to Sign In
@@ -270,6 +270,7 @@ export default function ResetPasswordForm() {
                 Password must contain:
               </p>
               <div className="space-y-1">
+                {/* Length check */}
                 <div className="flex items-center gap-2 text-xs">
                   <div
                     className={`w-4 h-4 rounded-full flex items-center justify-center ${
@@ -300,6 +301,8 @@ export default function ResetPasswordForm() {
                     At least {passwordRequirements.minLength} characters
                   </span>
                 </div>
+
+                {/* Uppercase check */}
                 <div className="flex items-center gap-2 text-xs">
                   <div
                     className={`w-4 h-4 rounded-full flex items-center justify-center ${
@@ -330,6 +333,8 @@ export default function ResetPasswordForm() {
                     One uppercase letter
                   </span>
                 </div>
+
+                {/* Lowercase check */}
                 <div className="flex items-center gap-2 text-xs">
                   <div
                     className={`w-4 h-4 rounded-full flex items-center justify-center ${
@@ -360,6 +365,8 @@ export default function ResetPasswordForm() {
                     One lowercase letter
                   </span>
                 </div>
+
+                {/* Number check */}
                 <div className="flex items-center gap-2 text-xs">
                   <div
                     className={`w-4 h-4 rounded-full flex items-center justify-center ${
@@ -390,6 +397,8 @@ export default function ResetPasswordForm() {
                     One number
                   </span>
                 </div>
+
+                {/* Special character check */}
                 <div className="flex items-center gap-2 text-xs">
                   <div
                     className={`w-4 h-4 rounded-full flex items-center justify-center ${

@@ -7,7 +7,6 @@ import React, {
   createContext,
   useContext,
   HTMLAttributes,
-  ForwardRefRenderFunction,
   forwardRef,
 } from "react";
 
@@ -177,10 +176,6 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
-  // const removeToast = useCallback((id: string) => {
-  //   setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  // }, []);
-
   const addToast = useCallback(
     (toast: Omit<ToastProps, "id" | "onClose">): string => {
       const id = generateId();
@@ -283,12 +278,12 @@ const ToastItem = forwardRef<HTMLDivElement, ToastProps>(function ToastItem(
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
 
-  // const handleClose = useCallback(() => {
-  //   setIsLeaving(true);
-  //   setTimeout(() => {
-  //     onClose(id);
-  //   }, 300);
-  // }, [id, onClose]);
+  const handleClose = useCallback(() => {
+    setIsLeaving(true);
+    setTimeout(() => {
+      onClose(id);
+    }, 300);
+  }, [id, onClose]);
 
   // Handle animation on mount
   useEffect(() => {
@@ -296,13 +291,6 @@ const ToastItem = forwardRef<HTMLDivElement, ToastProps>(function ToastItem(
       setIsVisible(true);
     });
   }, []);
-
-  const handleClose = useCallback(() => {
-    setIsLeaving(true);
-    setTimeout(() => {
-      onClose(id);
-    }, 300);
-  }, [id, onClose]);
 
   // Handle auto-dismiss
   useEffect(() => {

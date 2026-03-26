@@ -43,12 +43,12 @@ export default function ForgotPasswordForm() {
       await authApi.forgotPassword({
         email: data.email,
       });
-      
+
       // Show success message regardless of whether email exists
       setIsSubmitted(true);
     } catch (err) {
       const apiError = err as ApiError;
-      
+
       // Still show success message for security (don't reveal if email exists)
       if (apiError.status === 404) {
         setIsSubmitted(true);
@@ -114,7 +114,7 @@ export default function ForgotPasswordForm() {
               Return to Sign In
             </Button>
           </Link>
-          
+
           <p className="text-center text-sm text-gray-500">
             Didn&apos;t receive the email? Check your spam folder or{' '}
             <button
