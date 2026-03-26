@@ -51,6 +51,14 @@ const VerifyEmail = () => {
     }
   }, [token, handleVerify]);
 
+  // Cooldown timer
+  useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldown]);
+
   const handleResend = async () => {
     if (cooldown > 0) return;
     
