@@ -80,4 +80,27 @@ export const authApi = {
     );
     return response.data;
   },
+
+  socialLogin: async (data: { provider: string; token: string }): Promise<ApiResponse<LoginResponse>> => {
+    const response = await apiClient.post<ApiResponse<LoginResponse>>(
+      "/auth/social-login",
+      data,
+    );
+    return response.data;
+  },
+
+  linkSocialAccount: async (data: { provider: string; token: string }): Promise<ApiResponse<void>> => {
+    const response = await apiClient.post<ApiResponse<void>>(
+      "/auth/social-link",
+      data,
+    );
+    return response.data;
+  },
+
+  disconnectSocialAccount: async (provider: string): Promise<ApiResponse<void>> => {
+    const response = await apiClient.delete<ApiResponse<void>>(
+      `/auth/social-unlink/${provider}`
+    );
+    return response.data;
+  },
 };

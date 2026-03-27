@@ -7,6 +7,8 @@ export interface User {
   name: string;
   avatar?: string;
   role?: UserRole;
+  googleLinked?: boolean;
+  githubLinked?: boolean;
 }
 
 // Auth Store Types
