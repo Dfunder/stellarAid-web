@@ -21,8 +21,21 @@ export interface LoginResponse {
 
 export interface RegisterRequest {
     email: string;
-    name: string;
-    password?: string; // Optional if using wallet-only or social
+    role: "donor" | "creator";
+    password?: string;
+    confirmPassword?: string;
+}
+
+export interface VerifyEmailRequest {
+    token: string;
+}
+
+export interface ResendEmailRequest {
+    email: string;
+}
+
+export interface ChangeEmailRequest {
+    email: string;
 }
 
 // Project Types
