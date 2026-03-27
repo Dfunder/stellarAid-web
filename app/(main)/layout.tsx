@@ -1,11 +1,11 @@
 import { ReactNode } from 'react';
-import Header from '@/components/Header';
+import { ConditionalHeader } from '@/components/ConditionalHeader';
 import { SessionManager } from '@/components/SessionManager';
 
 export default function MainLayout({ children }: { children: ReactNode }) {
   return (
     <SessionManager>
-      <Header />
+      <ConditionalHeader />
       {children}
     </SessionManager>
   );
