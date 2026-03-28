@@ -17,6 +17,7 @@ import { useAuthStore } from '@/store/authStore';
 import { ProtectedRoute } from '@/lib/auth/ProtectedRoute';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { StatCard } from '@/components/ui/StatCard';
 import { cn } from '@/lib/utils';
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
@@ -288,56 +289,6 @@ function DonationChart({ data }: { data: typeof MONTHLY_DATA }) {
   );
 }
 
-// ─── Stat Card ────────────────────────────────────────────────────────────────
-
-interface StatCardProps {
-  label: string;
-  value: string;
-  sub: string;
-  icon: React.ReactNode;
-  iconBg: string;
-  trend?: { value: string; up: boolean };
-}
-
-function StatCard({ label, value, sub, icon, iconBg, trend }: StatCardProps) {
-  return (
-    <Card variant="elevated" padding="lg">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
-            {label}
-          </p>
-          <p className="text-2xl font-bold text-gray-900 leading-none mb-1.5">{value}</p>
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-xs text-gray-500">{sub}</span>
-            {trend && (
-              <span
-                className={cn(
-                  'inline-flex items-center gap-0.5 text-xs font-medium',
-                  trend.up ? 'text-emerald-600' : 'text-red-500'
-                )}
-              >
-                <ArrowUpRight
-                  className={cn('w-3 h-3', !trend.up && 'rotate-90')}
-                />
-                {trend.value}
-              </span>
-            )}
-          </div>
-        </div>
-        <div
-          className={cn(
-            'w-10 h-10 rounded-xl flex items-center justify-center shrink-0',
-            iconBg
-          )}
-        >
-          {icon}
-        </div>
-      </div>
-    </Card>
-  );
-}
-
 // ─── Dashboard Content ────────────────────────────────────────────────────────
 
 function DashboardContent() {
@@ -395,32 +346,43 @@ function DashboardContent() {
       {/* ── Stats ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard
-          label="Total Donated"
-          value="$3,450"
-          sub="All time"
-          trend={{ value: '+12%', up: true }}
+          title="Total Donated"
+          value={3450}
+          type="currency"
+          currency="USD"
+          previousValue={3080}
+          description="All time"
+          info="Total amount donated across all campaigns"
           iconBg="bg-blue-50"
           icon={<DollarSign className="w-5 h-5 text-[#3461f9]" />}
         />
         <StatCard
-          label="Projects Supported"
-          value="12"
-          sub="Active campaigns"
-          trend={{ value: '+2 this month', up: true }}
+          title="Projects Supported"
+          value={12}
+          type="count"
+          previousValue={10}
+          description="Active campaigns"
+          info="Projects with confirmed impact from your donations"
           iconBg="bg-emerald-50"
           icon={<FolderHeart className="w-5 h-5 text-emerald-600" />}
         />
         <StatCard
-          label="Impact Score"
-          value="94"
-          sub="Top 8% of donors"
+          title="Impact Score"
+          value={94}
+          type="percentage"
+          previousValue={89}
+          description="Top 8% of donors"
+          info="Profile score based on giving frequency and impact"
           iconBg="bg-violet-50"
           icon={<Zap className="w-5 h-5 text-violet-600" />}
         />
         <StatCard
-          label="Giving Streak"
-          value="7 days"
-          sub="Keep it going!"
+          title="Giving Streak"
+          value={7}
+          type="count"
+          previousValue={6}
+          description="Days this week"
+          info="Consecutive days donated"
           iconBg="bg-orange-50"
           icon={<Flame className="w-5 h-5 text-orange-500" />}
         />
