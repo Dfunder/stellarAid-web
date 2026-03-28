@@ -6,7 +6,7 @@ import { useAuthStore } from "@/store/authStore";
 import type { User } from "@/types";
 
 // Role type for access control
-export type UserRole = "admin" | "user" | "moderator";
+export type UserRole = "admin" | "user" | "moderator" | "creator";
 
 // Protected route props
 interface ProtectedRouteProps {
