@@ -31,4 +31,14 @@ export const projectsApi = {
         const response = await apiClient.get<ApiResponse<Project[]>>('/projects/featured');
         return response.data;
     },
+
+    toggleBookmark: async (id: string): Promise<ApiResponse<{ bookmarked: boolean }>> => {
+        const response = await apiClient.post<ApiResponse<{ bookmarked: boolean }>>(`/projects/${id}/bookmark`);
+        return response.data;
+    },
+
+    getBookmarkedProjects: async (): Promise<ApiResponse<Project[]>> => {
+        const response = await apiClient.get<ApiResponse<Project[]>>('/projects/bookmarks');
+        return response.data;
+    },
 };

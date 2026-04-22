@@ -8,11 +8,13 @@ import {
   ArrowRight, 
   BadgeCheck, 
   TrendingUp,
-  ExternalLink
+  ExternalLink,
+  Bookmark
 } from 'lucide-react';
 import { projectsApi } from '@/lib/api/projects';
 import { Project } from '@/types/api';
 import { clsx } from 'clsx';
+import { useBookmarkStore } from '@/store/bookmarkStore';
 
 // Fallback data if API fails or for demo purposes
 const fallbackProjects = [
@@ -59,6 +61,7 @@ const fallbackProjects = [
 ];
 
 const FeaturedProjects = () => {
+  const { toggleBookmark, isBookmarked } = useBookmarkStore();
   const [projects, setProjects] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
@@ -181,6 +184,23 @@ const FeaturedProjects = () => {
                         <span className="text-[10px] font-bold text-neutral-900 uppercase tracking-wider">Verified</span>
                       </div>
                     )}
+
+                    {/* Bookmark Toggle */}
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleBookmark(project.id);
+                      }}
+                      className={clsx(
+                        "absolute top-6 right-6 z-30 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md border",
+                        isBookmarked(project.id)
+                          ? "bg-primary-500 border-primary-400 text-white shadow-glow"
+                          : "bg-white/70 border-white/40 text-neutral-600 hover:bg-white hover:text-primary-500"
+                      )}
+                    >
+                      <Bookmark className={clsx("w-6 h-6", isBookmarked(project.id) && "fill-current")} />
+                    </button>
                   </div>
 
                   {/* Content Area */}

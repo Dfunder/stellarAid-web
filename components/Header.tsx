@@ -33,6 +33,14 @@ export default function Header() {
             >
               Browse Projects
             </Link>
+            {isAuthenticated && (
+              <Link
+                href="/bookmarks"
+                className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+              >
+                My Bookmarks
+              </Link>
+            )}
             {isAuthenticated ? (
               <ProfileDropdown />
             ) : (
@@ -79,6 +87,15 @@ export default function Header() {
           >
             Browse Projects
           </Link>
+          {isAuthenticated && (
+            <Link
+              href="/bookmarks"
+              onClick={() => setMobileOpen(false)}
+              className="block text-sm font-medium text-gray-700 hover:text-gray-900 py-2 transition-colors"
+            >
+              My Bookmarks
+            </Link>
+          )}
           {isAuthenticated ? (
             <div className="flex justify-center">
               <ProfileDropdown />
