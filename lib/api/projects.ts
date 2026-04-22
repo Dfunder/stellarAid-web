@@ -26,4 +26,9 @@ export const projectsApi = {
         const response = await apiClient.delete<ApiResponse<void>>(`/projects/${id}`);
         return response.data;
     },
+
+    getFeaturedProjects: async (): Promise<ApiResponse<Project[]>> => {
+        const response = await apiClient.get<ApiResponse<Project[]>>('/projects/featured');
+        return response.data;
+    },
 };
