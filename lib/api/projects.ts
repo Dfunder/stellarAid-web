@@ -2,8 +2,8 @@ import { apiClient } from './interceptors';
 import { Project, ApiResponse, CreateProjectRequest } from '@/types/api';
 
 export const projectsApi = {
-    getProjects: async (): Promise<ApiResponse<Project[]>> => {
-        const response = await apiClient.get<ApiResponse<Project[]>>('/projects');
+    getProjects: async (page: number = 1, limit: number = 10): Promise<ApiResponse<Project[]>> => {
+        const response = await apiClient.get<ApiResponse<Project[]>>(`/projects?page=${page}&limit=${limit}`);
         return response.data;
     },
 
