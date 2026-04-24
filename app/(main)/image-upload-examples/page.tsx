@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { ImageUpload, UploadedImage } from '@/components/ImageUpload';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { ImageGallery } from '@/components/projects/ImageGallery';
 
 /**
  * ImageUploadExamples
@@ -251,6 +252,43 @@ export function GalleryExample() {
   );
 }
 
+const sampleGalleryImages = [
+  {
+    src: 'https://images.unsplash.com/photo-1496307653780-42ee777d4833?auto=format&fit=crop&w=1200&q=80',
+    thumbnail: 'https://images.unsplash.com/photo-1496307653780-42ee777d4833?auto=format&fit=crop&w=320&q=60',
+    alt: 'Support team working on a community project',
+    caption: 'Community volunteers renovating a neighborhood space.',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1542567457-18c6695b17d1?auto=format&fit=crop&w=1200&q=80',
+    thumbnail: 'https://images.unsplash.com/photo-1542567457-18c6695b17d1?auto=format&fit=crop&w=320&q=60',
+    alt: 'Project planning discussion',
+    caption: 'Project stakeholders plan a future donation drive.',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80',
+    thumbnail: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=320&q=60',
+    alt: 'Young people planting trees',
+    caption: 'Funded initiative for local tree planting and education.',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80',
+    thumbnail: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=320&q=60',
+    alt: 'Hands working on a laptop',
+    caption: 'Remote collaboration across the donation platform.',
+  },
+];
+
+export function ProjectGalleryDemo() {
+  return (
+    <div className="p-6 border rounded-lg space-y-4">
+      <h2 className="text-xl font-semibold">Project Photo Gallery</h2>
+      <p className="text-sm text-gray-600">Browse project photos with thumbnails, captions, zoom, and lightbox navigation.</p>
+      <ImageGallery images={sampleGalleryImages} />
+    </div>
+  );
+}
+
 // Example 7: Disabled State
 export function DisabledStateExample() {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -295,6 +333,7 @@ export default function ExamplesPage() {
           <HookExample />
           <ProfilePictureExample />
           <GalleryExample />
+          <ProjectGalleryDemo />
           <DisabledStateExample />
         </div>
       </div>

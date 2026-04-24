@@ -73,3 +73,18 @@ export interface CreateDonationRequest {
     amount: string;
     txHash?: string;
 }
+
+export interface Update {
+    id: string;
+    campaignId: string;
+    title: string;
+    content: string;
+    imageUrls?: string[];
+    createdAt: string;
+}
+
+export interface CreateUpdateRequest {
+    title: string;
+    content: string;
+    imageUrls?: string[];
+}
