@@ -7,6 +7,7 @@ import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatCard } from "@/components/ui/StatCard";
+import { UpdateTimeline } from "@/components/creator/UpdateTimeline";
 
 interface Campaign {
   id: string;
@@ -198,6 +199,8 @@ export default function CreatorDashboard() {
               <Card variant="elevated" padding="lg">
                 <DonationTrendChart />
               </Card>
+
+              <UpdateTimeline campaignId="1" />
             </section>
 
             <aside className="space-y-5">
