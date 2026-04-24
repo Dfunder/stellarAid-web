@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { ImageUpload, UploadedImage } from '@/components/ImageUpload';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { ImageGallery } from '@/components/projects/ImageGallery';
@@ -333,6 +333,7 @@ export default function ExamplesPage() {
           <HookExample />
           <ProfilePictureExample />
           <GalleryExample />
+          <ProjectGalleryDemo />
           <DisabledStateExample />
         </div>
       </div>
