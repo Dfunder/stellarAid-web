@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { BadgeCheck, Zap, ArrowRight, Bookmark } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useBookmarkStore } from '@/store/bookmarkStore';
+import { ShareButton } from './ShareButton';
 
 export interface ProjectCardProps {
   project: {
@@ -112,7 +113,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           </div>
 
           {/* Funding Section */}
-          <div className="flex justify-between items-center gap-4 pt-2">
+          <div className="space-y-3 pt-2">
             <div className="flex flex-col">
               <span className="text-[15px] text-neutral-600">
                 <span className="font-bold text-neutral-900">${(Number(project.currentAmount || project.raised) || 0).toLocaleString()}</span>
@@ -120,13 +121,16 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
                 <span className="text-neutral-500">${(Number(project.targetAmount || project.goal) || 0).toLocaleString()}</span>
               </span>
             </div>
-            <Link
-              href={`/projects/${project.id}`}
-              className="px-5 py-2 rounded-lg border border-neutral-200 text-sm font-bold text-neutral-800 hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-200 shadow-sm flex items-center gap-2 group/btn"
-            >
-              Donate
-              <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-0.5" />
-            </Link>
+            <div className="flex gap-2">
+              <ShareButton projectId={project.id} projectTitle={project.title} projectUrl={`${typeof window !== 'undefined' ? window.location.origin : ''}/projects/${project.id}`} />
+              <Link
+                href={`/projects/${project.id}`}
+                className="flex-1 px-5 py-2 rounded-lg border border-neutral-200 text-sm font-bold text-neutral-800 hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-200 shadow-sm flex items-center justify-center gap-2 group/btn"
+              >
+                Donate
+                <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-0.5" />
+              </Link>
+            </div>
           </div>
         </div>
       </div>
