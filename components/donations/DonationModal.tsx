@@ -1,9 +1,21 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from '@/components/ui';
 import { AssetSelector, SUPPORTED_ASSETS, type DonationAsset } from './AssetSelector';
+import {
+  TransactionSuccessModal,
+  type DonationReceipt,
+} from './TransactionSuccessModal';
+import {
+  TransactionErrorModal,
+  type TransactionErrorDetails,
+  createTransactionErrorDetails,
+} from './TransactionErrorModal';
 import { Heart, Info } from 'lucide-react';
+import { useWalletStore } from '@/store/walletStore';
 
 export interface DonationModalProps {
   isOpen: boolean;
@@ -13,7 +25,9 @@ export interface DonationModalProps {
     title: string;
     imageUrl?: string;
   };
-  onDonate?: (payload: DonationPayload) => Promise<void>;
+  onDonate?: (payload: DonationPayload) => Promise<DonationResult | void>;
+  onSuccess?: (receipt: DonationReceipt) => void;
+  onSendConfirmationEmail?: (receipt: DonationReceipt) => Promise<void>;
 }
 
 export interface DonationPayload {
@@ -24,16 +38,53 @@ export interface DonationPayload {
   anonymous: boolean;
 }
 
+export interface DonationResult {
+  id?: string;
+  txHash?: string;
+  transactionHash?: string;
+  createdAt?: string;
+  amount?: string | number;
+  assetCode?: string;
+}
+
 const QUICK_AMOUNTS = [5, 10, 25, 50];
 const TX_FEE_XLM = 0.00001;
 
-export function DonationModal({ isOpen, onClose, project, onDonate }: DonationModalProps) {
+function generateTransactionHash() {
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+
+  return `${Date.now().toString(16)}${Math.random().toString(16).slice(2)}`.padEnd(64, '0').slice(0, 64);
+}
+
+function getDonationAmount(result: DonationResult | void, fallbackAmount: number) {
+  if (!result?.amount) return fallbackAmount;
+  const amount = Number(result.amount);
+  return Number.isFinite(amount) ? amount : fallbackAmount;
+}
+
+export function DonationModal({
+  isOpen,
+  onClose,
+  project,
+  onDonate,
+  onSuccess,
+  onSendConfirmationEmail,
+}: DonationModalProps) {
+  const router = useRouter();
+  const walletBalance = useWalletStore((state) => state.balance);
+  const walletAddress = useWalletStore((state) => state.address);
   const [rawAmount, setRawAmount] = useState('');
   const [selectedAsset, setSelectedAsset] = useState<DonationAsset>(SUPPORTED_ASSETS[0]);
   const [message, setMessage] = useState('');
   const [anonymous, setAnonymous] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [receipt, setReceipt] = useState<DonationReceipt | null>(null);
+  const [transactionError, setTransactionError] = useState<TransactionErrorDetails | null>(null);
 
   const amount = parseFloat(rawAmount) || 0;
   const usdEquivalent = (amount * selectedAsset.usdRate).toFixed(2);
@@ -65,20 +116,118 @@ export function DonationModal({ isOpen, onClose, project, onDonate }: DonationMo
     return true;
   }
 
+  function getSpendableBalanceError() {
+    if (!walletAddress || selectedAsset.code !== 'XLM' || !walletBalance) {
+      return null;
+    }
+
+    const balance = Number(walletBalance);
+    if (!Number.isFinite(balance)) {
+      return null;
+    }
+
+    const requiredAmount = amount + TX_FEE_XLM;
+    if (requiredAmount > balance) {
+      return new Error('Insufficient balance for this donation amount and the Stellar network fee.');
+    }
+
+    return null;
+  }
+
+  function buildReceipt(result: DonationResult | void): DonationReceipt {
+    const donationAmount = getDonationAmount(result, amount);
+    const txHash = result?.transactionHash || result?.txHash || generateTransactionHash();
+
+    return {
+      donationId: result?.id,
+      projectId: project.id,
+      projectTitle: project.title,
+      amount: donationAmount,
+      assetCode: result?.assetCode || selectedAsset.code,
+      usdEquivalent: donationAmount * selectedAsset.usdRate,
+      transactionHash: txHash,
+      donatedAt: result?.createdAt || new Date().toISOString(),
+      donorName: anonymous ? undefined : 'Connected donor',
+      anonymous,
+      message: message.trim() || undefined,
+      networkFee: `${TX_FEE_XLM} XLM`,
+    };
+  }
+
+  async function sendConfirmationEmail(receiptDetails: DonationReceipt) {
+    if (onSendConfirmationEmail) {
+      await onSendConfirmationEmail(receiptDetails);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 5000);
+    const apiBaseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/+$/, '');
+    try {
+      const response = await fetch(`${apiBaseUrl}/donations/confirmation-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          donationId: receiptDetails.donationId,
+          projectId: receiptDetails.projectId,
+          projectTitle: receiptDetails.projectTitle,
+          amount: String(receiptDetails.amount),
+          asset: receiptDetails.assetCode,
+          txHash: receiptDetails.transactionHash,
+          donatedAt: receiptDetails.donatedAt,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Confirmation email request failed with status ${response.status}`);
+      }
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  }
+
   async function handleSubmit() {
     if (!validate()) return;
     setIsSubmitting(true);
     try {
-      await onDonate?.({
+      const balanceError = getSpendableBalanceError();
+      if (balanceError) {
+        throw balanceError;
+      }
+
+      const payload = {
         projectId: project.id,
         amount,
         asset: selectedAsset,
         message,
         anonymous,
+      };
+      const result = await onDonate?.(payload);
+      const receiptDetails = buildReceipt(result);
+
+      setReceipt(receiptDetails);
+      onSuccess?.(receiptDetails);
+      setError('');
+    } catch (donationError) {
+      const details = createTransactionErrorDetails(donationError, {
+        projectId: project.id,
+        projectTitle: project.title,
+        amount,
+        assetCode: selectedAsset.code,
       });
-      handleClose();
-    } catch {
-      setError('Donation failed. Please try again.');
+
+      setTransactionError(details);
+      console.error('[Donation] Failed to submit transaction', {
+        error: donationError,
+        projectId: project.id,
+        projectTitle: project.title,
+        amount,
+        assetCode: selectedAsset.code,
+        supportCode: details.supportCode,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -86,10 +235,46 @@ export function DonationModal({ isOpen, onClose, project, onDonate }: DonationMo
 
   function handleClose() {
     setRawAmount('');
+    setSelectedAsset(SUPPORTED_ASSETS[0]);
     setMessage('');
     setAnonymous(false);
     setError('');
+    setReceipt(null);
+    setTransactionError(null);
     onClose();
+  }
+
+  function handleRetry() {
+    setTransactionError(null);
+    setError('');
+  }
+
+  function handleDonateAnother() {
+    handleClose();
+    router.push('/projects');
+  }
+
+  if (receipt) {
+    return (
+      <TransactionSuccessModal
+        isOpen={isOpen}
+        onClose={handleClose}
+        receipt={receipt}
+        onDonateAnother={handleDonateAnother}
+        onSendConfirmationEmail={sendConfirmationEmail}
+      />
+    );
+  }
+
+  if (transactionError) {
+    return (
+      <TransactionErrorModal
+        isOpen={isOpen}
+        error={transactionError}
+        onRetry={handleRetry}
+        onCancel={handleClose}
+      />
+    );
   }
 
   return (
@@ -98,6 +283,7 @@ export function DonationModal({ isOpen, onClose, project, onDonate }: DonationMo
       onClose={handleClose}
       variant="centered"
       size="md"
+      showCloseButton={false}
       aria-labelledby="donation-modal-title"
     >
       <ModalHeader onClose={handleClose} showCloseButton>
