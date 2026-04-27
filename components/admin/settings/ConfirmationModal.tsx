@@ -47,7 +47,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         <Button variant="outline" onClick={onClose} disabled={isLoading}>
           Cancel
         </Button>
-        <Button variant="default" onClick={onConfirm} disabled={isLoading} className="bg-amber-600 hover:bg-amber-700 border-amber-600">
+        <Button variant="primary" onClick={onConfirm} disabled={isLoading} className="bg-amber-600 hover:bg-amber-700 border-amber-600">
           {isLoading ? 'Updating...' : 'Confirm & Save'}
         </Button>
       </ModalFooter>
