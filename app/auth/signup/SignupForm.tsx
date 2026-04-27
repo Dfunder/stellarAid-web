@@ -20,6 +20,7 @@ interface RegisterFormData {
   role: "donor" | "creator";
   password: string;
   confirmPassword: string;
+  acceptTerms: boolean;
 }
 
 const Signup = () => {
@@ -39,6 +40,7 @@ const Signup = () => {
       role: "donor",
       password: "",
       confirmPassword: "",
+      acceptTerms: false,
     },
   });
 
@@ -232,6 +234,39 @@ const Signup = () => {
             {errors.confirmPassword.message}
           </p>
         )}
+
+        {/* Terms Acceptance */}
+        <Controller
+          name="acceptTerms"
+          control={control}
+          render={({ field }) => (
+            <div className="flex flex-col gap-1">
+              <label className="flex items-start gap-2 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={field.value}
+                  onChange={(e) => field.onChange(e.target.checked)}
+                  className="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-colors"
+                />
+                <span className="text-xs text-gray-600 leading-normal">
+                  I agree to the{" "}
+                  <Link href="/terms" className="text-blue-600 hover:underline font-medium">
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" className="text-blue-600 hover:underline font-medium">
+                    Privacy Policy
+                  </Link>
+                </span>
+              </label>
+              {errors.acceptTerms && (
+                <p className="text-red-500 text-[11px] ml-6">
+                  {errors.acceptTerms.message}
+                </p>
+              )}
+            </div>
+          )}
+        />
 
         {/* Primary CTA */}
         <Button

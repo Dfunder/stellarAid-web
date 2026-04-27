@@ -19,6 +19,9 @@ export const registerSchema = z
     }),
     password: passwordRule,
     confirmPassword: z.string().min(1, "Please confirm your password"),
+    acceptTerms: z.boolean().refine((val) => val === true, {
+      message: "You must accept the terms and conditions",
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords must match",
