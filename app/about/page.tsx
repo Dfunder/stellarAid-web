@@ -80,7 +80,7 @@ export default function AboutPage() {
           <motion.div initial="hidden" animate="visible" variants={fadeIn}>
             <h1 className="text-4xl md:text-6xl font-bold mb-6">Transparent Giving, Global Impact</h1>
             <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
-              StellarAid's mission is to eliminate the friction, opacity, and high costs of traditional charitable donations by leveraging the power of the Stellar network. We ensure that every cent you give goes directly where it's needed most.
+              StellarAid&apos;s mission is to eliminate the friction, opacity, and high costs of traditional charitable donations by leveraging the power of the Stellar network. We ensure that every cent you give goes directly where it&apos;s needed most.
             </p>
           </motion.div>
         </div>
@@ -261,7 +261,7 @@ export default function AboutPage() {
           variants={fadeIn}
           className="text-center mb-12"
         >
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">What They're Saying</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">What They&apos;re Saying</h2>
         </motion.div>
         
         <motion.div

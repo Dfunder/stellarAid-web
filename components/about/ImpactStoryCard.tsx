@@ -31,7 +31,7 @@ export const ImpactStoryCard: React.FC<ImpactStoryCardProps> = ({
       <div className="p-8 flex flex-col justify-center flex-1 bg-blue-50/50">
         <Quote className="w-10 h-10 text-blue-200 mb-4" />
         <blockquote className="text-lg md:text-xl font-medium text-gray-800 mb-6 italic">
-          "{quote}"
+          &ldquo;{quote}&rdquo;
         </blockquote>
         <div className="mt-auto">
           <p className="font-bold text-gray-900">{author}</p>
