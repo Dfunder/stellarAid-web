@@ -6,6 +6,12 @@ import { ToastProvider } from "@/components/ui";
 import React, { Suspense } from "react";
 import GlobalLoading from "@/components/GlobalLoading";
 import GlobalLoadingOverlay from "@/components/GlobalLoadingOverlay";
+import { ThemeProvider } from "next-themes";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+});
 
 const inter = Inter({
   subsets: ["latin"],
@@ -99,16 +105,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} antialiased`}>
-        <ErrorBoundaryProvider>
-          <NextAuthProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ErrorBoundaryProvider>
             <ToastProvider position="top-right" maxToasts={5}>
               <GlobalLoadingOverlay />
               <Suspense fallback={<GlobalLoading message="Loading..." />}>{children}</Suspense>
             </ToastProvider>
-          </NextAuthProvider>
-        </ErrorBoundaryProvider>
+          </ErrorBoundaryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
