@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from '@/components/ui';
 import { AssetSelector, SUPPORTED_ASSETS, type DonationAsset } from './AssetSelector';
 import {
