@@ -110,10 +110,12 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ErrorBoundaryProvider>
-            <ToastProvider position="top-right" maxToasts={5}>
-              <GlobalLoadingOverlay />
-              <Suspense fallback={<GlobalLoading message="Loading..." />}>{children}</Suspense>
-            </ToastProvider>
+            <NextAuthProvider>
+              <ToastProvider position="top-right" maxToasts={5}>
+                <GlobalLoadingOverlay />
+                <Suspense fallback={<GlobalLoading message="Loading..." />}>{children}</Suspense>
+              </ToastProvider>
+            </NextAuthProvider>
           </ErrorBoundaryProvider>
         </ThemeProvider>
       </body>
