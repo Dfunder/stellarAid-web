@@ -4,6 +4,10 @@ import Footer from "./components/Footer";
 import HeroPage from "./components/HeroPage";
 import MakeAnImpact from "./components/MakeAnImpact";
 import FeaturedProjects from "./components/FeaturedProjects";
+import HowItWorks from "./components/HowItWorks";
+import Categories from "./components/Categories";
+import ForCreatorsAndDonors from "./components/ForCreatorsAndDonors";
+import Newsletter from "./components/Newsletter";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -22,14 +26,14 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* ── Hero ─────────────────────────────────────────────────────── */}
       <HeroPage />
       <FeaturedProjects />
-      <section>
-        <WhyChooseUs />
-      </section>
-      {/* ── Make an Impact ───────────────────────────────────────────── */}
+      <HowItWorks />
+      <Categories />
+      <WhyChooseUs />
+      <ForCreatorsAndDonors />
       <MakeAnImpact />
+      <Newsletter />
       <Footer />
     </div>
   );
