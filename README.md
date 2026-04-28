@@ -3,6 +3,46 @@ A blockchain-based crowdfunding platform built on the **Stellar Network** for tr
 
 StellarAid enables project creators to raise funds in **XLM** or any Stellar-based asset (USDC, NGNT, custom tokens), while donors can contribute with full on-chain transparency.
 
+## 🚀 SEO & Performance Optimizations
+
+This application is optimized for search engines and social sharing:
+
+### Meta Tags & Social Media
+- ✅ Dynamic Open Graph tags for all pages
+- ✅ Twitter Card meta tags
+- ✅ Structured data (JSON-LD) for organization and projects
+- ✅ Proper meta descriptions and titles
+
+### Technical SEO
+- ✅ Sitemap.xml generation
+- ✅ Robots.txt configuration
+- ✅ Canonical URLs
+- ✅ Image optimization with Next.js Image component
+- ✅ Lazy loading for images
+
+### Performance
+- ✅ Next.js Image optimization
+- ✅ WebP/AVIF image formats
+- ✅ Responsive images
+- ✅ Build optimizations
+
+### Testing SEO
+Run these commands to test SEO:
+```bash
+# Build for production
+npm run build
+
+# Test with Lighthouse
+npx lighthouse http://localhost:3000 --output html --output-path ./lighthouse-report.html
+
+# Check structured data
+# Visit: https://search.google.com/test/rich-results
+# Or use: https://validator.schema.org/
+
+# Check Open Graph
+# Visit: https://opengraph.xyz/
+```
+
 # Folder structure 
 ```bash
 /src

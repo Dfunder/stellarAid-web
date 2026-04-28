@@ -47,6 +47,34 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
       description,
       images: [imageUrl],
     },
+    other: {
+      'application/ld+json': JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Project',
+        name: project.title,
+        description: project.description,
+        image: project.imageUrl,
+        url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://stellaraid.com'}/projects/${params.id}`,
+        creator: {
+          '@type': 'Person',
+          name: project.creator?.name || 'StellarAid Creator',
+        },
+        provider: {
+          '@type': 'Organization',
+          name: 'StellarAid',
+        },
+        funding: {
+          '@type': 'MonetaryAmount',
+          currency: 'USD',
+          value: project.currentAmount,
+        },
+        goal: {
+          '@type': 'MonetaryAmount',
+          currency: 'USD',
+          value: project.targetAmount,
+        },
+      }),
+    },
   };
 }
 
