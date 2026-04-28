@@ -200,26 +200,26 @@ export function DonationChart({ projectId, authToken }: DonationChartProps) {
               >
                 <defs>
                   <linearGradient id="dc-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%"   stopColor="#5ef0a0" stopOpacity={0.25} />
-                    <stop offset="100%" stopColor="#5ef0a0" stopOpacity={0}    />
+                    <stop offset="0%" stopColor="var(--dc-accent)" stopOpacity={0.25} />
+                    <stop offset="100%" stopColor="var(--dc-accent)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
                   strokeDasharray="3 3"
-                  stroke="#232529"
+                  stroke="var(--dc-border)"
                   vertical={false}
                 />
                 <XAxis
                   dataKey="date"
                   tickFormatter={formatXAxis}
-                  tick={{ fill: '#6b7280', fontSize: 11, fontFamily: 'DM Mono, monospace' }}
+                  tick={{ fill: 'var(--dc-muted)', fontSize: 11, fontFamily: 'DM Mono, monospace' }}
                   axisLine={false}
                   tickLine={false}
                   dy={8}
                   interval="preserveStartEnd"
                 />
                 <YAxis
-                  tick={{ fill: '#6b7280', fontSize: 11, fontFamily: 'DM Mono, monospace' }}
+                  tick={{ fill: 'var(--dc-muted)', fontSize: 11, fontFamily: 'DM Mono, monospace' }}
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={(v) =>
@@ -229,16 +229,16 @@ export function DonationChart({ projectId, authToken }: DonationChartProps) {
                 />
                 <Tooltip
                   content={<ChartTooltip asset={asset} />}
-                  cursor={{ stroke: '#5ef0a0', strokeWidth: 1, strokeDasharray: '4 4' }}
+                  cursor={{ stroke: 'var(--dc-accent)', strokeWidth: 1, strokeDasharray: '4 4' }}
                 />
                 <Area
                   type="monotone"
                   dataKey="totalAmount"
-                  stroke="#5ef0a0"
+                  stroke="var(--dc-accent)"
                   strokeWidth={2}
                   fill="url(#dc-grad)"
                   dot={false}
-                  activeDot={{ r: 5, fill: '#5ef0a0', strokeWidth: 0 }}
+                  activeDot={{ r: 5, fill: 'var(--dc-accent)', strokeWidth: 0 }}
                   animationDuration={600}
                 />
               </AreaChart>
@@ -256,13 +256,13 @@ const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,300;9..144,600&display=swap');
 
   .dc-root {
-    --dc-bg: #0d0f12;
-    --dc-surface: #141619;
-    --dc-border: #232529;
-    --dc-accent: #5ef0a0;
-    --dc-text: #e8eaed;
-    --dc-muted: #6b7280;
-    --dc-fail: #f87171;
+    --dc-bg: hsl(var(--background));
+    --dc-surface: hsl(var(--card));
+    --dc-border: hsl(var(--border));
+    --dc-accent: hsl(var(--primary));
+    --dc-text: hsl(var(--foreground));
+    --dc-muted: hsl(var(--muted-foreground));
+    --dc-fail: hsl(var(--destructive));
 
     background: var(--dc-bg);
     border: 1px solid var(--dc-border);
@@ -306,7 +306,7 @@ const CSS = `
   .dc-range {
     display: flex;
     gap: 4px;
-    background: #141619;
+    background: var(--dc-surface);
     border: 1px solid var(--dc-border);
     border-radius: 8px;
     padding: 4px;
@@ -325,7 +325,7 @@ const CSS = `
   }
   .dc-range__btn:hover { color: var(--dc-text); }
   .dc-range__btn--active {
-    background: #222529;
+    background: var(--dc-bg);
     color: var(--dc-accent);
     font-weight: 500;
   }
