@@ -49,6 +49,44 @@ export interface WalletActions {
 
 export type WalletStore = WalletState & WalletActions;
 
+// Audit Log Types
+export type AuditAction =
+  | 'USER_CREATED'
+  | 'USER_UPDATED'
+  | 'USER_SUSPENDED'
+  | 'USER_UNSUSPENDED'
+  | 'USER_DELETED'
+  | 'PROJECT_CREATED'
+  | 'PROJECT_UPDATED'
+  | 'PROJECT_APPROVED'
+  | 'PROJECT_REJECTED'
+  | 'PROJECT_DELETED'
+  | 'DONATION_PROCESSED'
+  | 'WITHDRAWAL_REQUESTED'
+  | 'WITHDRAWAL_APPROVED'
+  | 'WITHDRAWAL_REJECTED'
+  | 'WITHDRAWAL_PROCESSED'
+  | 'ADMIN_LOGIN'
+  | 'ADMIN_LOGOUT'
+  | 'SETTINGS_UPDATED'
+  | 'REPORT_GENERATED';
+
+export interface AuditLog {
+  id: string;
+  adminId: string;
+  adminName: string;
+  adminEmail: string;
+  action: AuditAction;
+  targetId?: string;
+  targetType?: string;
+  targetName?: string;
+  details?: Record<string, any>;
+  ipAddress?: string;
+  userAgent?: string;
+  timestamp: string;
+  createdAt: string;
+}
+
 // UI Store Types
 export type ModalType = "login" | "wallet" | "settings" | null;
 

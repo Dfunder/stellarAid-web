@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { Metadata } from 'next';
 import { ProjectDetailsClient } from '@/components/projects/ProjectDetailsClient';
 import type { Project, ProjectCreator, ProjectStatus, Update } from '@/types/api';
 
@@ -7,6 +8,73 @@ export const dynamic = 'force-dynamic';
 interface ProjectPageProps {
   params: {
     id: string;
+  };
+}
+
+export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
+  const project = await fetchProject(params.id);
+
+  if (!project) {
+    return {
+      title: 'Project Not Found | StellarAid',
+      description: 'The requested project could not be found.',
+    };
+  }
+
+  const title = `${project.title} | StellarAid`;
+  const description = project.description?.substring(0, 160) || `Support this ${project.category} project on StellarAid.`;
+  const imageUrl = project.imageUrl || '/og-image.jpg';
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `/projects/${params.id}`,
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: project.title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [imageUrl],
+    },
+    other: {
+      'application/ld+json': JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Project',
+        name: project.title,
+        description: project.description,
+        image: project.imageUrl,
+        url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://stellaraid.com'}/projects/${params.id}`,
+        creator: {
+          '@type': 'Person',
+          name: project.creator?.name || 'StellarAid Creator',
+        },
+        provider: {
+          '@type': 'Organization',
+          name: 'StellarAid',
+        },
+        funding: {
+          '@type': 'MonetaryAmount',
+          currency: 'USD',
+          value: project.currentAmount,
+        },
+        goal: {
+          '@type': 'MonetaryAmount',
+          currency: 'USD',
+          value: project.targetAmount,
+        },
+      }),
+    },
   };
 }
 

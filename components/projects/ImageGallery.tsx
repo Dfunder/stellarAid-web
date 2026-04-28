@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useMemo, useState, useCallback } from 'react';
+import Image from 'next/image';
 import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -127,11 +128,13 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
             )}
             aria-label={`Show thumbnail ${index + 1}`}
           >
-            <img
+            <Image
               src={image.thumbnail || image.src}
               alt={image.alt || `Thumbnail ${index + 1}`}
-              loading="lazy"
+              width={96}
+              height={80}
               className="h-20 w-full object-cover"
+              loading="lazy"
             />
           </button>
         ))}
@@ -163,12 +166,12 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
                 onMouseMove={handleMouseMove}
                 onClick={toggleZoom}
               >
-                <img
+                <Image
                   src={activeImage.src}
                   alt={activeImage.alt || `Lightbox image ${selectedIndex + 1}`}
-                  loading="lazy"
+                  fill
                   className={clsx(
-                    'h-full w-full object-contain transition-transform duration-300',
+                    'object-contain transition-transform duration-300',
                     isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'
                   )}
                   style={{

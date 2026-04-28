@@ -39,10 +39,10 @@ export const Card = ({
 
   // Variant styles
   const variantStyles: Record<CardVariant, string> = {
-    default: 'bg-white shadow-sm',
-    bordered: 'bg-white border border-gray-200',
-    elevated: 'bg-white shadow-lg',
-    outline: 'border border-gray-300 bg-transparent',
+    default: 'bg-card shadow-sm',
+    bordered: 'bg-card border border-border',
+    elevated: 'bg-card shadow-lg',
+    outline: 'border border-border bg-transparent',
   };
 
   // Padding styles

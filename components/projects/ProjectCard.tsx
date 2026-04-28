@@ -30,25 +30,25 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
 
   return (
     <div
-      className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-neutral-100 flex flex-col h-full animate-fade-in"
+      className="group bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-border flex flex-col h-full animate-fade-in"
     >
       {/* Card Image area */}
       <div className={clsx(
         "relative h-56 w-full bg-gradient-to-br flex items-center justify-center overflow-hidden",
-        project.imageGradient || 'from-neutral-100 to-neutral-200'
+        project.imageGradient || 'from-muted to-muted/50'
       )}>
-        <div className="absolute inset-0 bg-white/10 group-hover:bg-transparent transition-colors duration-300" />
+        <div className="absolute inset-0 bg-background/10 group-hover:bg-transparent transition-colors duration-300" />
         
         {/* Status Badges */}
         <div className="absolute top-4 left-4 flex flex-col gap-2">
           {project.isVerified && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-full shadow-sm">
-              <BadgeCheck className="w-4 h-4 text-primary-500" />
-              <span className="text-[10px] font-bold text-neutral-900 uppercase tracking-wider">Verified</span>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-background/90 backdrop-blur-md rounded-full shadow-sm">
+              <BadgeCheck className="w-4 h-4 text-primary" />
+              <span className="text-[10px] font-bold text-foreground uppercase tracking-wider">Verified</span>
             </div>
           )}
           {project.isUrgent && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary-500/90 backdrop-blur-md rounded-full shadow-sm text-white">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary/90 backdrop-blur-md rounded-full shadow-sm text-secondary-foreground">
               <Zap className="w-3.5 h-3.5" />
               <span className="text-[10px] font-bold uppercase tracking-wider">Urgent</span>
             </div>
@@ -65,35 +65,35 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           className={clsx(
             "absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md border",
             isBookmarked(project.id)
-              ? "bg-primary-500 border-primary-400 text-white shadow-glow"
-              : "bg-white/70 border-white/40 text-neutral-600 hover:bg-white hover:text-primary-500"
+              ? "bg-primary border-primary/80 text-primary-foreground shadow-glow"
+              : "bg-background/70 border-background/40 text-muted-foreground hover:bg-background hover:text-primary"
           )}
         >
           <Bookmark className={clsx("w-5 h-5", isBookmarked(project.id) && "fill-current")} />
         </button>
 
-        <div className="w-16 h-16 rounded-full bg-white/30 backdrop-blur-md border border-white/40 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-500">
-          <div className="w-8 h-8 rounded-full bg-white/80 shadow-inner" />
+        <div className="w-16 h-16 rounded-full bg-background/30 backdrop-blur-md border border-background/40 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-500">
+          <div className="w-8 h-8 rounded-full bg-background/80 shadow-inner" />
         </div>
       </div>
 
       {/* Card Content */}
       <div className="p-7 flex flex-col flex-grow">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-[11px] font-bold text-secondary-500 uppercase tracking-[0.1em]">
+          <span className="text-[11px] font-bold text-secondary uppercase tracking-[0.1em]">
             {project.category}
           </span>
           <span className={clsx(
             "text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md",
-            project.status === 'completed' ? "bg-success-50 text-success-700" : 
-            project.status === 'almost-funded' ? "bg-warning-50 text-warning-700" :
-            "bg-primary-50 text-primary-700"
+            project.status === 'completed' ? "bg-success/10 text-success" : 
+            project.status === 'almost-funded' ? "bg-warning/10 text-warning" :
+            "bg-primary/10 text-primary"
           )}>
             {project.status?.replace('-', ' ') || 'Active'}
           </span>
         </div>
         
-        <h3 className="text-xl font-bold text-neutral-900 mb-6 group-hover:text-primary-600 transition-colors line-clamp-2">
+        <h3 className="text-xl font-bold text-foreground mb-6 group-hover:text-primary transition-colors line-clamp-2">
           {project.title}
         </h3>
 

@@ -1,5 +1,20 @@
 import React from 'react';
+import { Metadata } from 'next';
 import { LegalLayout } from '@/components/legal/LegalLayout';
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "Learn how StellarAid protects your privacy and handles your data. Our commitment to transparency extends to how we collect, use, and protect your information.",
+  openGraph: {
+    title: "Privacy Policy | StellarAid",
+    description: "Learn how StellarAid protects your privacy and handles your data. Our commitment to transparency extends to how we collect, use, and protect your information.",
+    url: "/privacy",
+  },
+  twitter: {
+    title: "Privacy Policy | StellarAid",
+    description: "Learn how StellarAid protects your privacy and handles your data. Our commitment to transparency extends to how we collect, use, and protect your information.",
+  },
+};
 
 const SECTIONS = [
   { id: 'collection', title: '1. Information Collection' },

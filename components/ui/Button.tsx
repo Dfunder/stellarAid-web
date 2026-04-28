@@ -36,13 +36,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     // Variant styles
     const variantStyles: Record<ButtonVariant, string> = {
       primary:
-        'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 active:bg-blue-800',
+        'bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-primary active:bg-primary/80',
       secondary:
-        'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500 active:bg-gray-800',
+        'bg-secondary text-secondary-foreground hover:bg-secondary/80 focus:ring-secondary active:bg-secondary/70',
       outline:
-        'border-2 border-blue-600 text-blue-600 hover:bg-blue-50 focus:ring-blue-500',
-      ghost: 'text-gray-700 hover:bg-gray-100 focus:ring-gray-500',
-      danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 active:bg-red-800',
+        'border-2 border-primary text-primary hover:bg-primary/10 focus:ring-primary',
+      ghost: 'text-foreground hover:bg-muted focus:ring-muted',
+      danger: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:ring-destructive active:bg-destructive/80',
     };
 
     // Size styles

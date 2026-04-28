@@ -3,6 +3,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { FaFacebookF, FaLinkedinIn, FaWhatsapp, FaXTwitter } from 'react-icons/fa6';
 import {
   BadgeCheck,
@@ -248,12 +249,14 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
                     {update.imageUrls?.length ? (
                       <div className="mt-4 grid gap-3 sm:grid-cols-2">
                         {update.imageUrls.slice(0, 2).map((url) => (
-                          <img
+                          <Image
                             key={url}
                             src={url}
                             alt={update.title}
-                            loading="lazy"
+                            width={400}
+                            height={176}
                             className="h-44 w-full rounded-lg border border-neutral-200 object-cover"
+                            loading="lazy"
                           />
                         ))}
                       </div>
@@ -268,7 +271,13 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
               <div className="mt-5 flex flex-col gap-5 sm:flex-row sm:items-start">
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-50 text-primary-600">
                   {creator?.avatar ? (
-                    <img src={creator.avatar} alt={creator.name || 'Project creator'} className="h-full w-full object-cover" />
+                    <Image
+                      src={creator.avatar}
+                      alt={creator.name || 'Project creator'}
+                      width={64}
+                      height={64}
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
                     <UserRound className="h-8 w-8" />
                   )}
