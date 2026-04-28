@@ -26,6 +26,15 @@ This application is optimized for search engines and social sharing:
 - ✅ Responsive images
 - ✅ Build optimizations
 
+### Dark Mode
+- ✅ next-themes integration
+- ✅ System preference detection
+- ✅ Theme persistence
+- ✅ Theme toggle in header
+- ✅ All components support dark mode
+- ✅ Charts and graphs adapt to theme
+- ✅ Smooth theme transitions
+
 ### Testing SEO
 Run these commands to test SEO:
 ```bash
@@ -41,6 +50,18 @@ npx lighthouse http://localhost:3000 --output html --output-path ./lighthouse-re
 
 # Check Open Graph
 # Visit: https://opengraph.xyz/
+```
+
+### Testing Dark Mode
+```bash
+# Start development server
+npm run dev
+
+# Test theme toggle
+# - Click the sun/moon icon in header
+# - Check system preference detection
+# - Verify all components adapt
+# - Test chart visibility in both themes
 ```
 
 # Folder structure 
