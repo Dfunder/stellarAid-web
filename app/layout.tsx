@@ -7,11 +7,7 @@ import React, { Suspense } from "react";
 import GlobalLoading from "@/components/GlobalLoading";
 import GlobalLoadingOverlay from "@/components/GlobalLoadingOverlay";
 import { ThemeProvider } from "next-themes";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
+import NextAuthProvider from "@/components/NextAuthProvider";
 
 const inter = Inter({
   subsets: ["latin"],
