@@ -8,6 +8,8 @@ import GlobalLoading from "@/components/GlobalLoading";
 import GlobalLoadingOverlay from "@/components/GlobalLoadingOverlay";
 import { ThemeProvider } from "next-themes";
 import NextAuthProvider from "@/components/NextAuthProvider";
+import Script from "next/script";
+import CookieConsent from "@/components/CookieConsent";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -93,15 +95,37 @@ export const metadata: Metadata = {
   },
 };
 
-import NextAuthProvider from "@/components/NextAuthProvider";
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const ga4Id = process.env.NEXT_PUBLIC_GA4_ID;
+  const plausibleDomain = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN;
+
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {ga4Id && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${ga4Id}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-init" strategy="afterInteractive">
+              {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${ga4Id}',{anonymize_ip:true});`}
+            </Script>
+          </>
+        )}
+        {plausibleDomain && (
+          <Script
+            defer
+            data-domain={plausibleDomain}
+            src="https://plausible.io/js/script.js"
+            strategy="afterInteractive"
+          />
+        )}
+      </head>
       <body className={`${inter.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
@@ -114,6 +138,7 @@ export default function RootLayout({
               <ToastProvider position="top-right" maxToasts={5}>
                 <GlobalLoadingOverlay />
                 <Suspense fallback={<GlobalLoading message="Loading..." />}>{children}</Suspense>
+                <CookieConsent />
               </ToastProvider>
             </NextAuthProvider>
           </ErrorBoundaryProvider>
