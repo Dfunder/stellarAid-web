@@ -53,7 +53,7 @@ export default function Header() {
                 </Link>
                 <Link
                   href="/auth/signup"
-                  className="inline-flex items-center justify-center text-sm font-semibold text-white bg-[#1a3a6b] hover:bg-[#15305a] rounded-lg px-5 py-2 transition-colors"
+                  className="inline-flex items-center justify-center text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg px-5 py-2 transition-colors"
                 >
                   Get Started
                 </Link>
@@ -65,7 +65,7 @@ export default function Header() {
           <button
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
-            className="md:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            className="md:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileOpen}
           >
@@ -76,14 +76,11 @@ export default function Header() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div
-          className="md:hidden border-t border-gray-200 px-4 py-4 space-y-3"
-          style={{ backgroundColor: '#eef3fa' }}
-        >
+        <div className="md:hidden border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 py-4 space-y-3">
           <Link
-            href="/projects"
+            href="/explore"
             onClick={() => setMobileOpen(false)}
-            className="block text-sm font-medium text-gray-700 hover:text-gray-900 py-2 transition-colors"
+            className="block text-sm font-medium text-muted-foreground hover:text-foreground py-2 transition-colors"
           >
             Browse Projects
           </Link>
@@ -91,11 +88,15 @@ export default function Header() {
             <Link
               href="/bookmarks"
               onClick={() => setMobileOpen(false)}
-              className="block text-sm font-medium text-gray-700 hover:text-gray-900 py-2 transition-colors"
+              className="block text-sm font-medium text-muted-foreground hover:text-foreground py-2 transition-colors"
             >
               My Bookmarks
             </Link>
           )}
+          <div className="flex items-center justify-between py-2">
+            <span className="text-sm font-medium text-muted-foreground">Theme</span>
+            <ThemeToggle />
+          </div>
           {isAuthenticated ? (
             <div className="flex justify-center">
               <ProfileDropdown />
