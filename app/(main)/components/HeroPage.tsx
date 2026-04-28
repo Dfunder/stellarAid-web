@@ -48,19 +48,19 @@ const HeroPage = () => {
               Donated
             </span>
           </div>
-          <div className="hidden sm:block w-px bg-gray-100 self-stretch" />
+          <div className="hidden sm:block w-px bg-border self-stretch" />
           <div className="flex flex-col items-center gap-1">
-            <span className="text-3xl font-extrabold text-yellow-500">
+            <span className="text-3xl font-extrabold text-secondary">
               12.5K
             </span>
-            <span className="text-xs text-gray-400 font-medium uppercase tracking-wide">
+            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
               Projects
             </span>
           </div>
-          <div className="hidden sm:block w-px bg-gray-100 self-stretch" />
+          <div className="hidden sm:block w-px bg-border self-stretch" />
           <div className="flex flex-col items-center gap-1">
-            <span className="text-3xl font-extrabold text-green-500">89K</span>
-            <span className="text-xs text-gray-400 font-medium uppercase tracking-wide">
+            <span className="text-3xl font-extrabold text-success">89K</span>
+            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
               Donors
             </span>
           </div>

@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-[#f0f4fa] flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* ── Hero ─────────────────────────────────────────────────────── */}
       <HeroPage />
       <FeaturedProjects />
