@@ -160,14 +160,14 @@ export default function ProfileDropdown() {
                 <button
                   key={index}
                   onClick={item.onClick}
-                  className={`w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:bg-gray-50 ${
-                    item.isDanger ? 'text-red-600 hover:text-red-700' : 'text-gray-700'
+                  className={`w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-muted transition-colors duration-150 focus:outline-none focus:bg-muted ${
+                    item.isDanger ? 'text-destructive hover:text-destructive' : 'text-foreground'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
                   <div className="flex-1 text-left">
                     <p className="font-medium">{item.label}</p>
-                    <p className="text-xs text-gray-500">{item.description}</p>
+                    <p className="text-xs text-muted-foreground">{item.description}</p>
                   </div>
                 </button>
               );
@@ -178,12 +178,12 @@ export default function ProfileDropdown() {
                   key={index}
                   href={item.href}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:bg-gray-50"
+                  className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors duration-150 focus:outline-none focus:bg-muted"
                 >
                   <Icon className="w-4 h-4" />
                   <div className="flex-1">
                     <p className="font-medium">{item.label}</p>
-                    <p className="text-xs text-gray-500">{item.description}</p>
+                    <p className="text-xs text-muted-foreground">{item.description}</p>
                   </div>
                 </Link>
               );
