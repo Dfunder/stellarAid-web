@@ -1,5 +1,20 @@
 import React from 'react';
+import { Metadata } from 'next';
 import { LegalLayout } from '@/components/legal/LegalLayout';
+
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description: "Read StellarAid's terms of service. Understand the rules and guidelines for using our platform for transparent charitable donations.",
+  openGraph: {
+    title: "Terms of Service | StellarAid",
+    description: "Read StellarAid's terms of service. Understand the rules and guidelines for using our platform for transparent charitable donations.",
+    url: "/terms",
+  },
+  twitter: {
+    title: "Terms of Service | StellarAid",
+    description: "Read StellarAid's terms of service. Understand the rules and guidelines for using our platform for transparent charitable donations.",
+  },
+};
 
 const SECTIONS = [
   { id: 'acceptance', title: '1. Acceptance of Terms' },
