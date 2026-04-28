@@ -5,49 +5,49 @@ import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import ProfileDropdown from './ProfileDropdown';
+import { ThemeToggle } from './ThemeToggle';
+
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isAuthenticated } = useAuthStore();
 
   return (
-    <header
-      className="w-full border-b border-gray-200"
-      style={{ backgroundColor: '#eef3fa' }}
-    >
+    <header className="w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="w-9 h-9 rounded-lg bg-[#1a3a6b] flex items-center justify-center">
-              <span className="text-white font-bold text-base leading-none">S</span>
+            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-base leading-none">S</span>
             </div>
-            <span className="text-lg font-semibold text-gray-900">StellarAid</span>
+            <span className="text-lg font-semibold text-foreground">StellarAid</span>
           </Link>
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
             <Link
-              href="/projects"
-              className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+              href="/explore"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               Browse Projects
             </Link>
             {isAuthenticated && (
               <Link
                 href="/bookmarks"
-                className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
                 My Bookmarks
               </Link>
             )}
+            <ThemeToggle />
             {isAuthenticated ? (
               <ProfileDropdown />
             ) : (
               <>
                 <Link
                   href="/auth/login"
-                  className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Sign In
                 </Link>
