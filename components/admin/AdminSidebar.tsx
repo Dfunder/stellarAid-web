@@ -11,6 +11,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
   { label: 'Campaigns', href: '/admin/campaigns', icon: FolderOpen, exact: false },
   { label: 'Users', href: '/admin/users', icon: Users, exact: false },
   { label: 'Withdrawals', href: '/admin/withdrawals', icon: CreditCard, exact: false },
+  { label: 'Audit Logs', href: '/admin/logs', icon: FileText, exact: false },
   { label: 'Settings', href: '/admin/settings', icon: Settings, exact: false },
 ];
 
