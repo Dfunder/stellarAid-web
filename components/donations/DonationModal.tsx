@@ -305,7 +305,14 @@ export function DonationModal({
         {/* Project image */}
         {project.imageUrl && (
           <div className="w-full h-32 rounded-lg overflow-hidden bg-gray-100">
-            <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
+            <Image
+              src={project.imageUrl}
+              alt={project.title}
+              width={400}
+              height={128}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
           </div>
         )}
 
