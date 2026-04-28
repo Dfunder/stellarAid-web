@@ -41,13 +41,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     // State styles
     const stateStyles: Record<InputState, string> = {
       default:
-        'border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-200',
+        'border-border bg-background text-foreground placeholder-muted-foreground focus:border-primary focus:ring-primary/20',
       success:
-        'border-green-500 bg-white text-gray-900 placeholder-gray-400 focus:border-green-500 focus:ring-green-200',
+        'border-success bg-background text-foreground placeholder-muted-foreground focus:border-success focus:ring-success/20',
       error:
-        'border-red-500 bg-white text-gray-900 placeholder-gray-400 focus:border-red-500 focus:ring-red-200',
+        'border-destructive bg-background text-foreground placeholder-muted-foreground focus:border-destructive focus:ring-destructive/20',
       warning:
-        'border-yellow-500 bg-white text-gray-900 placeholder-gray-400 focus:border-yellow-500 focus:ring-yellow-200',
+        'border-warning bg-background text-foreground placeholder-muted-foreground focus:border-warning focus:ring-warning/20',
     };
 
     // Disabled style
