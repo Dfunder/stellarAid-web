@@ -70,6 +70,25 @@ export const metadata: Metadata = {
     yandex: 'your-yandex-verification-code',
     yahoo: 'your-yahoo-verification-code',
   },
+  other: {
+    'application/ld+json': JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'StellarAid',
+      url: process.env.NEXT_PUBLIC_BASE_URL || 'https://stellaraid.com',
+      logo: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://stellaraid.com'}/logo.png`,
+      description: 'Transparent blockchain-based aid platform connecting donors with verified projects worldwide.',
+      sameAs: [
+        'https://twitter.com/stellaraid',
+        'https://linkedin.com/company/stellaraid',
+      ],
+      contactPoint: {
+        '@type': 'ContactPoint',
+        contactType: 'customer service',
+        email: 'support@stellaraid.com',
+      },
+    }),
+  },
 };
 
 import NextAuthProvider from "@/components/NextAuthProvider";
