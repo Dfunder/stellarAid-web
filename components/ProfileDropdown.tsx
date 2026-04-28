@@ -102,12 +102,12 @@ export default function ProfileDropdown() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#1a3a6b] focus:ring-offset-2"
+        className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
         {/* User Avatar */}
-        <div className="w-8 h-8 rounded-full bg-[#1a3a6b] flex items-center justify-center text-white text-sm font-medium">
+        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-medium">
           {user?.avatar ? (
             <Image
               src={user.avatar}
@@ -123,13 +123,13 @@ export default function ProfileDropdown() {
         </div>
 
         {/* User Name */}
-        <span className="hidden sm:block text-sm font-medium text-gray-700">
+        <span className="hidden sm:block text-sm font-medium text-foreground">
           {user?.name || 'User'}
         </span>
 
         {/* Chevron Icon */}
         <ChevronDown
-          className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
+          className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
           }`}
         />
@@ -137,16 +137,16 @@ export default function ProfileDropdown() {
 
       {/* Dropdown Menu */}
       <div
-        className={`absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 transition-all duration-200 transform origin-top-right ${
+        className={`absolute right-0 mt-2 w-64 bg-card rounded-lg shadow-lg border border-border py-2 z-50 transition-all duration-200 transform origin-top-right ${
           isOpen
             ? 'opacity-100 scale-100 translate-y-0'
             : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
         }`}
       >
         {/* User Info Header */}
-        <div className="px-4 py-3 border-b border-gray-100">
-          <p className="text-sm font-medium text-gray-900">{user?.name || 'User'}</p>
-          <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+        <div className="px-4 py-3 border-b border-border">
+          <p className="text-sm font-medium text-foreground">{user?.name || 'User'}</p>
+          <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
         </div>
 
         {/* Menu Items */}
