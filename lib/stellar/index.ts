@@ -77,3 +77,7 @@ export {
   getServerHealth,
   isConnectionAvailable,
 } from './connection';
+
+// Error handling exports (#143)
+export type { StellarTxError } from './errorHandler';
+export { parseStellarError, isUserRejection } from './errorHandler';

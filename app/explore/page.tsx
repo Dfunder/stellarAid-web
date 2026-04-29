@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import dynamic from "next/dynamic";
 import {
   Search,
   Star,
   TrendingUp,
-  Clock,
   Zap,
   Heart,
   Users,
@@ -13,15 +13,34 @@ import {
 
 import { projectsApi } from "@/lib/api/projects";
 import { Project } from "@/types/api";
-import ProjectCard from "@/components/projects/ProjectCard";
-import {
-  ProjectFilters,
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+
+// Dynamic imports for heavy components to reduce initial bundle size (#142)
+const ProjectCard = dynamic(() => import("@/components/projects/ProjectCard"), {
+  loading: () => <ProjectCardSkeleton />,
+});
+
+const ProjectFilters = dynamic(
+  () =>
+    import("@/components/projects/ProjectFilters").then(
+      (m) => ({ default: m.ProjectFilters }),
+    ),
+  { ssr: false },
+);
+
+const ProjectSearch = dynamic(
+  () => import("@/components/projects/ProjectSearch"),
+  { ssr: false },
+);
+
+import type {
   ProjectFiltersState,
   SortOption,
 } from "@/components/projects/ProjectFilters";
-import ProjectSearch from "@/components/projects/ProjectSearch";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { Pagination, type PageSize } from "@/components/ui/Pagination";
 
 // Types
 interface ProjectWithMetadata {
@@ -47,17 +66,8 @@ interface ProjectWithMetadata {
   updatedAt?: string;
 }
 
-interface ExplorePageState {
-  projects: ProjectWithMetadata[];
-  featuredProjects: ProjectWithMetadata[];
-  loading: boolean;
-  loadingMore: boolean;
-  error: string | null;
-  currentPage: number;
-  hasMore: boolean;
-  searchQuery: string;
-  filters: ProjectFiltersState;
-}
+// Total mock items (simulates a real API total count)
+const TOTAL_MOCK_ITEMS = 120;
 
 // Loading skeleton component
 const ProjectCardSkeleton = () => (
@@ -144,22 +154,39 @@ const FeaturedSection = ({ projects }: { projects: ProjectWithMetadata[] }) => (
 );
 
 export default function ExplorePage() {
-  const [state, setState] = useState<ExplorePageState>({
-    projects: [],
-    featuredProjects: [],
-    loading: true,
-    loadingMore: false,
-    error: null,
-    currentPage: 1,
-    hasMore: true,
-    searchQuery: "",
-    filters: {
-      sort: "newest",
-      verifiedOnly: false,
-      status: "all",
-      urgentOnly: false,
-    },
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // ── URL-driven pagination state (#146) ──────────────────────────────────────
+  const pageParam = Number(searchParams.get("page") ?? "1");
+  const sizeParam = Number(searchParams.get("size") ?? "12") as PageSize;
+  const validSizes: PageSize[] = [12, 24, 48];
+  const currentPage = Math.max(1, pageParam);
+  const pageSize: PageSize = validSizes.includes(sizeParam) ? sizeParam : 12;
+
+  const [projects, setProjects] = useState<ProjectWithMetadata[]>([]);
+  const [featuredProjects, setFeaturedProjects] = useState<ProjectWithMetadata[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState<ProjectFiltersState>({
+    sort: "newest",
+    verifiedOnly: false,
+    status: "all",
+    urgentOnly: false,
   });
+
+  /** Push updated page/size to URL without full navigation */
+  const updateUrl = useCallback(
+    (page: number, size: PageSize) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("page", String(page));
+      params.set("size", String(size));
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [router, pathname, searchParams],
+  );
 
   // Mock data generator for demonstration
   const generateMockProject = useCallback(
@@ -191,9 +218,9 @@ export default function ExplorePage() {
       const target = Math.floor(Math.random() * 50000) + 10000;
       const current = Math.floor(Math.random() * target);
       const progress = Math.round((current / target) * 100);
-      const category = categories[index % categories.length] ?? 'Community';
-      const imageGradient = gradients[index % gradients.length] ?? gradients[0] ?? 'from-blue-400 to-purple-600';
-      const status = statuses[Math.floor(Math.random() * statuses.length)] ?? 'active';
+      const category = categories[index % categories.length] ?? "Community";
+      const imageGradient = gradients[index % gradients.length] ?? gradients[0] ?? "from-blue-400 to-purple-600";
+      const status = statuses[Math.floor(Math.random() * statuses.length)] ?? "active";
 
       return {
         id,
@@ -222,138 +249,96 @@ export default function ExplorePage() {
     [],
   );
 
-  // Fetch projects
+  // Fetch one page of projects
   const fetchProjects = useCallback(
-    async (page: number = 1, reset: boolean = false) => {
+    async (page: number, size: number) => {
       try {
-        setState((prev) => ({
-          ...prev,
-          loading: reset,
-          loadingMore: !reset && page > 1,
-          error: null,
-        }));
+        setLoading(true);
+        setError(null);
 
         // Simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 600));
 
-        // Generate mock data for demonstration
-        const newProjects = Array.from({ length: 9 }, (_, i) =>
-          generateMockProject(`project-${page}-${i}`, (page - 1) * 9 + i),
+        const newProjects = Array.from({ length: size }, (_, i) =>
+          generateMockProject(`project-${page}-${i}`, (page - 1) * size + i),
         );
 
-        setState((prev) => {
-          const projects = reset
-            ? newProjects
-            : [...prev.projects, ...newProjects];
-          return {
-            ...prev,
-            projects,
-            loading: false,
-            loadingMore: false,
-            currentPage: page,
-            hasMore: page < 5, // Simulate 5 pages of data
-          };
-        });
-      } catch (err) {
-        setState((prev) => ({
-          ...prev,
-          loading: false,
-          loadingMore: false,
-          error: "Failed to load projects. Please try again.",
-        }));
+        setProjects(newProjects);
+      } catch {
+        setError("Failed to load projects. Please try again.");
+      } finally {
+        setLoading(false);
       }
     },
     [generateMockProject],
   );
 
-  // Fetch featured projects
+  // Fetch featured projects (once)
   const fetchFeaturedProjects = useCallback(async () => {
     try {
-      // Generate featured projects (first 3 with featured flag)
       const featured = Array.from({ length: 3 }, (_, i) =>
         generateMockProject(`featured-${i}`, i),
       ).map((project) => ({ ...project, featured: true }));
-
-      setState((prev) => ({ ...prev, featuredProjects: featured }));
-    } catch (err) {
-      console.error("Failed to fetch featured projects:", err);
+      setFeaturedProjects(featured);
+    } catch {
+      console.error("Failed to fetch featured projects");
     }
   }, [generateMockProject]);
 
-  // Initial load
+  // Re-fetch whenever page or pageSize changes
   useEffect(() => {
-    fetchProjects(1, true);
+    fetchProjects(currentPage, pageSize);
+  }, [fetchProjects, currentPage, pageSize]);
+
+  useEffect(() => {
     fetchFeaturedProjects();
-  }, [fetchProjects, fetchFeaturedProjects]);
+  }, [fetchFeaturedProjects]);
 
   // Handle search
   const handleSearch = useCallback(
     (query: string) => {
-      setState((prev) => ({ ...prev, searchQuery: query, currentPage: 1 }));
-      fetchProjects(1, true);
+      setSearchQuery(query);
+      updateUrl(1, pageSize);
     },
-    [fetchProjects],
+    [updateUrl, pageSize],
   );
 
   // Handle filters change
   const handleFiltersChange = useCallback(
-    (filters: ProjectFiltersState) => {
-      setState((prev) => ({ ...prev, filters, currentPage: 1 }));
-      fetchProjects(1, true);
+    (newFilters: ProjectFiltersState) => {
+      setFilters(newFilters);
+      updateUrl(1, pageSize);
     },
-    [fetchProjects],
+    [updateUrl, pageSize],
   );
 
-  // Load more projects
-  const loadMore = useCallback(() => {
-    if (!state.loadingMore && state.hasMore) {
-      fetchProjects(state.currentPage + 1, false);
-    }
-  }, [state.loadingMore, state.hasMore, state.currentPage, fetchProjects]);
-
-  // Filter and sort projects
+  // Filter and sort projects (client-side within the current page)
   const filteredProjects = useMemo(() => {
-    let filtered = state.projects;
+    let filtered = projects;
 
-    // Apply search filter
-    if (state.searchQuery) {
+    if (searchQuery) {
       filtered = filtered.filter(
         (project) =>
-          project.title
-            .toLowerCase()
-            .includes(state.searchQuery.toLowerCase()) ||
+          project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           (project.description &&
-            project.description
-              .toLowerCase()
-              .includes(state.searchQuery.toLowerCase())),
+            project.description.toLowerCase().includes(searchQuery.toLowerCase())),
       );
     }
 
-    // Apply status filter
-    if (state.filters.status !== "all") {
-      filtered = filtered.filter(
-        (project) => project.status === state.filters.status,
-      );
+    if (filters.status !== "all") {
+      filtered = filtered.filter((project) => project.status === filters.status);
     }
-
-    // Apply verified filter
-    if (state.filters.verifiedOnly) {
+    if (filters.verifiedOnly) {
       filtered = filtered.filter((project) => project.isVerified);
     }
-
-    // Apply urgent filter
-    if (state.filters.urgentOnly) {
+    if (filters.urgentOnly) {
       filtered = filtered.filter((project) => project.isUrgent);
     }
 
-    // Apply sorting
     filtered.sort((a, b) => {
-      switch (state.filters.sort) {
+      switch (filters.sort) {
         case "newest":
-          return (
-            new Date(b.createdAt || "").getTime() -
-            new Date(a.createdAt || "").getTime()
-          );
+          return new Date(b.createdAt || "").getTime() - new Date(a.createdAt || "").getTime();
         case "most-funded":
           return (b.raised || 0) - (a.raised || 0);
         case "ending-soon":
@@ -366,7 +351,7 @@ export default function ExplorePage() {
     });
 
     return filtered;
-  }, [state.projects, state.searchQuery, state.filters]);
+  }, [projects, searchQuery, filters]);
 
   return (
     <div className="min-h-screen bg-[#f0f4fa]">
@@ -397,7 +382,7 @@ export default function ExplorePage() {
               <div className="flex items-center justify-center gap-2 mb-1">
                 <TrendingUp className="w-4 h-4 text-primary-500" />
                 <span className="text-2xl font-bold text-neutral-900">
-                  {filteredProjects.length}
+                  {TOTAL_MOCK_ITEMS}
                 </span>
               </div>
               <span className="text-sm text-neutral-600">Active Campaigns</span>
@@ -441,39 +426,39 @@ export default function ExplorePage() {
       {/* Main Content */}
       <div className="container mx-auto px-4 max-w-[1280px] py-8">
         {/* Featured Projects */}
-        {state.featuredProjects.length > 0 &&
-          !state.searchQuery &&
-          state.filters.status === "all" && (
-            <FeaturedSection projects={state.featuredProjects} />
+        {featuredProjects.length > 0 &&
+          !searchQuery &&
+          filters.status === "all" &&
+          currentPage === 1 && (
+            <FeaturedSection projects={featuredProjects} />
           )}
 
         {/* All Projects */}
         <section>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-neutral-900">
-              {state.searchQuery
+              {searchQuery
                 ? `Search Results (${filteredProjects.length})`
                 : "All Campaigns"}
             </h2>
             {filteredProjects.length > 0 && (
               <span className="text-sm text-neutral-500">
-                Showing {filteredProjects.length} campaign
-                {filteredProjects.length !== 1 ? "s" : ""}
+                Page {currentPage} · {filteredProjects.length} shown
               </span>
             )}
           </div>
 
           {/* Loading State */}
-          {state.loading && (
+          {loading && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 9 }, (_, i) => (
+              {Array.from({ length: pageSize }, (_, i) => (
                 <ProjectCardSkeleton key={i} />
               ))}
             </div>
           )}
 
           {/* Error State */}
-          {state.error && (
+          {error && (
             <Card variant="elevated" className="p-8 text-center">
               <div className="w-16 h-16 bg-danger-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8 text-danger-600" />
@@ -481,19 +466,18 @@ export default function ExplorePage() {
               <h3 className="text-xl font-bold text-neutral-900 mb-2">
                 Something went wrong
               </h3>
-              <p className="text-neutral-600 mb-4">{state.error}</p>
-              <Button onClick={() => fetchProjects(1, true)}>Try Again</Button>
+              <p className="text-neutral-600 mb-4">{error}</p>
+              <Button onClick={() => fetchProjects(currentPage, pageSize)}>
+                Try Again
+              </Button>
             </Card>
           )}
 
           {/* Projects Grid */}
-          {!state.loading && !state.error && (
+          {!loading && !error && (
             <>
               {filteredProjects.length === 0 ? (
-                <EmptyState
-                  searchQuery={state.searchQuery}
-                  filters={state.filters}
-                />
+                <EmptyState searchQuery={searchQuery} filters={filters} />
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredProjects.map((project) => (
@@ -504,35 +488,21 @@ export default function ExplorePage() {
             </>
           )}
 
-          {/* Load More */}
-          {!state.loading &&
-            !state.error &&
-            filteredProjects.length > 0 &&
-            state.hasMore && (
-              <div className="text-center mt-12">
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  onClick={loadMore}
-                  isLoading={state.loadingMore}
-                  disabled={state.loadingMore}
-                >
-                  {state.loadingMore ? "Loading..." : "Load More Campaigns"}
-                </Button>
-              </div>
-            )}
-
-          {/* End of Results */}
-          {!state.loading &&
-            !state.error &&
-            filteredProjects.length > 0 &&
-            !state.hasMore && (
-              <div className="text-center mt-12 py-8 border-t border-neutral-200">
-                <p className="text-neutral-500">
-                  You&apos;ve reached the end of the campaign list.
-                </p>
-              </div>
-            )}
+          {/* Pagination controls (#146) */}
+          {!loading && !error && filteredProjects.length > 0 && (
+            <div className="mt-10">
+              <Pagination
+                page={currentPage}
+                pageSize={pageSize}
+                total={TOTAL_MOCK_ITEMS}
+                onPageChange={(p) => {
+                  updateUrl(p, pageSize);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                onPageSizeChange={(s) => updateUrl(1, s)}
+              />
+            </div>
+          )}
         </section>
       </div>
     </div>

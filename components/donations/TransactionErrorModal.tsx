@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef } from 'react';
+import { parseStellarError } from '@/lib/stellar/errorHandler';
 import {
   AlertTriangle,
   Clock,
@@ -151,6 +152,12 @@ function extractMessage(error: unknown) {
 }
 
 export function classifyTransactionError(error: unknown): TransactionFailureType {
+  // Use the Stellar error handler for richer code-based classification (#143)
+  const parsed = parseStellarError(error);
+  if (parsed.code === 'USER_REJECTED') return 'rejected';
+  if (parsed.code === 'INSUFFICIENT_FUNDS' || parsed.code === 'LOW_RESERVE') return 'insufficient_balance';
+  if (parsed.code === 'NETWORK_ERROR') return 'network';
+
   const message = extractMessage(error).toLowerCase();
 
   if (message.includes('insufficient') || message.includes('balance') || message.includes('reserve')) {
