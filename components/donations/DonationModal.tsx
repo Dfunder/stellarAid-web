@@ -79,7 +79,14 @@ export function DonationModal({
   const walletBalance = useWalletStore((state) => state.balance);
   const walletAddress = useWalletStore((state) => state.address);
   const [rawAmount, setRawAmount] = useState('');
-  const [selectedAsset, setSelectedAsset] = useState<DonationAsset>(SUPPORTED_ASSETS[0]);
+  const defaultAsset = SUPPORTED_ASSETS[0] ?? {
+    code: 'XLM',
+    name: 'Stellar Lumens',
+    icon: '✦',
+    usdRate: 0.11,
+    issuer: null,
+  };
+  const [selectedAsset, setSelectedAsset] = useState<DonationAsset>(defaultAsset);
   const [message, setMessage] = useState('');
   const [anonymous, setAnonymous] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -89,7 +96,7 @@ export function DonationModal({
 
   const amount = parseFloat(rawAmount) || 0;
   const usdEquivalent = (amount * selectedAsset.usdRate).toFixed(2);
-  const txFeeUsd = (TX_FEE_XLM * SUPPORTED_ASSETS[0].usdRate).toFixed(4);
+  const txFeeUsd = (TX_FEE_XLM * defaultAsset.usdRate).toFixed(4);
 
   function handleQuickAmount(val: number) {
     const assetAmount = (val / selectedAsset.usdRate).toFixed(4);
@@ -236,7 +243,7 @@ export function DonationModal({
 
   function handleClose() {
     setRawAmount('');
-    setSelectedAsset(SUPPORTED_ASSETS[0]);
+    setSelectedAsset(defaultAsset);
     setMessage('');
     setAnonymous(false);
     setError('');

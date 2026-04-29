@@ -12,7 +12,7 @@ export interface SessionTimeoutOptions {
   onWarning?: (timeRemaining: number) => void;
   onExpired?: () => void;
   onRefreshSuccess?: () => void;
-  onRefreshFailure?: (error: any) => void;
+  onRefreshFailure?: (error: unknown) => void;
   warningThreshold?: number;
   checkInterval?: number;
 }
@@ -26,7 +26,11 @@ export interface SessionTimeoutState {
 // JWT token utilities
 const getTokenExpirationTime = (token: string): number | null => {
   try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
+    const payloadSegment = token.split(".")[1];
+    if (!payloadSegment) {
+      return null;
+    }
+    const payload = JSON.parse(atob(payloadSegment));
     return payload.exp * 1000; // Convert to milliseconds
   } catch (error) {
     console.error("Invalid token format:", error);

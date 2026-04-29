@@ -29,7 +29,14 @@ export function useImageUpload() {
     );
   }, []);
 
-  const setImageError = useCallback((id: string, error: any) => {
+  const setImageError = useCallback((id: string, error: unknown) => {
+    const message =
+      error instanceof Error
+        ? error.message
+        : typeof error === 'object' && error !== null && 'message' in error
+          ? String(error.message)
+          : 'Upload failed';
+
     setImages((prev) =>
       prev.map((img) =>
         img.id === id
@@ -37,7 +44,7 @@ export function useImageUpload() {
               ...img,
               error: {
                 code: 'unknown',
-                message: error?.message || 'Upload failed',
+                message,
               },
             }
           : img
@@ -51,13 +58,14 @@ export function useImageUpload() {
   }, []);
 
   const uploadImages = useCallback(
-    async (uploadFn: (images: UploadedImage[]) => Promise<any>) => {
+    async <T,>(uploadFn: (images: UploadedImage[]) => Promise<T>) => {
       try {
         setIsLoading(true);
         setError(null);
-        await uploadFn(images);
-      } catch (err: any) {
-        setError(err.message || 'Failed to upload images');
+        return await uploadFn(images);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to upload images';
+        setError(message);
         throw err;
       } finally {
         setIsLoading(false);

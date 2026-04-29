@@ -1,3 +1,6 @@
+export type CsvValue = string | number | boolean | null | undefined;
+export type CsvRow = Record<string, CsvValue>;
+
 /**
  * Converts an array of objects to a CSV string and triggers a browser download.
  * 
@@ -6,7 +9,7 @@
  * @param headers Optional custom headers mapping { [dataKey]: 'Header Label' }
  */
 export function exportToCSV(
-  data: any[],
+  data: CsvRow[],
   filename: string,
   headers?: Record<string, string>
 ) {
@@ -16,7 +19,12 @@ export function exportToCSV(
   }
 
   // Get keys from the first object if headers are not provided
-  const keys = Object.keys(data[0]);
+  const firstRow = data[0];
+  if (!firstRow) {
+    return;
+  }
+
+  const keys = Object.keys(firstRow);
   const headerLabels = headers ? Object.values(headers) : keys;
   const dataKeys = headers ? Object.keys(headers) : keys;
 

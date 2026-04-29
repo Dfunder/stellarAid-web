@@ -2,6 +2,12 @@ import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
 import { authApi } from "@/lib/api/auth";
+import type { User } from '@/types';
+
+type BackendAwareUser = User & {
+  backendToken?: string;
+  backendUser?: User;
+};
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -15,7 +21,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
       if (account?.provider === "google" || account?.provider === "github") {
         try {
           // If the tokens are available, we pass them to backend
@@ -29,8 +35,9 @@ export const authOptions: NextAuthOptions = {
           });
 
           // Store the backend's result in the user object for the session/jwt callback
-          (user as any).backendToken = response.data.token;
-          (user as any).backendUser = response.data.user;
+          const enrichedUser = user as BackendAwareUser;
+          enrichedUser.backendToken = response.data.token;
+          enrichedUser.backendUser = response.data.user;
           return true;
         } catch (error) {
           console.error("Social login failed:", error);
@@ -41,14 +48,15 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, user, account }) {
       if (user) {
-        token.backendToken = (user as any).backendToken;
-        token.backendUser = (user as any).backendUser;
+        const enrichedUser = user as BackendAwareUser;
+        token.backendToken = enrichedUser.backendToken;
+        token.backendUser = enrichedUser.backendUser;
       }
       return token;
     },
     async session({ session, token }) {
-      (session as any).backendToken = token.backendToken;
-      (session as any).backendUser = token.backendUser;
+      session.backendToken = token.backendToken;
+      session.backendUser = token.backendUser;
       return session;
     },
   },

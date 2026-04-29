@@ -149,5 +149,5 @@ export function parseAssetString(assetString: string): { code: string; issuer: s
     throw new Error('Invalid asset string format. Expected "CODE:ISSUER" or "XLM"');
   }
   
-  return { code: parts[0], issuer: parts[1] };
+  return { code: parts[0] ?? 'XLM', issuer: parts[1] ?? null };
 }

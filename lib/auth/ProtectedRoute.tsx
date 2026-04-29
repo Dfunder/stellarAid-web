@@ -21,7 +21,11 @@ interface ProtectedRouteProps {
 const isTokenValid = (token: string): boolean => {
   try {
     // Decode JWT payload (without verification for simplicity)
-    const payload = JSON.parse(atob(token.split(".")[1]));
+    const payloadSegment = token.split(".")[1];
+    if (!payloadSegment) {
+      return false;
+    }
+    const payload = JSON.parse(atob(payloadSegment));
     const currentTime = Date.now() / 1000;
 
     // Check if token is expired
@@ -41,10 +45,10 @@ const hasRequiredRole = (
   if (!user) return false;
   if (!requiredRole && !allowedRoles) return true;
 
-  const userRole = (user as any).role as UserRole;
+  const userRole = user.role as UserRole | undefined;
 
   if (allowedRoles) {
-    return allowedRoles.includes(userRole);
+    return userRole ? allowedRoles.includes(userRole) : false;
   }
 
   if (requiredRole) {

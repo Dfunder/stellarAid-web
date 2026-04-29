@@ -10,6 +10,19 @@ export type AnalyticsEvent =
   | { name: 'form_submit'; form: string }
   | { name: 'newsletter_signup' };
 
+type AnalyticsFn = (
+  command: string,
+  eventName: string,
+  params?: Record<string, unknown>
+) => void;
+
+declare global {
+  interface Window {
+    gtag?: AnalyticsFn;
+    plausible?: (eventName: string, options?: { props?: Record<string, unknown> }) => void;
+  }
+}
+
 function hasConsent(): boolean {
   if (typeof window === 'undefined') return false;
   return localStorage.getItem('analytics_consent') === 'true';
@@ -19,15 +32,15 @@ export function trackEvent(event: AnalyticsEvent): void {
   if (!hasConsent()) return;
 
   // GA4
-  if (typeof window !== 'undefined' && (window as any).gtag) {
+  if (typeof window !== 'undefined' && window.gtag) {
     const { name, ...params } = event;
-    (window as any).gtag('event', name, params);
+    window.gtag('event', name, params);
   }
 
   // Plausible
-  if (typeof window !== 'undefined' && (window as any).plausible) {
+  if (typeof window !== 'undefined' && window.plausible) {
     const { name, ...props } = event;
-    (window as any).plausible(name, { props });
+    window.plausible(name, { props });
   }
 }
 

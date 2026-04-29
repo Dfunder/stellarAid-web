@@ -8,6 +8,7 @@ import GlobalLoading from "@/components/GlobalLoading";
 import GlobalLoadingOverlay from "@/components/GlobalLoadingOverlay";
 import { ThemeProvider } from "next-themes";
 import NextAuthProvider from "@/components/NextAuthProvider";
+import UserDataSync from "@/components/UserDataSync";
 import Script from "next/script";
 import CookieConsent from "@/components/CookieConsent";
 
@@ -135,6 +136,7 @@ export default function RootLayout({
         >
           <ErrorBoundaryProvider>
             <NextAuthProvider>
+              <UserDataSync />
               <ToastProvider position="top-right" maxToasts={5}>
                 <GlobalLoadingOverlay />
                 <Suspense fallback={<GlobalLoading message="Loading..." />}>{children}</Suspense>

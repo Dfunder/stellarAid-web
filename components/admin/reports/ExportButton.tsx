@@ -1,10 +1,10 @@
 import React from 'react';
 import { Button } from '@/components/ui/Button';
 import { Download } from 'lucide-react';
-import { exportToCSV } from '@/utils/csvExport';
+import { exportToCSV, type CsvRow } from '@/utils/csvExport';
 
 interface ExportButtonProps {
-  data: any[];
+  data: CsvRow[];
   filename: string;
   headers?: Record<string, string>;
   disabled?: boolean;

@@ -3,13 +3,15 @@ import {
   LoginResponse, 
   ApiResponse, 
   RegisterRequest, 
+  LoginCredentials,
   VerifyEmailRequest, 
   ResendEmailRequest, 
-  ChangeEmailRequest 
+  ChangeEmailRequest,
 } from "@/types/api";
+import type { User } from '@/types';
 
 export const authApi = {
-  login: async (credentials: any): Promise<ApiResponse<LoginResponse>> => {
+  login: async (credentials: LoginCredentials): Promise<ApiResponse<LoginResponse>> => {
     const response = await apiClient.post<ApiResponse<LoginResponse>>(
       "/auth/login",
       credentials,
@@ -29,8 +31,8 @@ export const authApi = {
     await apiClient.post("/auth/logout");
   },
 
-  getCurrentUser: async (): Promise<ApiResponse<any>> => {
-    const response = await apiClient.get<ApiResponse<any>>("/auth/me");
+  getCurrentUser: async (): Promise<ApiResponse<User>> => {
+    const response = await apiClient.get<ApiResponse<User>>("/auth/me");
     return response.data;
   },
 

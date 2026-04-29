@@ -1,44 +1,64 @@
 import { apiClient } from './interceptors';
 import { Project, ApiResponse, CreateProjectRequest } from '@/types/api';
+import { apiCache } from '@/lib/cache/apiCache';
 
 export const projectsApi = {
     getProjects: async (page: number = 1, limit: number = 10): Promise<ApiResponse<Project[]>> => {
-        const response = await apiClient.get<ApiResponse<Project[]>>(`/projects?page=${page}&limit=${limit}`);
-        return response.data;
+        return apiCache.getOrSet('projects', `${page}:${limit}`, async () => {
+            const response = await apiClient.get<ApiResponse<Project[]>>(`/projects?page=${page}&limit=${limit}`);
+            return response.data;
+        });
     },
 
     getProjectById: async (id: string): Promise<ApiResponse<Project>> => {
-        const response = await apiClient.get<ApiResponse<Project>>(`/projects/${id}`);
-        return response.data;
+        return apiCache.getOrSet('project', id, async () => {
+            const response = await apiClient.get<ApiResponse<Project>>(`/projects/${id}`);
+            return response.data;
+        });
     },
 
     createProject: async (data: CreateProjectRequest): Promise<ApiResponse<Project>> => {
         const response = await apiClient.post<ApiResponse<Project>>('/projects', data);
+        apiCache.invalidateNamespace('projects');
+        apiCache.invalidateNamespace('featuredProjects');
         return response.data;
     },
 
     updateProject: async (id: string, data: Partial<CreateProjectRequest>): Promise<ApiResponse<Project>> => {
         const response = await apiClient.put<ApiResponse<Project>>(`/projects/${id}`, data);
+        apiCache.invalidate('project', id);
+        apiCache.invalidateNamespace('projects');
+        apiCache.invalidateNamespace('featuredProjects');
         return response.data;
     },
 
     deleteProject: async (id: string): Promise<ApiResponse<void>> => {
         const response = await apiClient.delete<ApiResponse<void>>(`/projects/${id}`);
+        apiCache.invalidate('project', id);
+        apiCache.invalidateNamespace('projects');
+        apiCache.invalidateNamespace('featuredProjects');
+        apiCache.invalidateNamespace('bookmarkedProjects');
         return response.data;
     },
 
     getFeaturedProjects: async (): Promise<ApiResponse<Project[]>> => {
-        const response = await apiClient.get<ApiResponse<Project[]>>('/projects/featured');
-        return response.data;
+        return apiCache.getOrSet('featuredProjects', 'all', async () => {
+            const response = await apiClient.get<ApiResponse<Project[]>>('/projects/featured');
+            return response.data;
+        });
     },
 
     toggleBookmark: async (id: string): Promise<ApiResponse<{ bookmarked: boolean }>> => {
         const response = await apiClient.post<ApiResponse<{ bookmarked: boolean }>>(`/projects/${id}/bookmark`);
+        apiCache.invalidateNamespace('bookmarkedProjects');
+        apiCache.invalidate('project', id);
         return response.data;
     },
 
     getBookmarkedProjects: async (): Promise<ApiResponse<Project[]>> => {
-        const response = await apiClient.get<ApiResponse<Project[]>>('/projects/bookmarks');
-        return response.data;
+        return apiCache.getOrSet('bookmarkedProjects', 'me', async () => {
+            const response = await apiClient.get<ApiResponse<Project[]>>('/projects/bookmarks');
+            return response.data;
+        });
     },
 };

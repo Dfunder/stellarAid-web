@@ -1,3 +1,5 @@
+'use client';
+
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
@@ -119,7 +121,7 @@ export default function NotFound() {
         {/* Fun Quote */}
         <div className="mt-8 p-4 bg-muted/50 rounded-lg">
           <p className="text-sm text-muted-foreground italic">
-            "Not all those who wander are lost." - J.R.R. Tolkien
+            &quot;Not all those who wander are lost.&quot; - J.R.R. Tolkien
           </p>
           <p className="text-xs text-muted-foreground mt-1">
             But in this case, you definitely took a wrong turn! 😊

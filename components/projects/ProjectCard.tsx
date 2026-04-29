@@ -6,19 +6,20 @@ import { BadgeCheck, Zap, ArrowRight, Bookmark } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useBookmarkStore } from '@/store/bookmarkStore';
 import { ShareButton } from './ShareButton';
+import type { ProjectStatus } from '@/types/api';
 
 export interface ProjectCardProps {
   project: {
     id: string;
     title: string;
-    category: string;
+    category?: string;
     imageGradient?: string;
     isVerified?: boolean;
     isUrgent?: boolean;
-    status?: 'active' | 'completed' | 'almost-funded';
+    status?: ProjectStatus;
     progress?: number;
-    currentAmount?: number;
-    targetAmount?: number;
+    currentAmount?: number | string;
+    targetAmount?: number | string;
     raised?: number;
     goal?: number;
     imageUrl?: string;
@@ -80,8 +81,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
       {/* Card Content */}
       <div className="p-7 flex flex-col flex-grow">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-[11px] font-bold text-secondary uppercase tracking-[0.1em]">
-            {project.category}
+            <span className="text-[11px] font-bold text-secondary uppercase tracking-[0.1em]">
+            {project.category ?? 'Community'}
           </span>
           <span className={clsx(
             "text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md",

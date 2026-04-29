@@ -90,11 +90,11 @@ export function SubmissionSuccessModal({
           </h2>
           {projectTitle && (
             <p className="mt-1 text-gray-500 text-sm font-medium truncate px-4">
-              "{projectTitle}"
+              &quot;{projectTitle}&quot;
             </p>
           )}
           <p className="mt-3 text-gray-600 text-sm leading-relaxed">
-            Your project has been submitted for review. You'll hear back within{' '}
+            Your project has been submitted for review. You&apos;ll hear back within{' '}
             <strong>24–48 hours</strong>.
           </p>
         </div>

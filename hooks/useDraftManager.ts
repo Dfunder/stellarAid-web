@@ -52,7 +52,7 @@ export function useDraftManager(draftId?: string) {
       const updated: ProjectDraft = {
         id,
         title,
-        createdAt: existing >= 0 ? all[existing].createdAt : now,
+        createdAt: existing >= 0 ? (all[existing]?.createdAt ?? now) : now,
         updatedAt: now,
         currentStep,
         formData,

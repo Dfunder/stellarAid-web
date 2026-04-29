@@ -80,7 +80,7 @@ export interface AuditLog {
   targetId?: string;
   targetType?: string;
   targetName?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
   timestamp: string;
@@ -128,7 +128,7 @@ export interface AppNotification {
   read: boolean;
   createdAt: string;
   link?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface NotificationState {

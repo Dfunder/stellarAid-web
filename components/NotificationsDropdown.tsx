@@ -14,6 +14,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { useNotificationStore } from '@/store/notificationStore';
+import type { AppNotification } from '@/types';
 import { cn } from '@/lib/utils';
 
 const NOTIFICATION_ICONS = {
@@ -74,7 +75,7 @@ export function NotificationsDropdown({ className }: NotificationsDropdownProps)
     await markAllAsRead();
   };
 
-  const handleNotificationClick = async (notification: any) => {
+  const handleNotificationClick = async (notification: AppNotification) => {
     if (!notification.read) {
       await markAsRead(notification.id);
     }

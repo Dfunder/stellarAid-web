@@ -29,7 +29,7 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomOrigin, setZoomOrigin] = useState('center center');
 
-  const activeImage = useMemo(() => images[selectedIndex] || images[0], [images, selectedIndex]);
+  const activeImage = useMemo(() => images[selectedIndex] ?? images[0], [images, selectedIndex]);
 
   const openLightbox = useCallback(
     (index: number) => {
@@ -83,6 +83,10 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
         No images available.
       </div>
     );
+  }
+
+  if (!activeImage) {
+    return null;
   }
 
   return (

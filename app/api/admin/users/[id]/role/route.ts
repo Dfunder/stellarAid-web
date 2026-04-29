@@ -74,11 +74,19 @@ export async function PUT(
     }
     
     // Update user role
-    mockUsers[userIndex].role = role;
+    const user = mockUsers[userIndex];
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    user.role = role;
     
     return NextResponse.json({
       message: 'User role updated successfully',
-      user: mockUsers[userIndex]
+      user
     });
   } catch (error) {
     console.error('Error updating user role:', error);

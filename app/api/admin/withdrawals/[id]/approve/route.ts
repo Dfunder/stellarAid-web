@@ -89,6 +89,12 @@ export async function PUT(
     }
     
     const withdrawal = mockWithdrawals[withdrawalIndex];
+    if (!withdrawal) {
+      return NextResponse.json(
+        { error: 'Withdrawal not found' },
+        { status: 404 }
+      );
+    }
     
     if (withdrawal.status !== 'PENDING') {
       return NextResponse.json(
@@ -100,7 +106,7 @@ export async function PUT(
     // Update withdrawal status to approved
     mockWithdrawals[withdrawalIndex] = {
       ...withdrawal,
-      status: 'APPROVED',
+      status: 'APPROVED' as const,
       processedDate: new Date().toISOString(),
     };
     

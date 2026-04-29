@@ -11,10 +11,9 @@ function AuthSync() {
   useEffect(() => {
     // If NextAuth has a session but Zustand doesn't have a token, sync!
     if (status === "authenticated" && session) {
-      const backendToken = (session as any).backendToken;
-      const backendUser = (session as any).backendUser;
+      const { backendToken, backendUser } = session;
 
-      if (backendToken && (!isAuthenticated || storeToken !== backendToken)) {
+      if (backendToken && backendUser && (!isAuthenticated || storeToken !== backendToken)) {
         login(backendUser, backendToken);
       }
     }

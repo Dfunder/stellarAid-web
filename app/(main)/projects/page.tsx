@@ -1,26 +1,20 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { ProjectFilters, ProjectFiltersState } from '@/components/projects/ProjectFilters';
-import Link from 'next/link';
 import { 
-  BadgeCheck, 
-  Zap, 
-  Clock, 
   ArrowUp, 
   Loader2,
   Inbox
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { clsx } from 'clsx';
-import { useBookmarkStore } from '@/store/bookmarkStore';
 import { ProjectCard } from '@/components/projects/ProjectCard';
-import { projectsApi } from '@/lib/api/projects';
-import { Project } from '@/types/api';
+
+type ProjectCardProject = React.ComponentProps<typeof ProjectCard>['project'];
 
 // Helper to generate mock data for infinite scroll demo
-const generateMockProjects = (page: number, limit: number) => {
+const generateMockProjects = (page: number, limit: number): ProjectCardProject[] => {
   const categories = ['Health', 'Education', 'Environment', 'Disaster Relief', 'Energy'];
   const gradients = [
     'from-cyan-400/20 to-blue-500/20',
@@ -30,16 +24,21 @@ const generateMockProjects = (page: number, limit: number) => {
     'from-green-400/20 to-emerald-500/20',
     'from-rose-400/20 to-pink-500/20'
   ];
-  
+  const fallbackCategory = categories[0] ?? 'Health';
+  const fallbackGradient = gradients[0] ?? 'from-cyan-400/20 to-blue-500/20';
+
   return Array.from({ length: limit }).map((_, i) => {
     const id = (page - 1) * limit + i + 1;
     const target = 10000 + Math.floor(Math.random() * 90000);
     const progress = Math.floor(Math.random() * 100);
+    const category = categories[id % categories.length] ?? fallbackCategory;
+    const imageGradient = gradients[id % gradients.length] ?? fallbackGradient;
+
     return {
       id: id.toString(),
-      title: `Project ${id}: Sustainable ${categories[id % categories.length]} Growth`,
-      category: categories[id % categories.length],
-      description: `Exploring innovative solutions for ${categories[id % categories.length].toLowerCase()} challenges worldwide.`,
+      title: `Project ${id}: Sustainable ${category} Growth`,
+      category,
+      description: `Exploring innovative solutions for ${category.toLowerCase()} challenges worldwide.`,
       progress,
       raised: Math.floor((target * progress) / 100),
       goal: target,
@@ -47,16 +46,15 @@ const generateMockProjects = (page: number, limit: number) => {
       targetAmount: target.toString(),
       isVerified: id % 2 === 0,
       isUrgent: id % 3 === 0,
-      status: progress > 90 ? 'almost-funded' : progress >= 100 ? 'completed' : 'active',
+      status: progress >= 100 ? 'completed' : progress > 90 ? 'almost-funded' : 'active',
       createdAt: new Date(Date.now() - id * 86400000).toISOString(),
-      imageGradient: gradients[id % gradients.length],
+      imageGradient,
     };
   });
 };
 
 export default function ProjectsPage() {
-  const { toggleBookmark, isBookmarked } = useBookmarkStore();
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<ProjectCardProject[]>([]);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -116,7 +114,7 @@ export default function ProjectsPage() {
   // Initial fetch and filter change
   useEffect(() => {
     fetchProjects(1, true);
-  }, [filters]);
+  }, [fetchProjects, filters]);
 
   // Infinite scroll trigger
   useEffect(() => {
@@ -179,7 +177,7 @@ export default function ProjectsPage() {
               {!hasMore && projects.length > 0 && (
                 <div className="flex flex-col items-center gap-3 text-neutral-400 py-4">
                   <div className="w-12 h-px bg-neutral-200" />
-                  <p className="text-sm font-bold">You've reached the end of the galaxy</p>
+                  <p className="text-sm font-bold">You&apos;ve reached the end of the galaxy</p>
                   <div className="w-12 h-px bg-neutral-200" />
                 </div>
               )}
@@ -192,7 +190,7 @@ export default function ProjectsPage() {
             </div>
             <h3 className="text-2xl font-bold text-neutral-900 mb-2">No projects found</h3>
             <p className="text-neutral-500 text-center max-w-sm mb-8">
-              We couldn't find any projects matching your current filters. Try adjusting your search or clear all filters.
+              We couldn&apos;t find any projects matching your current filters. Try adjusting your search or clear all filters.
             </p>
             <Button 
               variant="outline" 
