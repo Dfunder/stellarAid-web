@@ -8,6 +8,13 @@ import { Button } from '@/components/ui/Button';
 import { ReportFilters, ReportType } from '@/components/admin/reports/ReportFilters';
 import { ReportPreviewTable } from '@/components/admin/reports/ReportPreviewTable';
 import { ExportButton } from '@/components/admin/reports/ExportButton';
+import type { CsvRow, CsvValue } from '@/utils/csvExport';
+
+type ReportColumn = {
+  key: string;
+  label: string;
+  format?: (value: CsvValue) => string;
+};
 
 // Mock data generation functions
 const generateMockUsers = () => Array.from({ length: 10 }, (_, i) => ({
@@ -52,10 +59,10 @@ const generateMockWithdrawals = () => Array.from({ length: 10 }, (_, i) => ({
 export default function AdminReportsPage() {
   const [reportType, setReportType] = useState<ReportType>('donations');
   const [startDate, setStartDate] = useState('2026-01-01');
-  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0] ?? new Date().toISOString());
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [reportData, setReportData] = useState<any[]>([]);
+  const [reportData, setReportData] = useState<CsvRow[]>([]);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -65,7 +72,7 @@ export default function AdminReportsPage() {
     setIsLoading(true);
     // Simulate API delay
     setTimeout(() => {
-      let data: any[] = [];
+      let data: CsvRow[] = [];
       switch (reportType) {
         case 'users': data = generateMockUsers(); break;
         case 'projects': data = generateMockProjects(); break;
@@ -82,7 +89,7 @@ export default function AdminReportsPage() {
     generateReport();
   }, [reportType]);
 
-  const columns = useMemo(() => {
+  const columns = useMemo<ReportColumn[]>(() => {
     switch (reportType) {
       case 'users':
         return [
@@ -98,8 +105,8 @@ export default function AdminReportsPage() {
           { key: 'title', label: 'Title' },
           { key: 'creator', label: 'Creator' },
           { key: 'status', label: 'Status' },
-          { key: 'goal', label: 'Goal', format: (val: number) => `$${val.toLocaleString()}` },
-          { key: 'raised', label: 'Raised', format: (val: number) => `$${val.toLocaleString()}` },
+          { key: 'goal', label: 'Goal', format: (val) => `$${Number(val ?? 0).toLocaleString()}` },
+          { key: 'raised', label: 'Raised', format: (val) => `$${Number(val ?? 0).toLocaleString()}` },
         ];
       case 'donations':
         return [
@@ -114,7 +121,7 @@ export default function AdminReportsPage() {
         return [
           { key: 'id', label: 'ID' },
           { key: 'project', label: 'Project' },
-          { key: 'amount', label: 'Amount', format: (val: number) => `$${val.toLocaleString()}` },
+          { key: 'amount', label: 'Amount', format: (val) => `$${Number(val ?? 0).toLocaleString()}` },
           { key: 'status', label: 'Status' },
           { key: 'date', label: 'Date' },
           { key: 'recipient', label: 'Recipient' },

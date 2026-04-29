@@ -191,11 +191,14 @@ export default function ExplorePage() {
       const target = Math.floor(Math.random() * 50000) + 10000;
       const current = Math.floor(Math.random() * target);
       const progress = Math.round((current / target) * 100);
+      const category = categories[index % categories.length] ?? 'Community';
+      const imageGradient = gradients[index % gradients.length] ?? gradients[0] ?? 'from-blue-400 to-purple-600';
+      const status = statuses[Math.floor(Math.random() * statuses.length)] ?? 'active';
 
       return {
         id,
-        title: `Project ${index + 1}: ${categories[index % categories.length]} Initiative`,
-        description: `A meaningful project working towards positive change in the ${categories[index % categories.length]} sector. Join us in making a difference.`,
+        title: `Project ${index + 1}: ${category} Initiative`,
+        description: `A meaningful project working towards positive change in the ${category} sector. Join us in making a difference.`,
         targetAmount: target,
         currentAmount: current,
         creatorId: `creator-${index}`,
@@ -203,11 +206,11 @@ export default function ExplorePage() {
           Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000,
         ).toISOString(),
         updatedAt: new Date().toISOString(),
-        category: categories[index % categories.length],
-        imageGradient: gradients[index % gradients.length],
+        category,
+        imageGradient,
         isVerified: Math.random() > 0.5,
         isUrgent: Math.random() > 0.7,
-        status: statuses[Math.floor(Math.random() * statuses.length)],
+        status,
         progress,
         raised: current,
         goal: target,

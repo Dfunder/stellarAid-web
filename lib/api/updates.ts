@@ -1,5 +1,6 @@
 import { apiClient } from '@/lib/api/client';
 import type { ApiResponse, Update, CreateUpdateRequest } from '@/types/api';
+import { apiCache } from '@/lib/cache/apiCache';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -29,15 +30,17 @@ let mockUpdates: Update[] = [
 
 export const updatesApi = {
   async getUpdates(campaignId: string): Promise<ApiResponse<Update[]>> {
-    await delay(400);
-    const updates = mockUpdates
-      .filter((item) => item.campaignId === campaignId)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return apiCache.getOrSet('updates', campaignId, async () => {
+      await delay(400);
+      const updates = mockUpdates
+        .filter((item) => item.campaignId === campaignId)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-    return {
-      data: updates,
-      status: 200
-    };
+      return {
+        data: updates,
+        status: 200
+      };
+    });
   },
 
   async postUpdate(campaignId: string, body: CreateUpdateRequest): Promise<ApiResponse<Update>> {
@@ -53,6 +56,7 @@ export const updatesApi = {
     };
 
     mockUpdates = [newUpdate, ...mockUpdates];
+    apiCache.invalidate('updates', campaignId);
 
     return {
       data: newUpdate,
@@ -68,6 +72,7 @@ export const updatesApi = {
         ? { ...item, title: body.title, content: body.content, imageUrls: body.imageUrls || item.imageUrls }
         : item
     );
+    apiCache.invalidate('updates', campaignId);
 
     const updated = mockUpdates.find((item) => item.id === updateId && item.campaignId === campaignId);
 
@@ -80,6 +85,7 @@ export const updatesApi = {
   async deleteUpdate(campaignId: string, updateId: string): Promise<ApiResponse<{ success: boolean }>> {
     await delay(300);
     mockUpdates = mockUpdates.filter((item) => !(item.id === updateId && item.campaignId === campaignId));
+    apiCache.invalidate('updates', campaignId);
 
     return {
       data: { success: true },

@@ -64,11 +64,19 @@ export async function PUT(
     }
     
     // Toggle suspension status
-    mockUsers[userIndex].isSuspended = !mockUsers[userIndex].isSuspended;
+    const user = mockUsers[userIndex];
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    user.isSuspended = !user.isSuspended;
     
     return NextResponse.json({
-      message: `User ${mockUsers[userIndex].isSuspended ? 'suspended' : 'unsuspended'} successfully`,
-      user: mockUsers[userIndex]
+      message: `User ${user.isSuspended ? 'suspended' : 'unsuspended'} successfully`,
+      user
     });
   } catch (error) {
     console.error('Error updating user suspension status:', error);

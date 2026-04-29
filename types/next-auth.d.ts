@@ -1,23 +1,24 @@
-import NextAuth, { DefaultSession } from "next-auth";
+import type { DefaultSession } from 'next-auth';
+import type { User as AppUser } from '@/types';
 
-declare module "next-auth" {
+declare module 'next-auth' {
   interface Session {
     backendToken?: string;
-    backendUser?: any;
+    backendUser?: AppUser;
     user: {
       id?: string;
-    } & DefaultSession["user"];
+    } & DefaultSession['user'];
   }
 
   interface User {
     backendToken?: string;
-    backendUser?: any;
+    backendUser?: AppUser;
   }
 }
 
-declare module "next-auth/jwt" {
+declare module 'next-auth/jwt' {
   interface JWT {
     backendToken?: string;
-    backendUser?: any;
+    backendUser?: AppUser;
   }
 }

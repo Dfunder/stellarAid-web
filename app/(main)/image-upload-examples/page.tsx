@@ -12,7 +12,7 @@ import { ImageGallery } from '@/components/projects/ImageGallery';
  */
 
 // Example 1: Simple Direct Usage
-export function SimpleUploadExample() {
+function SimpleUploadExample() {
   const handleUpload = async (images: UploadedImage[]) => {
     console.log('Uploading images:', images);
     // Simulate upload delay
@@ -28,7 +28,7 @@ export function SimpleUploadExample() {
 }
 
 // Example 2: With Custom Validation
-export function CustomValidationExample() {
+function CustomValidationExample() {
   const handleUpload = async (images: UploadedImage[]) => {
     console.log('Uploading validated images:', images);
   };
@@ -51,7 +51,7 @@ export function CustomValidationExample() {
 }
 
 // Example 3: With Compression
-export function CompressionExample() {
+function CompressionExample() {
   const handleUpload = async (images: UploadedImage[]) => {
     images.forEach((img) => {
       const originalSize = img.size;
@@ -76,7 +76,7 @@ export function CompressionExample() {
 }
 
 // Example 4: Using useImageUpload Hook
-export function HookExample() {
+function HookExample() {
   const {
     images,
     isLoading,
@@ -151,13 +151,13 @@ export function HookExample() {
 }
 
 // Example 5: Single Image Profile Picture
-export function ProfilePictureExample() {
+function ProfilePictureExample() {
   const [profile, setProfile] = useState<UploadedImage | null>(null);
 
   const handleUpload = async (images: UploadedImage[]) => {
     if (images.length > 0) {
       // Take only the first/latest image
-      setProfile(images[0]);
+      setProfile(images[0] ?? null);
       console.log('Profile picture updated');
     }
   };
@@ -206,7 +206,7 @@ export function ProfilePictureExample() {
 }
 
 // Example 6: Gallery with Remove
-export function GalleryExample() {
+function GalleryExample() {
   const { images, removeImage } = useImageUpload();
 
   const handleUpload = (uploadedImages: UploadedImage[]) => {
@@ -279,7 +279,7 @@ const sampleGalleryImages = [
   },
 ];
 
-export function ProjectGalleryDemo() {
+function ProjectGalleryDemo() {
   return (
     <div className="p-6 border rounded-lg space-y-4">
       <h2 className="text-xl font-semibold">Project Photo Gallery</h2>
@@ -290,7 +290,7 @@ export function ProjectGalleryDemo() {
 }
 
 // Example 7: Disabled State
-export function DisabledStateExample() {
+function DisabledStateExample() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleUpload = async (images: UploadedImage[]) => {

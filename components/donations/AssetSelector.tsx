@@ -18,6 +18,14 @@ export const SUPPORTED_ASSETS: DonationAsset[] = [
   { code: 'NGNT', name: 'Nigerian Naira Token', icon: '₦', usdRate: 0.00065, issuer: 'GAWODAROMJ33V5YDFY3MATHDPWJLVES74TRIM2JTTGZ73PH5YPGUASL' },
 ];
 
+const DEFAULT_ASSET: DonationAsset = SUPPORTED_ASSETS[0] ?? {
+  code: 'XLM',
+  name: 'Stellar Lumens',
+  icon: '✦',
+  usdRate: 0.11,
+  issuer: null,
+};
+
 interface AssetSelectorProps {
   value: string;
   onChange: (asset: DonationAsset) => void;
@@ -30,7 +38,7 @@ export function AssetSelector({ value, onChange, donationAmount = 0, disabled = 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { address, balance } = useWalletStore();
 
-  const selected = SUPPORTED_ASSETS.find((a) => a.code === value) ?? SUPPORTED_ASSETS[0];
+  const selected = SUPPORTED_ASSETS.find((a) => a.code === value) ?? DEFAULT_ASSET;
 
   useEffect(() => {
     function handleOutsideClick(e: MouseEvent) {
@@ -51,13 +59,13 @@ export function AssetSelector({ value, onChange, donationAmount = 0, disabled = 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       const idx = SUPPORTED_ASSETS.findIndex((a) => a.code === value);
-      const next = SUPPORTED_ASSETS[(idx + 1) % SUPPORTED_ASSETS.length];
+      const next = SUPPORTED_ASSETS[(idx + 1) % SUPPORTED_ASSETS.length] ?? DEFAULT_ASSET;
       onChange(next);
     }
     if (e.key === 'ArrowUp') {
       e.preventDefault();
       const idx = SUPPORTED_ASSETS.findIndex((a) => a.code === value);
-      const prev = SUPPORTED_ASSETS[(idx - 1 + SUPPORTED_ASSETS.length) % SUPPORTED_ASSETS.length];
+      const prev = SUPPORTED_ASSETS[(idx - 1 + SUPPORTED_ASSETS.length) % SUPPORTED_ASSETS.length] ?? DEFAULT_ASSET;
       onChange(prev);
     }
   }

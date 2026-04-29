@@ -35,7 +35,7 @@ apiClient.interceptors.response.use(
         }
         return response;
     },
-    async (error: AxiosError) => {
+    async (error: AxiosError<{ message?: string }>) => {
         useUIStore.getState().setGlobalLoading(false);
         const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
@@ -65,7 +65,7 @@ apiClient.interceptors.response.use(
 
         // Standardize error handling
         const apiError = {
-            message: (error.response?.data as any)?.message || error.message || 'An unexpected error occurred',
+            message: error.response?.data?.message || error.message || 'An unexpected error occurred',
             status: error.response?.status,
             data: error.response?.data,
         };
@@ -75,4 +75,3 @@ apiClient.interceptors.response.use(
 );
 
 export { apiClient };
-

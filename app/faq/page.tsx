@@ -235,7 +235,7 @@ export default function FAQPage() {
             Frequently Asked Questions
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Find answers to common questions about using StellarAid. Can't find what you're
+            Find answers to common questions about using StellarAid. Can&apos;t find what you&apos;re
             looking for? Contact our support team below.
           </p>
         </div>

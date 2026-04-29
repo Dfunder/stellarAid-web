@@ -1,41 +1,47 @@
 import { User } from './index';
 
 export interface ApiResponse<T> {
-    data: T;
-    message?: string;
-    status: number;
+  data: T;
+  message?: string;
+  status: number;
 }
 
 export interface ApiError {
-    message: string;
-    status?: number;
-    data?: any;
+  message: string;
+  status?: number;
+  data?: unknown;
 }
 
 // Auth Types
+export interface LoginCredentials {
+  email: string;
+  password: string;
+  rememberMe?: boolean;
+}
+
 export interface LoginResponse {
-    user: User;
-    token: string;
-    refreshToken?: string;
+  user: User;
+  token: string;
+  refreshToken?: string;
 }
 
 export interface RegisterRequest {
-    email: string;
-    role: "donor" | "creator";
-    password?: string;
-    confirmPassword?: string;
+  email: string;
+  role: 'donor' | 'creator';
+  password?: string;
+  confirmPassword?: string;
 }
 
 export interface VerifyEmailRequest {
-    token: string;
+  token: string;
 }
 
 export interface ResendEmailRequest {
-    email: string;
+  email: string;
 }
 
 export interface ChangeEmailRequest {
-    email: string;
+  email: string;
 }
 
 // Project Types
@@ -79,54 +85,54 @@ export interface Project {
 }
 
 export interface CreateProjectRequest {
-    title: string;
-    description: string;
-    targetAmount: string;
-    imageUrl?: string;
+  title: string;
+  description: string;
+  targetAmount: string;
+  imageUrl?: string;
 }
 
 // Donation Types
 export interface Donation {
-    id: string;
-    projectId: string;
-    donorId: string;
-    amount: string;
-    asset?: string;
-    message?: string;
-    status?: "CONFIRMED" | "PENDING" | "FAILED";
-    projectTitle?: string;
-    txHash?: string;
-    createdAt: string;
+  id: string;
+  projectId: string;
+  donorId: string;
+  amount: string;
+  asset?: string;
+  message?: string;
+  status?: 'CONFIRMED' | 'PENDING' | 'FAILED';
+  projectTitle?: string;
+  txHash?: string;
+  createdAt: string;
 }
 
 export interface CreateDonationRequest {
-    projectId: string;
-    amount: string;
-    txHash?: string;
+  projectId: string;
+  amount: string;
+  txHash?: string;
 }
 
 export interface SendDonationConfirmationEmailRequest {
-    donationId?: string;
-    projectId: string;
-    projectTitle: string;
-    amount: string;
-    asset: string;
-    txHash: string;
-    donatedAt: string;
-    donorEmail?: string;
+  donationId?: string;
+  projectId: string;
+  projectTitle: string;
+  amount: string;
+  asset: string;
+  txHash: string;
+  donatedAt: string;
+  donorEmail?: string;
 }
 
 export interface Update {
-    id: string;
-    campaignId: string;
-    title: string;
-    content: string;
-    imageUrls?: string[];
-    createdAt: string;
+  id: string;
+  campaignId: string;
+  title: string;
+  content: string;
+  imageUrls?: string[];
+  createdAt: string;
 }
 
 export interface CreateUpdateRequest {
-    title: string;
-    content: string;
-    imageUrls?: string[];
+  title: string;
+  content: string;
+  imageUrls?: string[];
 }

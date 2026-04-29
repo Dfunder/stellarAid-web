@@ -15,7 +15,7 @@ export default function AdminSettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const { showToast } = useToast();
+  const toast = useToast();
 
   const fetchSettings = async () => {
     setIsLoading(true);
@@ -27,15 +27,13 @@ export default function AdminSettingsPage() {
         minGoal: 500,
         platformFee: 2.5,
         maxDuration: 60,
-        lastModified: new Promise(resolve => resolve(new Date().toLocaleString())) as any, // Placeholder for TS
+        lastModified: new Date().toLocaleString(),
         modifiedBy: 'Admin User',
       };
-      // Fix lastModified for mock
-      mockData.lastModified = new Date().toLocaleString();
       
       setSettings(mockData);
     } catch (error) {
-      showToast({ title: 'Error', message: 'Failed to load platform settings', type: 'error' });
+      toast.error('Failed to load platform settings', 'Error');
     } finally {
       setIsLoading(false);
     }
@@ -64,11 +62,11 @@ export default function AdminSettingsPage() {
         modifiedBy: 'Current Admin',
       });
       
-      showToast({ title: 'Success', message: 'Platform settings updated successfully', type: 'success' });
+      toast.success('Platform settings updated successfully', 'Success');
       setShowConfirm(false);
       setPendingSettings(null);
     } catch (error) {
-      showToast({ title: 'Error', message: 'Failed to update settings', type: 'error' });
+      toast.error('Failed to update settings', 'Error');
     } finally {
       setIsSaving(false);
     }

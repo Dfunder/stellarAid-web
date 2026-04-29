@@ -74,11 +74,19 @@ export async function PUT(
     }
     
     // Update user KYC status
-    mockUsers[userIndex].kycStatus = status;
+    const user = mockUsers[userIndex];
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    user.kycStatus = status;
     
     return NextResponse.json({
       message: 'User KYC status updated successfully',
-      user: mockUsers[userIndex]
+      user
     });
   } catch (error) {
     console.error('Error updating user KYC status:', error);

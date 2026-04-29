@@ -1,8 +1,15 @@
 import React from 'react';
+import type { CsvRow, CsvValue } from '@/utils/csvExport';
+
+interface ReportColumn {
+  key: string;
+  label: string;
+  format?: (value: CsvValue) => string;
+}
 
 interface ReportPreviewTableProps {
-  data: any[];
-  columns: { key: string; label: string; format?: (val: any) => string }[];
+  data: CsvRow[];
+  columns: ReportColumn[];
   isLoading?: boolean;
 }
 

@@ -75,7 +75,8 @@ const FeaturedProjects = () => {
       if (response.data && response.data.length > 0) {
         setProjects(response.data.map((p, i) => ({
           ...p,
-          imageGradient: fallbackProjects[i % fallbackProjects.length].imageGradient
+          imageGradient: fallbackProjects[i % fallbackProjects.length]?.imageGradient
+            ?? 'from-primary-400/20 to-accent-500/20'
         })));
       } else {
         setProjects(fallbackProjects);

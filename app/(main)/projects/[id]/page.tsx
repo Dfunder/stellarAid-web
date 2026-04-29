@@ -183,13 +183,15 @@ function createFallbackProject(id: string): Project | null {
     return null;
   }
 
-  const category = CATEGORIES[index % CATEGORIES.length];
+  const category = CATEGORIES[index % CATEGORIES.length] ?? 'Community';
+  const fallbackLocation = ['Lagos, Nigeria', 'Quito, Ecuador', 'Accra, Ghana', 'Manila, Philippines'];
+  const fallbackName = ['Maya Okoro', 'Daniel Rivera', 'Amina Cole', 'Samir Patel'];
   const targetAmount = 20000 + (index % 8) * 7500;
   const progress = Math.min(28 + (index * 13) % 71, 97);
   const currentAmount = Math.round((targetAmount * progress) / 100);
   const daysRemaining = 7 + (index % 6) * 6;
   const deadline = new Date(Date.now() + daysRemaining * 86400000).toISOString();
-  const imageUrl = FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
+  const imageUrl = FALLBACK_IMAGES[index % FALLBACK_IMAGES.length] ?? FALLBACK_IMAGES[0] ?? '/globe.svg';
 
   return normalizeProject(
     {
@@ -206,7 +208,7 @@ function createFallbackProject(id: string): Project | null {
       currentAmount: String(currentAmount),
       creatorId: `creator-${index + 1}`,
       imageUrl,
-      imageUrls: [imageUrl, FALLBACK_IMAGES[(index + 1) % FALLBACK_IMAGES.length]],
+      imageUrls: [imageUrl, FALLBACK_IMAGES[(index + 1) % FALLBACK_IMAGES.length] ?? imageUrl],
       category,
       status: progress > 90 ? 'almost-funded' : 'active',
       isVerified: index % 2 === 0,
@@ -214,12 +216,12 @@ function createFallbackProject(id: string): Project | null {
       donorCount: 48 + index * 7,
       deadline,
       daysRemaining,
-      location: ['Lagos, Nigeria', 'Quito, Ecuador', 'Accra, Ghana', 'Manila, Philippines'][index % 4],
+      location: fallbackLocation[index % 4] ?? fallbackLocation[0] ?? 'Remote',
       creator: {
         id: `creator-${index + 1}`,
-        name: ['Maya Okoro', 'Daniel Rivera', 'Amina Cole', 'Samir Patel'][index % 4],
+        name: fallbackName[index % 4] ?? fallbackName[0] ?? 'StellarAid Creator',
         bio: 'Campaign organizer coordinating verified updates, local delivery, and donor reporting.',
-        location: ['Lagos, Nigeria', 'Quito, Ecuador', 'Accra, Ghana', 'Manila, Philippines'][index % 4],
+        location: fallbackLocation[index % 4] ?? fallbackLocation[0] ?? 'Remote',
         verified: index % 2 === 0,
       },
       updates: [

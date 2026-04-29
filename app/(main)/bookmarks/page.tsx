@@ -4,21 +4,20 @@ import React, { useEffect, useState } from 'react';
 import { ProjectCard } from '@/components/projects/ProjectCard';
 import { useBookmarkStore } from '@/store/bookmarkStore';
 import { projectsApi } from '@/lib/api/projects';
-import { Project } from '@/types/api';
 import { 
   Bookmark, 
   Loader2, 
   ArrowLeft, 
-  Heart,
   Search,
-  Inbox
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 
+type ProjectCardProject = React.ComponentProps<typeof ProjectCard>['project'];
+
 export default function BookmarksPage() {
-  const { bookmarkedIds, fetchBookmarks, isLoading: storeLoading } = useBookmarkStore();
-  const [bookmarkedProjects, setBookmarkedProjects] = useState<any[]>([]);
+  const { bookmarkedIds } = useBookmarkStore();
+  const [bookmarkedProjects, setBookmarkedProjects] = useState<ProjectCardProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -31,6 +30,7 @@ export default function BookmarksPage() {
           // Add some UI enhancements like gradients since they might not come from API
           const enriched = response.data.map((p, i) => ({
             ...p,
+            category: p.category ?? 'Community',
             progress: Math.round((Number(p.currentAmount) / Number(p.targetAmount)) * 100) || 0,
             imageGradient: i % 2 === 0 ? 'from-primary-400/20 to-accent-500/20' : 'from-secondary-400/20 to-danger-500/20'
           }));
@@ -108,7 +108,7 @@ export default function BookmarksPage() {
               Your collection is empty
             </h2>
             <p className="text-neutral-500 text-center max-w-md mb-10 text-lg leading-relaxed">
-              Start exploring projects and bookmark the ones that inspire you. They'll appear here for easy access.
+              Start exploring projects and bookmark the ones that inspire you. They&apos;ll appear here for easy access.
             </p>
             <Link href="/projects">
               <Button size="lg" className="rounded-xl px-10 shadow-stellar hover:shadow-stellar-lg transition-all">
