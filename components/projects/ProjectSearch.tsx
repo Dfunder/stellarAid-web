@@ -52,6 +52,7 @@ export const ProjectSearch: React.FC<ProjectSearchProps> = ({
         value={inputValue}
         onChange={handleChange}
         placeholder={placeholder}
+        data-search-input
         className="w-full pl-10 pr-10 py-2.5 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-white"
       />
       {inputValue && (

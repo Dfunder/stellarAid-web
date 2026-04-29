@@ -11,6 +11,7 @@ import NextAuthProvider from "@/components/NextAuthProvider";
 import UserDataSync from "@/components/UserDataSync";
 import Script from "next/script";
 import CookieConsent from "@/components/CookieConsent";
+import { KeyboardShortcutsProvider } from "@/components/KeyboardShortcutsProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -138,9 +139,11 @@ export default function RootLayout({
             <NextAuthProvider>
               <UserDataSync />
               <ToastProvider position="top-right" maxToasts={5}>
-                <GlobalLoadingOverlay />
-                <Suspense fallback={<GlobalLoading message="Loading..." />}>{children}</Suspense>
-                <CookieConsent />
+                <KeyboardShortcutsProvider>
+                  <GlobalLoadingOverlay />
+                  <Suspense fallback={<GlobalLoading message="Loading..." />}>{children}</Suspense>
+                  <CookieConsent />
+                </KeyboardShortcutsProvider>
               </ToastProvider>
             </NextAuthProvider>
           </ErrorBoundaryProvider>
