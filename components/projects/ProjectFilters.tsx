@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/Button';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-export type SortOption = 'newest' | 'most-funded' | 'ending-soon' | 'popular';
+export type SortOption = 'newest' | 'most-funded' | 'ending-soon' | 'most-donors' | 'popular';
 export type FundingStatus = 'all' | 'active' | 'almost-funded' | 'completed';
 
 export interface ProjectFiltersState {
@@ -29,12 +29,14 @@ export interface ProjectFiltersState {
 interface ProjectFiltersProps {
   onFiltersChange?: (filters: ProjectFiltersState) => void;
   className?: string;
+  initialFilters?: Partial<ProjectFiltersState>;
 }
 
 const sortOptions = [
   { value: 'newest', label: 'Newest', icon: Clock },
   { value: 'most-funded', label: 'Most Funded', icon: Zap },
   { value: 'ending-soon', label: 'Ending Soon', icon: Clock },
+  { value: 'most-donors', label: 'Most Donors', icon: BadgeCheck },
   { value: 'popular', label: 'Popular', icon: Zap },
 ];
 
@@ -47,13 +49,15 @@ const statusOptions = [
 
 export const ProjectFilters: React.FC<ProjectFiltersProps> = ({ 
   onFiltersChange,
-  className 
+  className,
+  initialFilters,
 }) => {
   const [filters, setFilters] = useState<ProjectFiltersState>({
     sort: 'newest',
     verifiedOnly: false,
     status: 'all',
     urgentOnly: false,
+    ...initialFilters,
   });
 
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -96,7 +100,8 @@ export const ProjectFilters: React.FC<ProjectFiltersProps> = ({
   const activeFiltersCount = [
     filters.verifiedOnly,
     filters.urgentOnly,
-    filters.status !== 'all'
+    filters.status !== 'all',
+    filters.sort !== 'newest',
   ].filter(Boolean).length;
 
   return (
@@ -223,6 +228,12 @@ export const ProjectFilters: React.FC<ProjectFiltersProps> = ({
         {/* Active Filter Badges */}
         {activeFiltersCount > 0 && (
           <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-neutral-100">
+            {filters.sort !== 'newest' && (
+              <Badge
+                label={`Sort: ${sortOptions.find(o => o.value === filters.sort)?.label}`}
+                onRemove={() => updateFilters({ sort: 'newest' })}
+              />
+            )}
             {filters.status !== 'all' && (
               <Badge 
                 label={`Status: ${statusOptions.find(o => o.value === filters.status)?.label}`} 
