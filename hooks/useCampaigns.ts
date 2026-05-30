@@ -8,10 +8,11 @@ interface ListResponse {
   meta?: { total?: number };
 }
 
-async function fetchCampaigns(page: number, limit: number) {
-  const res = await apiClient.get<ListResponse>(`/projects`, {
-    params: { status: 'active', page, limit },
-  });
+async function fetchCampaigns(page: number, limit: number, q?: string) {
+  const params: Record<string, any> = { status: 'active', page, limit };
+  if (q && q.trim().length > 0) params.q = q.trim();
+
+  const res = await apiClient.get<ListResponse>(`/projects`, { params });
 
   const payload = res.data as ListResponse | Project[];
   // support several response shapes
@@ -21,10 +22,10 @@ async function fetchCampaigns(page: number, limit: number) {
   return { items, total };
 }
 
-export function useCampaigns(page: number, limit: number) {
+export function useCampaigns(page: number, limit: number, q?: string) {
   return useQuery({
-    queryKey: ["campaigns", page, limit],
-    queryFn: () => fetchCampaigns(page, limit),
+    queryKey: ["campaigns", page, limit, q ?? ""],
+    queryFn: () => fetchCampaigns(page, limit, q),
     keepPreviousData: true,
     staleTime: 1000 * 60 * 2,
   });

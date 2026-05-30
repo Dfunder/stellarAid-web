@@ -25,9 +25,29 @@ export interface ProjectCardProps {
     goal?: number;
     imageUrl?: string;
   };
+  highlight?: string;
 }
 
-export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
+export const ProjectCard: React.FC<ProjectCardProps> = ({ project, highlight }) => {
+  // helper to render highlighted text
+  function renderHighlighted(text?: string | number, query?: string) {
+    const str = String(text ?? '');
+    if (!query) return <>{str}</>;
+    const escaped = query.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const parts = str.split(new RegExp(`(${escaped})`, 'gi'));
+    const qLower = query.toLowerCase();
+    return (
+      <>
+        {parts.map((part, i) =>
+          part.toLowerCase() === qLower ? (
+            <mark key={i} className="bg-yellow-200 text-yellow-900 rounded px-0.5">{part}</mark>
+          ) : (
+            <span key={i}>{part}</span>
+          ),
+        )}
+      </>
+    );
+  }
   const { toggleBookmark, isBookmarked } = useBookmarkStore();
 
   return (
@@ -95,7 +115,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         </div>
         
         <h3 className="text-xl font-bold text-foreground mb-6 group-hover:text-primary transition-colors line-clamp-2">
-          {project.title}
+          {renderHighlighted(project.title, highlight)}
         </h3>
 
         <div className="mt-auto space-y-6">
