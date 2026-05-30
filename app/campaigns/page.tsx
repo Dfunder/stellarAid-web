@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Inbox } from 'lucide-react';
 import { Pagination, PageSize } from '@/components/ui/Pagination';
 import { ProjectCard } from '@/components/projects/ProjectCard';
-import { ProjectFilters } from '@/components/projects/ProjectFilters';
+import { ProjectFilters, SortOption } from '@/components/projects/ProjectFilters';
 import useCampaigns from '@/hooks/useCampaigns';
 
 export default function CampaignsPage() {
@@ -13,8 +14,12 @@ export default function CampaignsPage() {
   const [pageSize, setPageSize] = useState<PageSize>(12);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedTerm, setDebouncedTerm] = useState('');
+  const [categories, setCategories] = useState<string[]>([]);
+  const [sort, setSort] = useState<SortOption>('newest');
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const { data, isLoading, isError } = useCampaigns(page, pageSize, debouncedTerm);
+  const { data, isLoading, isError } = useCampaigns(page, pageSize, debouncedTerm, categories, sort);
   const campaigns = data?.items ?? [];
   const total = data?.total ?? 0;
 
@@ -24,10 +29,23 @@ export default function CampaignsPage() {
     return () => clearTimeout(t);
   }, [searchTerm]);
 
-  // reset to first page when search changes
+  // reset to first page when search, categories, or sort change
   useEffect(() => {
     setPage(1);
-  }, [debouncedTerm]);
+  }, [debouncedTerm, categories, sort]);
+
+  // initialize categories and sort from URL once
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams?.toString() ?? '');
+    const cat = params.get('categories');
+    if (cat) setCategories(cat.split(',').map((s) => decodeURIComponent(s)));
+
+    const paramSort = params.get('sort') as SortOption | null;
+    if (paramSort && ['newest', 'most-funded', 'ending-soon', 'most-donors', 'popular'].includes(paramSort)) {
+      setSort(paramSort);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -38,7 +56,16 @@ export default function CampaignsPage() {
         </div>
       </div>
 
-      <ProjectFilters />
+      <ProjectFilters
+        initialFilters={{ sort }}
+        onFiltersChange={(filters) => {
+          setSort(filters.sort);
+          const params = new URLSearchParams(searchParams?.toString() ?? '');
+          if (filters.sort !== 'newest') params.set('sort', filters.sort);
+          else params.delete('sort');
+          router.replace(`${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`);
+        }}
+      />
 
       <main className="container mx-auto px-4 py-10 max-w-[1280px]">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
@@ -53,7 +80,28 @@ export default function CampaignsPage() {
             />
             <p className="text-sm text-neutral-600">Total campaigns: <span className="font-semibold text-foreground">{total}</span></p>
           </div>
-          <div />
+
+          <div className="flex gap-2 flex-wrap">
+            {['Health','Education','Environment','Disaster Relief','Community','Other'].map((cat) => {
+              const active = categories.includes(cat);
+              return (
+                <button
+                  key={cat}
+                  onClick={() => {
+                    const next = active ? categories.filter((c) => c !== cat) : [...categories, cat];
+                    setCategories(next);
+                    const params = new URLSearchParams(searchParams?.toString() ?? '');
+                    if (next.length > 0) params.set('categories', next.map(encodeURIComponent).join(','));
+                    else params.delete('categories');
+                    router.replace(`${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`);
+                  }}
+                  className={`px-3 py-1 rounded-full text-sm font-semibold border transition ${active ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50'}`}
+                >
+                  {cat}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {isError && (
@@ -82,11 +130,36 @@ export default function CampaignsPage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {campaigns.map((c) => (
-                <ProjectCard key={c.id} project={c as any} highlight={debouncedTerm} />
-              ))}
-            </div>
+              <div className="flex flex-col gap-4">
+                {/* Active category tags */}
+                {categories.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {categories.map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => {
+                          const next = categories.filter((x) => x !== c);
+                          setCategories(next);
+                          const params = new URLSearchParams(searchParams?.toString() ?? '');
+                          if (next.length > 0) params.set('categories', next.map(encodeURIComponent).join(','));
+                          else params.delete('categories');
+                          router.replace(`${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`);
+                        }}
+                        className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-neutral-200 rounded-full text-sm font-bold"
+                      >
+                        {c}
+                        <span className="text-neutral-400">✕</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {campaigns.map((c) => (
+                    <ProjectCard key={c.id} project={c as any} highlight={debouncedTerm} />
+                  ))}
+                </div>
+              </div>
 
             <div className="mt-8">
               <Pagination
