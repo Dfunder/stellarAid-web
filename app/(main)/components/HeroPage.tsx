@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import DonationWidget from '@/components/donations/DonationWidget';
 
 export const metadata: Metadata = {
   title: "Home",
@@ -38,6 +39,10 @@ const HeroPage = () => {
           >
             Learn More
           </Link>
+        </div>
+
+        <div className="flex justify-center mb-8">
+          <DonationWidget />
         </div>
 
         {/* Stats Card — frosted glass so particles show through */}
