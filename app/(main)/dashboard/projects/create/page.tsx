@@ -7,6 +7,7 @@ import { BasicInfoForm } from '@/features/projects/components/BasicInfoForm';
 import { FundingConfigForm } from '@/features/projects/components/FundingConfigForm';
 import { CampaignReviewForm } from '@/features/projects/components/CampaignReviewForm';
 import { CampaignPreviewCard } from '@/features/projects/components/CampaignPreviewCard';
+import { CampaignDeployForm } from '@/features/projects/components/CampaignDeployForm';
 import { SubmissionSuccessModal } from '@/components/projects/SubmissionSuccessModal';
 import { useDraftManager } from '@/hooks/useDraftManager';
 import {
@@ -16,6 +17,7 @@ import {
   ListTodo,
   Wallet,
   Eye,
+  Rocket,
   X,
   Save,
   Clock,
@@ -27,6 +29,7 @@ const STEPS = [
   { id: 'details', title: 'Details', icon: ListTodo },
   { id: 'funding', title: 'Funding', icon: Wallet },
   { id: 'review', title: 'Review', icon: Eye },
+  { id: 'deploy', title: 'Deploy', icon: Rocket },
 ];
 
 function formatLastSaved(date: Date): string {
@@ -101,16 +104,16 @@ export default function CreateProjectPage() {
   };
 
   const handleSubmit = async () => {
-    // In a real app this would POST to the API.
-    const mockProjectId = `proj_${Date.now()}`;
-    setSubmittedProjectId(mockProjectId);
+    // Move to deploy step
+    setCurrentStep(4);
+  };
 
-    // Clean up the draft after successful submission
+  const handleDeploySuccess = (campaignId: string) => {
+    setSubmittedProjectId(campaignId);
+
+    // Clean up the draft after successful deployment
     if (draftIdParam) {
       deleteDraft(draftIdParam);
-    } else {
-      // Delete whichever draft was auto-created
-      saveDraft(formData, currentStep); // ensure it exists, then delete
     }
 
     setShowSuccess(true);
@@ -167,6 +170,14 @@ export default function CreateProjectPage() {
               />
             )}
           </div>
+        );
+      case 4:
+        return (
+          <CampaignDeployForm
+            formData={formData}
+            onBack={handleBack}
+            onSuccess={handleDeploySuccess}
+          />
         );
       default:
         return null;
