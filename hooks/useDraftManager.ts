@@ -27,6 +27,64 @@ function persistDrafts(drafts: ProjectDraft[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(drafts));
 }
 
+async function saveDraftToAPI(
+  id: string,
+  title: string,
+  formData: Record<string, unknown>,
+  currentStep: number
+): Promise<ProjectDraft | null> {
+  try {
+    const response = await fetch('/api/drafts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id,
+        title,
+        formData,
+        currentStep,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('API error:', response.statusText);
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error saving draft to API:', error);
+    return null;
+  }
+}
+
+async function deleteDraftFromAPI(id: string): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/drafts/${id}`, {
+      method: 'DELETE',
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.error('Error deleting draft from API:', error);
+    return false;
+  }
+}
+
+async function fetchDraftsFromAPI(): Promise<ProjectDraft[]> {
+  try {
+    const response = await fetch('/api/drafts');
+    if (!response.ok) {
+      return [];
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching drafts from API:', error);
+    return [];
+  }
+}
+
 export function useDraftManager(draftId?: string) {
   const [drafts, setDrafts] = useState<ProjectDraft[]>([]);
   const [activeDraftId, setActiveDraftId] = useState<string | null>(draftId ?? null);
@@ -35,46 +93,92 @@ export function useDraftManager(draftId?: string) {
   const autoSaveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pendingDataRef = useRef<{ formData: Record<string, unknown>; currentStep: number } | null>(null);
 
+  // Load drafts from API on mount
   useEffect(() => {
-    setDrafts(loadDrafts());
+    const loadDrafts = async () => {
+      const apiDrafts = await fetchDraftsFromAPI();
+      if (apiDrafts.length > 0) {
+        setDrafts(apiDrafts);
+      } else {
+        // Fallback to localStorage
+        setDrafts(loadDrafts());
+      }
+    };
+    loadDrafts();
   }, []);
 
   const saveDraft = useCallback(
-    (formData: Record<string, unknown>, currentStep: number): string => {
+    async (formData: Record<string, unknown>, currentStep: number): Promise<string> => {
       setSaveStatus('saving');
-      const all = loadDrafts();
       const now = new Date().toISOString();
       const id = activeDraftId ?? `draft_${Date.now()}`;
-
-      const existing = all.findIndex((d) => d.id === id);
       const title = (formData.title as string) || 'Untitled Draft';
 
-      const updated: ProjectDraft = {
-        id,
-        title,
-        createdAt: existing >= 0 ? (all[existing]?.createdAt ?? now) : now,
-        updatedAt: now,
-        currentStep,
-        formData,
-      };
+      // Try to save to API first
+      const apiResult = await saveDraftToAPI(id, title, formData, currentStep);
 
-      if (existing >= 0) {
-        all[existing] = updated;
+      if (apiResult) {
+        // API save successful
+        const all = loadDrafts();
+        const existing = all.findIndex((d) => d.id === id);
+
+        const updated: ProjectDraft = {
+          id,
+          title,
+          createdAt: existing >= 0 ? (all[existing]?.createdAt ?? now) : now,
+          updatedAt: now,
+          currentStep,
+          formData,
+        };
+
+        if (existing >= 0) {
+          all[existing] = updated;
+        } else {
+          all.unshift(updated);
+        }
+
+        persistDrafts(all);
+        setDrafts(all);
+        setActiveDraftId(id);
+        setLastSaved(new Date());
+        setSaveStatus('saved');
+        return id;
       } else {
-        all.unshift(updated);
-      }
+        // Fallback to localStorage if API fails
+        const all = loadDrafts();
+        const existing = all.findIndex((d) => d.id === id);
 
-      persistDrafts(all);
-      setDrafts(all);
-      setActiveDraftId(id);
-      setLastSaved(new Date());
-      setSaveStatus('saved');
-      return id;
+        const updated: ProjectDraft = {
+          id,
+          title,
+          createdAt: existing >= 0 ? (all[existing]?.createdAt ?? now) : now,
+          updatedAt: now,
+          currentStep,
+          formData,
+        };
+
+        if (existing >= 0) {
+          all[existing] = updated;
+        } else {
+          all.unshift(updated);
+        }
+
+        persistDrafts(all);
+        setDrafts(all);
+        setActiveDraftId(id);
+        setLastSaved(new Date());
+        setSaveStatus('saved');
+        return id;
+      }
     },
     [activeDraftId]
   );
 
-  const deleteDraft = useCallback((id: string) => {
+  const deleteDraft = useCallback(async (id: string) => {
+    // Try API first
+    await deleteDraftFromAPI(id);
+
+    // Also delete from localStorage
     const all = loadDrafts().filter((d) => d.id !== id);
     persistDrafts(all);
     setDrafts(all);

@@ -16,6 +16,7 @@ import {
   X,
   Save,
   Clock,
+  CheckIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -66,6 +67,16 @@ export default function CreateProjectPage() {
 
   // Stop auto-save timer on unmount
   useEffect(() => () => stopAutoSave(), [stopAutoSave]);
+
+  // Reset save status after 3 seconds
+  useEffect(() => {
+    if (saveStatus === 'saved') {
+      const timer = setTimeout(() => {
+        // Status will naturally reset on next save
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [saveStatus]);
 
   function handleManualSave() {
     saveDraft(formData, currentStep);
@@ -194,26 +205,40 @@ export default function CreateProjectPage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            {/* Save Draft button + status */}
-            <div className="flex items-center gap-2">
-              {lastSaved && (
-                <span className="hidden sm:flex items-center gap-1 text-xs text-gray-400">
-                  <Clock className="w-3 h-3" />
-                  {formatLastSaved(lastSaved)}
-                </span>
-              )}
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleManualSave}
-                isLoading={saveStatus === 'saving'}
-                className="flex items-center gap-1.5 text-gray-600"
-                title="Save Draft"
-              >
-                <Save className="w-3.5 h-3.5" />
-                Save Draft
-              </Button>
-            </div>
+            {/* Draft Save Status Indicator */}
+            {lastSaved && (
+              <div className={`px-3 py-1.5 rounded-lg flex items-center gap-2 text-xs font-medium transition-all ${
+                saveStatus === 'saving' 
+                  ? 'bg-blue-50 text-blue-600'
+                  : saveStatus === 'saved'
+                  ? 'bg-green-50 text-green-600'
+                  : 'bg-gray-50 text-gray-600'
+              }`}>
+                {saveStatus === 'saving' ? (
+                  <>
+                    <Clock className="w-3.5 h-3.5 animate-spin" />
+                    Saving...
+                  </>
+                ) : saveStatus === 'saved' ? (
+                  <>
+                    <CheckIcon className="w-3.5 h-3.5" />
+                    Draft saved {formatLastSaved(lastSaved)}
+                  </>
+                ) : null}
+              </div>
+            )}
+            {/* Save Draft button */}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleManualSave}
+              isLoading={saveStatus === 'saving'}
+              className="flex items-center gap-1.5 text-gray-600"
+              title="Save Draft"
+            >
+              <Save className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Save</span>
+            </Button>
             <button
               onClick={handleExit}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600"

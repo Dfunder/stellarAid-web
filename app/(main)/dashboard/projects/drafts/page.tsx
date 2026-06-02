@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -20,16 +20,56 @@ function formatRelativeTime(iso: string): string {
 
 export default function DraftsPage() {
   const router = useRouter();
-  const { drafts, deleteDraft } = useDraftManager();
+  const { deleteDraft } = useDraftManager();
+  const [drafts, setDrafts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  // Fetch drafts from API
+  useEffect(() => {
+    async function fetchDrafts() {
+      try {
+        const response = await fetch('/api/drafts');
+        if (response.ok) {
+          const data = await response.json();
+          setDrafts(data);
+        }
+      } catch (error) {
+        console.error('Error fetching drafts:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchDrafts();
+  }, []);
 
   function handleResume(draftId: string) {
     router.push(`/dashboard/projects/create?draft=${draftId}`);
   }
 
-  function handleDelete(id: string) {
-    deleteDraft(id);
+  async function handleDelete(id: string) {
+    await deleteDraft(id);
+    setDrafts(drafts.filter(d => d.id !== id));
     setConfirmDeleteId(null);
+  }
+
+  if (isLoading) {
+    return (
+      <div className="max-w-3xl mx-auto py-8 px-4 sm:px-6">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">My Drafts</h1>
+            <p className="text-gray-500 mt-1">Resume where you left off.</p>
+          </div>
+        </div>
+        <div className="space-y-3 animate-pulse">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-20 bg-gray-100 rounded-lg" />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
