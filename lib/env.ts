@@ -58,6 +58,10 @@ type EnvSchema = {
   NEXT_PUBLIC_SENTRY_DSN: string;
   NEXT_PUBLIC_GA_MEASUREMENT_ID: string;
 
+  // Cloudinary
+  NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: string;
+  NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: string;
+
   // ── Server-only ────────────────────────────────────────────────────────
   AUTH_SECRET: string;
   DATABASE_URL: string;
@@ -198,6 +202,16 @@ const RULES: Record<keyof EnvSchema, Rule> = {
   NEXT_PUBLIC_COINGECKO_API_KEY: { description: 'CoinGecko API key', required: false },
   NEXT_PUBLIC_SENTRY_DSN: { description: 'Sentry DSN', required: false },
   NEXT_PUBLIC_GA_MEASUREMENT_ID: { description: 'Google Analytics measurement ID', required: false },
+
+  // Cloudinary
+  NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: {
+    description: 'Cloudinary cloud name for image uploads',
+    required: false,
+  },
+  NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: {
+    description: 'Cloudinary unsigned upload preset for client-side uploads',
+    required: false,
+  },
 
   // Server-only
   AUTH_SECRET: {
