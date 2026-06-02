@@ -184,31 +184,31 @@ export interface Update {
   campaignId: string;
   title: string;
   content: string;
-
-  // Share Types
-  export interface ShareRecord {
-    id: string;
-    campaignId: string;
-    platform: 'twitter' | 'linkedin' | 'whatsapp' | 'copy';
-    createdAt: string;
-  }
-
-  export interface CampaignShareStats {
-    campaignId: string;
-    totalShares: number;
-    shares: {
-      twitter: number;
-      linkedin: number;
-      whatsapp: number;
-      copy: number;
-    };
-  }
-
-  export interface CreateShareRequest {
-    platform: 'twitter' | 'linkedin' | 'whatsapp' | 'copy';
-  }
   imageUrls?: string[];
   createdAt: string;
+}
+
+// Share Types
+export interface ShareRecord {
+  id: string;
+  campaignId: string;
+  platform: 'twitter' | 'linkedin' | 'whatsapp' | 'copy';
+  createdAt: string;
+}
+
+export interface CampaignShareStats {
+  campaignId: string;
+  totalShares: number;
+  shares: {
+    twitter: number;
+    linkedin: number;
+    whatsapp: number;
+    copy: number;
+  };
+}
+
+export interface CreateShareRequest {
+  platform: 'twitter' | 'linkedin' | 'whatsapp' | 'copy';
 }
 
 export interface CreateUpdateRequest {
