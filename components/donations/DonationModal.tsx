@@ -17,6 +17,7 @@ import {
 } from './TransactionErrorModal';
 import { Heart, Info } from 'lucide-react';
 import { useWalletStore } from '@/store/walletStore';
+import { DonationConfirmationModal } from './DonationConfirmationModal';
 
 export interface DonationModalProps {
   isOpen: boolean;
@@ -93,6 +94,7 @@ export function DonationModal({
   const [error, setError] = useState('');
   const [receipt, setReceipt] = useState<DonationReceipt | null>(null);
   const [transactionError, setTransactionError] = useState<TransactionErrorDetails | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const amount = parseFloat(rawAmount) || 0;
   const usdEquivalent = (amount * selectedAsset.usdRate).toFixed(2);
@@ -199,7 +201,12 @@ export function DonationModal({
 
   async function handleSubmit() {
     if (!validate()) return;
+    setShowConfirmation(true);
+  }
+
+  async function handleConfirm() {
     setIsSubmitting(true);
+    setShowConfirmation(false);
     try {
       const balanceError = getSpendableBalanceError();
       if (balanceError) {
@@ -249,12 +256,21 @@ export function DonationModal({
     setError('');
     setReceipt(null);
     setTransactionError(null);
+    setShowConfirmation(false);
     onClose();
   }
 
   function handleRetry() {
     setTransactionError(null);
     setError('');
+  }
+
+  function handleConfirmAndSign() {
+    handleConfirm();
+  }
+
+  function handleCancelConfirmation() {
+    setShowConfirmation(false);
   }
 
   function handleDonateAnother() {
@@ -281,6 +297,24 @@ export function DonationModal({
         error={transactionError}
         onRetry={handleRetry}
         onCancel={handleClose}
+      />
+    );
+  }
+
+  if (showConfirmation) {
+    return (
+      <DonationConfirmationModal
+        isOpen={isOpen}
+        onClose={handleCancelConfirmation}
+        onConfirm={handleConfirmAndSign}
+        projectTitle={project.title}
+        amount={amount}
+        asset={selectedAsset}
+        estimatedFeeUsd={txFeeUsd}
+        walletAddress={walletAddress}
+        anonymous={anonymous}
+        message={message.trim() || undefined}
+        isProcessing={isSubmitting}
       />
     );
   }
