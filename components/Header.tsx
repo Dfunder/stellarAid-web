@@ -110,6 +110,8 @@ export default function Header() {
 
             <ThemeToggle />
 
+            {isAuthenticated && <NotificationsDropdown />}
+
             {isAuthenticated ? (
               <ProfileDropdown />
             ) : (
