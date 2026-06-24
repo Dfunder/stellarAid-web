@@ -9,6 +9,7 @@ import ProfileDropdown from './ProfileDropdown';
 import WalletDropdown from './WalletDropdown';
 import { WalletConnectModal } from './donations/WalletConnectModal';
 import { ThemeToggle } from './ThemeToggle';
+import NotificationsDropdown from './NotificationsDropdown';
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -109,6 +110,8 @@ export default function Header() {
 
             <ThemeToggle />
 
+            {isAuthenticated && <NotificationsDropdown />}
+
             {isAuthenticated ? (
               <ProfileDropdown />
             ) : (
@@ -184,6 +187,13 @@ export default function Header() {
             <span className="text-sm font-medium text-muted-foreground">Theme</span>
             <ThemeToggle />
           </div>
+
+          {isAuthenticated && (
+            <div className="flex items-center justify-between py-2">
+              <span className="text-sm font-medium text-muted-foreground">Notifications</span>
+              <NotificationsDropdown />
+            </div>
+          )}
 
           {isAuthenticated ? (
             <div className="flex justify-center">

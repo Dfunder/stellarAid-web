@@ -1,139 +1,99 @@
+
 import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
-import type { NotificationStore, AppNotification } from '@/types';
 
-// Mock API functions - replace with actual API calls
-const mockApi = {
-  async fetchNotifications(): Promise<AppNotification[]> {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return [
-      {
-        id: '1',
-        type: 'donation',
-        title: 'Donation Received',
-        message: 'Your campaign "Clean Water Fund" received a donation of $50',
-        read: false,
-        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        link: '/dashboard/donations',
-        metadata: { amount: 50, campaignId: '1' }
-      },
-      {
-        id: '2',
-        type: 'campaign_update',
-        title: 'Campaign Update',
-        message: 'Education Initiative reached 75% of its funding goal',
-        read: false,
-        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-        link: '/dashboard/projects/1',
-        metadata: { campaignId: '2', progress: 75 }
-      },
-      {
-        id: '3',
-        type: 'admin_message',
-        title: 'Admin Message',
-        message: 'New features have been added to the platform',
-        read: true,
-        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-        link: '/dashboard'
-      },
-      {
-        id: '4',
-        type: 'system',
-        title: 'System Maintenance',
-        message: 'Scheduled maintenance will occur tomorrow at 2 AM UTC',
-        read: true,
-        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-      }
-    ];
+// Define the shape of a single notification
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'donation' | 'milestone' | 'campaign' | 'release';
+  read: boolean;
+  timestamp: string;
+  link: string;
+}
+
+// Define the state and actions for the notification store
+interface NotificationState {
+  notifications: Notification[];
+  unreadCount: number;
+  fetchNotifications: () => void;
+  markAllAsRead: () => void;
+  markAsRead: (id: string) => void;
+}
+
+// Mock data for notifications
+const mockNotifications: Notification[] = [
+  {
+    id: '1',
+    title: 'New Donation',
+    message: 'You received a $50 donation for "Project Hope".',
+    type: 'donation',
+    read: false,
+    timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+    link: '/dashboard/campaigns/1/donations',
   },
-
-  async markAsRead(id: string): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    // In real implementation, this would make an API call
-    console.log(`Marked notification ${id} as read`);
+  {
+    id: '2',
+    title: 'Milestone Unlocked',
+    message: 'Congratulations! You've unlocked the "First 100 Backers" milestone.',
+    type: 'milestone',
+    read: false,
+    timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+    link: '/dashboard/campaigns/1/milestones',
   },
+  {
+    id: '3',
+    title: 'Campaign Update',
+    message: 'Your campaign "Project Hope" has been approved and is now live.',
+    type: 'campaign',
+    read: true,
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+    link: '/dashboard/campaigns/1',
+  },
+  {
+    id: '4',
+    title: 'Release Completed',
+    message: 'Funds for the first milestone have been released to your wallet.',
+    type: 'release',
+    read: true,
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+    link: '/dashboard/payouts',
+  },
+  // Add more mock notifications to reach a total of 20
+  ...Array.from({ length: 16 }, (_, i) => ({
+    id: `${i + 5}`,
+    title: `Notification ${i + 5}`,
+    message: `This is mock notification number ${i + 5}.`,
+    type: 'campaign' as 'campaign',
+    read: i % 2 === 0, // Alternate read status
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * (i + 3)).toISOString(),
+    link: '#',
+  })),
+];
 
-  async markAllAsRead(): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    // In real implementation, this would make an API call
-    console.log('Marked all notifications as read');
-  }
-};
-
-export const useNotificationStore = create<NotificationStore>()(
-  devtools(
-    (set, get) => ({
-      // Initial State
-      notifications: [],
+export const useNotificationStore = create<NotificationState>((set) => ({
+  notifications: [],
+  unreadCount: 0,
+  fetchNotifications: () => {
+    // Simulate API call
+    setTimeout(() => {
+      const sortedNotifications = [...mockNotifications].sort(
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+      const unread = sortedNotifications.filter((n) => !n.read).length;
+      set({ notifications: sortedNotifications.slice(0, 20), unreadCount: unread });
+    }, 500);
+  },
+  markAllAsRead: () => {
+    set((state) => ({
+      notifications: state.notifications.map((n) => ({ ...n, read: true })),
       unreadCount: 0,
-      isLoading: false,
-
-      // Actions
-      fetchNotifications: async () => {
-        set({ isLoading: true });
-        try {
-          const notifications = await mockApi.fetchNotifications();
-          const unreadCount = notifications.filter(n => !n.read).length;
-          set({ notifications, unreadCount, isLoading: false });
-        } catch (error) {
-          console.error('Failed to fetch notifications:', error);
-          set({ isLoading: false });
-        }
-      },
-
-      markAsRead: async (id: string) => {
-        try {
-          await mockApi.markAsRead(id);
-          const { notifications } = get();
-          const updatedNotifications = notifications.map(n =>
-            n.id === id ? { ...n, read: true } : n
-          );
-          const unreadCount = updatedNotifications.filter(n => !n.read).length;
-          set({ notifications: updatedNotifications, unreadCount });
-        } catch (error) {
-          console.error('Failed to mark notification as read:', error);
-        }
-      },
-
-      markAllAsRead: async () => {
-        try {
-          await mockApi.markAllAsRead();
-          const { notifications } = get();
-          const updatedNotifications = notifications.map(n => ({ ...n, read: true }));
-          set({ notifications: updatedNotifications, unreadCount: 0 });
-        } catch (error) {
-          console.error('Failed to mark all notifications as read:', error);
-        }
-      },
-
-      addNotification: (notification) => {
-        const newNotification: AppNotification = {
-          ...notification,
-          id: Date.now().toString(),
-          createdAt: new Date().toISOString()
-        };
-        
-        const { notifications, unreadCount } = get();
-        const updatedNotifications = [newNotification, ...notifications];
-        const newUnreadCount = notification.read ? unreadCount : unreadCount + 1;
-        
-        set({ 
-          notifications: updatedNotifications, 
-          unreadCount: newUnreadCount 
-        });
-      },
-
-      setNotifications: (notifications: AppNotification[]) => {
-        const unreadCount = notifications.filter(n => !n.read).length;
-        set({ notifications, unreadCount });
-      },
-
-      setLoading: (loading: boolean) => set({ isLoading: loading })
-    }),
-    {
-      name: 'NotificationStore'
-    }
-  )
-);
+    }));
+  },
+  markAsRead: (id: string) => {
+    set((state) => ({
+      notifications: state.notifications.map((n) => (n.id === id ? { ...n, read: true } : n)),
+      unreadCount: state.notifications.filter((n) => !n.read && n.id !== id).length,
+    }));
+  },
+}));
