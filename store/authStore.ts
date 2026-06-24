@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { devtools } from 'zustand/middleware';
-import type { AuthStore } from '@/types';
+import type { AuthStore, KycStatus } from '@/types';
 
 const setAuthCookie = (token: string) => {
   if (typeof window === 'undefined') return;
@@ -67,6 +67,12 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: true,
           });
           setAuthCookie(token);
+        },
+
+        setKycStatus: (kycStatus) => {
+          set((state) => ({
+            user: state.user ? { ...state.user, kycStatus } : null,
+          }));
         },
       }),
       {
