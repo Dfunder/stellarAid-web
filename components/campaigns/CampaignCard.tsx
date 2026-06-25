@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 interface CampaignCardProps {
   title: string;
   coverImage?: string;
@@ -58,8 +60,15 @@ export function CampaignCard({
       {/* Cover image */}
       <div className="relative h-40 bg-muted">
         {coverImage && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={coverImage} alt={title} className="h-full w-full object-cover" />
+          <Image
+            src={coverImage}
+            alt={title}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover"
+            placeholder="blur"
+            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+          />
         )}
         {isVerified && (
           <span className="absolute top-2 right-2 rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
