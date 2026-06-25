@@ -16,6 +16,7 @@ export default function CampaignsPage() {
   const [debouncedTerm, setDebouncedTerm] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
   const [sort, setSort] = useState<SortOption>('newest');
+  const [isCarouselMode, setIsCarouselMode] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -68,20 +69,20 @@ export default function CampaignsPage() {
       />
 
       <main className="container mx-auto px-4 py-10 max-w-[1280px]">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-4 w-full">
+        <div className="flex flex-col items-start justify-between gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
             <input
               type="search"
               aria-label="Search campaigns"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search campaigns by keyword"
-              className="w-full sm:w-80 rounded-lg border border-neutral-200 px-3 py-2 focus:ring-2 focus:ring-primary-500"
+              className="w-full sm:w-80 rounded-2xl border border-neutral-200 px-4 py-3 text-sm focus:ring-2 focus:ring-primary-500"
             />
             <p className="text-sm text-neutral-600">Total campaigns: <span className="font-semibold text-foreground">{total}</span></p>
           </div>
 
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-3 flex-wrap">
             {['Health','Education','Environment','Disaster Relief','Community','Other'].map((cat) => {
               const active = categories.includes(cat);
               return (
@@ -95,12 +96,33 @@ export default function CampaignsPage() {
                     else params.delete('categories');
                     router.replace(`${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`);
                   }}
-                  className={`px-3 py-1 rounded-full text-sm font-semibold border transition ${active ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50'}`}
+                  className={`inline-flex items-center justify-center min-h-[44px] px-4 py-2 rounded-full text-sm font-semibold border transition ${active ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50'}`}
                 >
                   {cat}
                 </button>
               );
             })}
+          </div>
+
+          <div className="flex items-center justify-between gap-3 w-full pt-2 sm:pt-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm font-semibold text-neutral-700">View:</span>
+              <button
+                type="button"
+                onClick={() => setIsCarouselMode(false)}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${isCarouselMode ? 'bg-white text-neutral-700 border border-neutral-200' : 'bg-primary-600 text-white shadow-sm'}`}
+              >
+                List
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsCarouselMode(true)}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${isCarouselMode ? 'bg-primary-600 text-white shadow-sm' : 'bg-white text-neutral-700 border border-neutral-200'}`}
+              >
+                Carousel
+              </button>
+            </div>
+            <p className="text-sm text-neutral-500 hidden sm:block">Swipe cards on mobile for a faster browse experience.</p>
           </div>
         </div>
 
@@ -154,10 +176,27 @@ export default function CampaignsPage() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {campaigns.map((c) => (
-                    <ProjectCard key={c.id} project={c as any} highlight={debouncedTerm} />
-                  ))}
+                <div className="space-y-6">
+                  {isCarouselMode ? (
+                    <div className="overflow-x-auto pb-4 -mx-4 px-4 snap-x snap-mandatory touch-pan-x">
+                      <div className="flex gap-4">
+                        {campaigns.map((c) => (
+                          <div
+                            key={c.id}
+                            className="min-w-[85vw] max-w-[85vw] snap-center shrink-0 sm:min-w-[70vw] sm:max-w-[70vw] md:min-w-[45vw] md:max-w-[45vw]"
+                          >
+                            <ProjectCard project={c as any} highlight={debouncedTerm} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
+                      {campaigns.map((c) => (
+                        <ProjectCard key={c.id} project={c as any} highlight={debouncedTerm} />
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
