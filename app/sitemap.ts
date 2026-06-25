@@ -1,9 +1,20 @@
-import { MetadataRoute } from 'next'
+import { MetadataRoute } from 'next';
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://stellaraid.com'
-
+// Mock function to fetch active campaigns
+// In a real application, you would fetch this data from your API
+async function getActiveCampaigns() {
+  // Placeholder: Replace with actual API call
   return [
+    { id: '1', lastModified: new Date() },
+    { id: '2', lastModified: new Date() },
+    { id: '3', lastModified: new Date() },
+  ];
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://stellaraid.com';
+
+  const staticRoutes = [
     {
       url: baseUrl,
       lastModified: new Date(),
@@ -34,5 +45,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.5,
     },
-  ]
+  ];
+
+  const campaigns = await getActiveCampaigns();
+  const campaignRoutes = campaigns.map((campaign) => ({
+    url: `${baseUrl}/campaigns/${campaign.id}`,
+    lastModified: campaign.lastModified,
+    changeFrequency: 'daily',
+    priority: 0.9,
+  }));
+
+  return [...staticRoutes, ...campaignRoutes];
 }
