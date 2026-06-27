@@ -45,7 +45,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
     const timer = setTimeout(() => {
       const focusable = getFocusableElements();
       if (focusable.length > 0) {
-        focusable[0].focus();
+        focusable[0]!.focus();
       } else if (modalRef.current) {
         modalRef.current.focus();
       }
@@ -61,8 +61,8 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
         const focusable = getFocusableElements();
         if (focusable.length === 0) return;
 
-        const firstElement = focusable[0];
-        const lastElement = focusable[focusable.length - 1];
+        const firstElement = focusable[0]!;
+        const lastElement = focusable[focusable.length - 1]!;
 
         if (e.shiftKey && document.activeElement === firstElement) {
           e.preventDefault();
