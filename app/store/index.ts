@@ -3,6 +3,8 @@
 import { configureStore } from '@reduxjs/toolkit';
 import rootReducer from './rootReducer';
 
+export { rootReducer };
+
 export const store = configureStore({
   reducer: rootReducer,
   // Redux DevTools are automatically configured by RTK in development

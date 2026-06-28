@@ -8,6 +8,7 @@ import donationsReducer from '../features/donations/donationsSlice';
 import dashboardReducer from '../features/dashboard/dashboardSlice';
 import adminReducer from '../features/admin/adminSlice';
 import bookmarksReducer from '../features/bookmarks/bookmarksSlice';
+import errorsReducer from '../features/errors/errorSlice';
 
 const rootReducer = combineReducers({
   api: apiReducer,
@@ -17,6 +18,7 @@ const rootReducer = combineReducers({
   dashboard: dashboardReducer,
   admin: adminReducer,
   bookmarks: bookmarksReducer,
+  errors: errorsReducer,
 });
 
 export default rootReducer;
