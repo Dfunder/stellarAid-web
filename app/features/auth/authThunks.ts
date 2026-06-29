@@ -103,3 +103,57 @@ export const fetchCurrentUser = createAsyncThunk(
     }
   }
 );
+
+export const verifyEmail = createAsyncThunk(
+  'auth/verifyEmail',
+  async (token: string, { dispatch }) => {
+    try {
+      dispatch(setLoading(true));
+      const response = await fetch('/api/auth/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw Object.assign(new Error('Email verification failed'), { code: data?.code, response: { data } });
+      }
+
+      dispatch(setError(null));
+      return true;
+    } catch (error: any) {
+      dispatch(setError(getErrorMessage(error)));
+      throw error;
+    } finally {
+      dispatch(setLoading(false));
+    }
+  }
+);
+
+export const resendVerificationEmail = createAsyncThunk(
+  'auth/resendVerificationEmail',
+  async (email: string, { dispatch }) => {
+    try {
+      dispatch(setLoading(true));
+      const response = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw Object.assign(new Error('Failed to resend verification email'), { code: data?.code, response: { data } });
+      }
+
+      dispatch(setError(null));
+      return true;
+    } catch (error: any) {
+      dispatch(setError(getErrorMessage(error)));
+      throw error;
+    } finally {
+      dispatch(setLoading(false));
+    }
+  }
+);
