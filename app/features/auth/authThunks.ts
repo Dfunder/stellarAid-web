@@ -153,3 +153,27 @@ export const resetPassword = createAsyncThunk(
     }
   }
 );
+
+export const forgotPassword = createAsyncThunk(
+  'auth/forgotPassword',
+  async (email: string, { dispatch }) => {
+    try {
+      dispatch(setLoading(true));
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      // Always show success message regardless of whether email exists
+      dispatch(setError(null));
+      return { success: true };
+    } catch (error: any) {
+      // Still show success message to prevent email enumeration
+      dispatch(setError(null));
+      return { success: true };
+    } finally {
+      dispatch(setLoading(false));
+    }
+  }
+);
