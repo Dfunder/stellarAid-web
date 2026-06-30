@@ -1,105 +1,102 @@
-'use client';
-
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { setUser, clearUser, setLoading, setError } from './authSlice';
+import { setCredentials, clearCredentials, setAuthLoading, setAuthError } from './authSlice';
 
-const ERROR_MESSAGES: Record<string, string> = {
-  EMAIL_NOT_VERIFIED: 'Please verify your email before logging in.',
-  INVALID_CREDENTIALS: 'Invalid email or password.',
-  ACCOUNT_DISABLED: 'Your account has been disabled. Please contact support.',
-  TOO_MANY_REQUESTS: 'Too many login attempts. Please try again later.',
-};
-
-function getErrorMessage(error: any): string {
-  const code = error?.code || error?.response?.data?.code;
-  if (code && ERROR_MESSAGES[code]) return ERROR_MESSAGES[code];
-  return error?.response?.data?.message || error.message || 'An unexpected error occurred.';
-}
-
-export const loginUser = createAsyncThunk(
-  'auth/loginUser',
-  async (credentials: { email: string; password: string }, { dispatch }) => {
+// Async thunk for user registration
+export const registerUser = createAsyncThunk(
+  'auth/registerUser',
+  async (userData, { dispatch }) => {
+    dispatch(setAuthLoading(true));
     try {
-      dispatch(setLoading(true));
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials),
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw Object.assign(new Error('Login failed'), { code: data?.code, response: { data } });
-      }
-
-      const user = await response.json();
-      dispatch(setUser(user));
-      dispatch(setError(null));
-      return user;
-    } catch (error: any) {
-      dispatch(setError(getErrorMessage(error)));
+      // Replace with your actual API call
+      const response = await new Promise((resolve) => setTimeout(() => resolve({ user: userData, token: 'fake-token' }), 1000));
+      dispatch(setCredentials(response));
+      return response;
+    } catch (error) {
+      dispatch(setAuthError(error.message));
       throw error;
-    } finally {
-      dispatch(setLoading(false));
     }
   }
 );
 
+// Async thunk for user login
+export const loginUser = createAsyncThunk(
+  'auth/loginUser',
+  async (credentials, { dispatch }) => {
+    dispatch(setAuthLoading(true));
+    try {
+      // Replace with your actual API call
+      const response = await new Promise((resolve) => setTimeout(() => resolve({ user: { email: credentials.email }, token: 'fake-token' }), 1000));
+      dispatch(setCredentials(response));
+      return response;
+    } catch (error) {
+      dispatch(setAuthError(error.message));
+      throw error;
+    }
+  }
+);
+
+// Async thunk for user logout
 export const logoutUser = createAsyncThunk(
   'auth/logoutUser',
   async (_, { dispatch }) => {
     try {
-      dispatch(setLoading(true));
-      await fetch('/api/auth/logout', { method: 'POST' });
-      dispatch(clearUser());
-      dispatch(setError(null));
-    } catch {
-      dispatch(clearUser());
-    } finally {
-      dispatch(setLoading(false));
+      // Replace with your actual API call
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      dispatch(clearCredentials());
+    } catch (error) {
+      // Even if logout fails, clear credentials from the client
+      dispatch(clearCredentials());
     }
   }
 );
 
-export const getCurrentUser = createAsyncThunk(
-  'auth/getCurrentUser',
-  async (_, { dispatch }) => {
+// Async thunk for email verification
+export const verifyEmail = createAsyncThunk(
+  'auth/verifyEmail',
+  async (token, { dispatch }) => {
+    dispatch(setAuthLoading(true));
     try {
-      dispatch(setLoading(true));
-      const response = await fetch('/api/auth/me');
-      if (response.ok) {
-        const user = await response.json();
-        dispatch(setUser(user));
-        return user;
-      } else {
-        dispatch(clearUser());
-        return null;
-      }
-    } catch {
-      dispatch(clearUser());
-      return null;
-    } finally {
-      dispatch(setLoading(false));
-    }
-  }
-);
-
-export const fetchCurrentUser = createAsyncThunk(
-  'auth/fetchCurrentUser',
-  async (_, { dispatch }) => {
-    try {
-      dispatch(setLoading(true));
-      const response = await fetch('/api/users/me');
-      if (!response.ok) throw new Error('Failed to fetch user profile');
-      const user = await response.json();
-      dispatch(setUser(user));
-      dispatch(setError(null));
-      return user;
-    } catch (error: any) {
-      dispatch(setError(error.message));
+      // Replace with your actual API call
+      const response = await new Promise((resolve) => setTimeout(() => resolve({ message: 'Email verified successfully' }), 1000));
+      dispatch(setAuthLoading(false));
+      return response;
+    } catch (error) {
+      dispatch(setAuthError(error.message));
       throw error;
-    } finally {
-      dispatch(setLoading(false));
+    }
+  }
+);
+
+// Async thunk for forgot password
+export const forgotPassword = createAsyncThunk(
+  'auth/forgotPassword',
+  async (email, { dispatch }) => {
+    dispatch(setAuthLoading(true));
+    try {
+      // Replace with your actual API call
+      const response = await new Promise((resolve) => setTimeout(() => resolve({ message: 'Password reset link sent' }), 1000));
+      dispatch(setAuthLoading(false));
+      return response;
+    } catch (error) {
+      dispatch(setAuthError(error.message));
+      throw error;
+    }
+  }
+);
+
+// Async thunk for reset password
+export const resetPassword = createAsyncThunk(
+  'auth/resetPassword',
+  async ({ token, password }, { dispatch }) => {
+    dispatch(setAuthLoading(true));
+    try {
+      // Replace with your actual API call
+      const response = await new Promise((resolve) => setTimeout(() => resolve({ message: 'Password reset successfully' }), 1000));
+      dispatch(setAuthLoading(false));
+      return response;
+    } catch (error) {
+      dispatch(setAuthError(error.message));
+      throw error;
     }
   }
 );
