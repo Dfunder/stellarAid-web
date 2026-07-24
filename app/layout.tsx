@@ -1,15 +1,34 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import { ReduxProvider } from "./providers/ReduxProvider";
 import { ErrorBoundary } from "./components/common";
+import { Header, Footer } from "./components/layout";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#6D28D9" },
+    { media: "(prefers-color-scheme: dark)", color: "#1a1a2e" },
+  ],
+};
+
 export const metadata: Metadata = {
-  title: "StellarAid",
-  description: "Blockchain-based crowdfunding on the Stellar Network",
+  title: {
+    default: "Lumora",
+    template: "%s | Lumora",
+  },
+  description: "Blockchain-based crowdfunding on the Stellar Network. Empowering creators and changemakers worldwide.",
+  keywords: ["crowdfunding", "stellar", "blockchain", "web3", "fundraising"],
+  openGraph: {
+    title: "Lumora",
+    description: "Blockchain-based crowdfunding on the Stellar Network",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -18,11 +37,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ReduxProvider>
           <ErrorBoundary>
+            <Header />
             {children}
+            <Footer />
             <Toaster
               position="top-right"
               toastOptions={{
