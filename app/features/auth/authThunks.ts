@@ -1,85 +1,51 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { setCredentials, clearCredentials, setAuthLoading, setAuthError } from './authSlice';
+import { apiClient } from '@/utils/apiClient';
 
-// Async thunk for user registration
 export const registerUser = createAsyncThunk(
   'auth/registerUser',
-  async (userData, { dispatch }) => {
+  async (userData: { fullName: string; email: string; password: string }, { dispatch }) => {
     dispatch(setAuthLoading(true));
     try {
-      // Replace with your actual API call
-      const response = await new Promise((resolve) => setTimeout(() => resolve({ user: userData, token: 'fake-token' }), 1000));
-      dispatch(setCredentials(response));
-      return response;
-    } catch (error) {
-      dispatch(setAuthError(error.message));
+      const response = await apiClient.post('/api/auth/register', userData);
+      dispatch(setAuthLoading(false));
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Registration failed';
+      dispatch(setAuthError(message));
       throw error;
     }
   }
 );
 
-// Async thunk for user login
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
-  async (credentials, { dispatch }) => {
+  async (credentials: { email: string; password: string }, { dispatch }) => {
     dispatch(setAuthLoading(true));
     try {
-      // Replace with your actual API call
-      const response = await new Promise((resolve) => setTimeout(() => resolve({ user: { email: credentials.email }, token: 'fake-token' }), 1000));
-      dispatch(setCredentials(response));
-      return response;
-    } catch (error) {
-      dispatch(setAuthError(error.message));
+      const response = await apiClient.post('/api/auth/login', credentials);
+      const { user, accessToken, refreshToken } = response.data;
+      localStorage.setItem('refreshToken', refreshToken);
+      dispatch(setCredentials({ user, token: accessToken }));
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Login failed';
+      dispatch(setAuthError(message));
       throw error;
     }
   }
 );
 
-// Async thunk for user logout
 export const logoutUser = createAsyncThunk(
   'auth/logoutUser',
   async (_, { dispatch }) => {
     try {
-      // Replace with your actual API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await apiClient.post('/api/auth/logout');
+    } catch {
+      // Proceed with local logout even if API call fails
+    } finally {
+      localStorage.removeItem('refreshToken');
       dispatch(clearCredentials());
-    } catch (error) {
-      // Even if logout fails, clear credentials from the client
-      dispatch(clearCredentials());
-    }
-  }
-);
-
-// Async thunk for email verification
-export const verifyEmail = createAsyncThunk(
-  'auth/verifyEmail',
-  async (token, { dispatch }) => {
-    dispatch(setAuthLoading(true));
-    try {
-      // Replace with your actual API call
-      const response = await new Promise((resolve) => setTimeout(() => resolve({ message: 'Email verified successfully' }), 1000));
-      dispatch(setAuthLoading(false));
-      return response;
-    } catch (error) {
-      dispatch(setAuthError(error.message));
-      throw error;
-    }
-  }
-);
-
-// Async thunk for forgot password
-export const forgotPassword = createAsyncThunk(
-  'auth/forgotPassword',
-  async (email, { dispatch }) => {
-    dispatch(setAuthLoading(true));
-    try {
-      // Replace with your actual API call
-      const response = await new Promise((resolve) => setTimeout(() => resolve({ message: 'Password reset link sent' }), 1000));
-      dispatch(setAuthLoading(false));
-      return response;
-    } catch (error) {
-      dispatch(setAuthError(error.message));
-      throw error;
     }
   }
 );
@@ -87,26 +53,15 @@ export const forgotPassword = createAsyncThunk(
 export const verifyEmail = createAsyncThunk(
   'auth/verifyEmail',
   async (token: string, { dispatch }) => {
+    dispatch(setAuthLoading(true));
     try {
-      dispatch(setLoading(true));
-      const response = await fetch('/api/auth/verify-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw Object.assign(new Error('Email verification failed'), { code: data?.code, response: { data } });
-      }
-
-      dispatch(setError(null));
-      return true;
+      const response = await apiClient.post('/api/auth/verify-email', { token });
+      dispatch(setAuthLoading(false));
+      return response.data;
     } catch (error: any) {
-      dispatch(setError(getErrorMessage(error)));
+      const message = error.response?.data?.message || 'Verification failed';
+      dispatch(setAuthError(message));
       throw error;
-    } finally {
-      dispatch(setLoading(false));
     }
   }
 );
@@ -114,41 +69,13 @@ export const verifyEmail = createAsyncThunk(
 export const resendVerificationEmail = createAsyncThunk(
   'auth/resendVerificationEmail',
   async (email: string, { dispatch }) => {
-    try {
-      dispatch(setLoading(true));
-      const response = await fetch('/api/auth/resend-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw Object.assign(new Error('Failed to resend verification email'), { code: data?.code, response: { data } });
-      }
-
-      dispatch(setError(null));
-      return true;
-    } catch (error: any) {
-      dispatch(setError(getErrorMessage(error)));
-      throw error;
-    } finally {
-      dispatch(setLoading(false));
-    }
-  }
-);
-// Async thunk for reset password
-export const resetPassword = createAsyncThunk(
-  'auth/resetPassword',
-  async ({ token, password }, { dispatch }) => {
     dispatch(setAuthLoading(true));
     try {
-      // Replace with your actual API call
-      const response = await new Promise((resolve) => setTimeout(() => resolve({ message: 'Password reset successfully' }), 1000));
+      const response = await apiClient.post('/api/auth/resend-verification', { email });
       dispatch(setAuthLoading(false));
-      return response;
-    } catch (error) {
-      dispatch(setAuthError(error.message));
+      return response.data;
+    } catch (error: any) {
+      dispatch(setAuthError(error.response?.data?.message || 'Failed to resend'));
       throw error;
     }
   }
@@ -157,23 +84,31 @@ export const resetPassword = createAsyncThunk(
 export const forgotPassword = createAsyncThunk(
   'auth/forgotPassword',
   async (email: string, { dispatch }) => {
+    dispatch(setAuthLoading(true));
     try {
-      dispatch(setLoading(true));
-      const response = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
+      await apiClient.post('/api/auth/forgot-password', { email });
+      dispatch(setAuthLoading(false));
+      return { success: true };
+    } catch {
+      // Always show success to prevent email enumeration
+      dispatch(setAuthLoading(false));
+      return { success: true };
+    }
+  }
+);
 
-      // Always show success message regardless of whether email exists
-      dispatch(setError(null));
-      return { success: true };
+export const resetPassword = createAsyncThunk(
+  'auth/resetPassword',
+  async ({ token, password }: { token: string; password: string }, { dispatch }) => {
+    dispatch(setAuthLoading(true));
+    try {
+      const response = await apiClient.post('/api/auth/reset-password', { token, password });
+      dispatch(setAuthLoading(false));
+      return response.data;
     } catch (error: any) {
-      // Still show success message to prevent email enumeration
-      dispatch(setError(null));
-      return { success: true };
-    } finally {
-      dispatch(setLoading(false));
+      const message = error.response?.data?.message || 'Reset failed';
+      dispatch(setAuthError(message));
+      throw error;
     }
   }
 );
