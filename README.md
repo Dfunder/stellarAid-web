@@ -1,141 +1,36 @@
-# 🌟 StellarAid  
-A blockchain-based crowdfunding platform built on the **Stellar Network** for transparent, borderless, and secure fundraising.
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-StellarAid enables project creators to raise funds in **XLM** or any Stellar-based asset (USDC, NGNT, custom tokens), while donors can contribute with full on-chain transparency.
+## Getting Started
 
-## 🚀 SEO & Performance Optimizations
+First, run the development server:
 
-This application is optimized for search engines and social sharing:
-
-### Meta Tags & Social Media
-- ✅ Dynamic Open Graph tags for all pages
-- ✅ Twitter Card meta tags
-- ✅ Structured data (JSON-LD) for organization and projects
-- ✅ Proper meta descriptions and titles
-
-### Technical SEO
-- ✅ Sitemap.xml generation
-- ✅ Robots.txt configuration
-- ✅ Canonical URLs
-- ✅ Image optimization with Next.js Image component
-- ✅ Lazy loading for images
-
-### Performance
-- ✅ Next.js Image optimization
-- ✅ WebP/AVIF image formats
-- ✅ Responsive images
-- ✅ Build optimizations
-
-### Dark Mode
-- ✅ next-themes integration
-- ✅ System preference detection
-- ✅ Theme persistence
-- ✅ Theme toggle in header
-- ✅ All components support dark mode
-- ✅ Charts and graphs adapt to theme
-- ✅ Smooth theme transitions
-
-### Testing SEO
-Run these commands to test SEO:
 ```bash
-# Build for production
-npm run build
-
-# Test with Lighthouse
-npx lighthouse http://localhost:3000 --output html --output-path ./lighthouse-report.html
-
-# Check structured data
-# Visit: https://search.google.com/test/rich-results
-# Or use: https://validator.schema.org/
-
-# Check Open Graph
-# Visit: https://opengraph.xyz/
-```
-
-### Testing Dark Mode
-```bash
-# Start development server
 npm run dev
-
-# Test theme toggle
-# - Click the sun/moon icon in header
-# - Check system preference detection
-# - Verify all components adapt
-# - Test chart visibility in both themes
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-# Folder structure 
-```bash
-/src
-  /app
-    /auth
-    /dashboard
-    /projects
-    /admin
-  /components
-  /services
-    api.ts
-    stellar.ts
-  /hooks
-  /utils
-  /types
-  /store
-```
-## 📌 Features
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### 🎯 For Donors
-- Discover global fundraising campaigns  
-- Donate in XLM or Stellar assets  
-- Wallet integration (Freighter, Albedo, Lobstr)  
-- On-chain transparency: verify all transactions  
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-### 🎯 For Creators
-- Create social impact projects  
-- Accept multi-asset contributions  
-- Real-time donation tracking  
-- Withdraw funds directly on-chain  
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-### 🎯 For Admins
-- Campaign approval workflow  
-- User & KYC management  
-- Analytics dashboard  
+## Learn More
 
-## 🏗️ Architecture Overview
+To learn more about Next.js, take a look at the following resources:
 
-StellarAid Frontend is built with: 
-- Next.js 14  
-- TailwindCSS  
-- Stellar JavaScript SDK  
-- Zustand (state management)
-  
-# 📌 How to Contribute
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-### 1. Fork the Repository
-Click the **“Fork”** button in the top‑right of the GitHub repo and clone your fork:
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-```bash
-git clone https://github.com/YOUR_USERNAME/stellaraid.git
-cd stellaraid
-````
-### 2. Create a Branch
-````bash
-git checkout -b feature/add-donation-flow
-````
+## Deploy on Vercel
 
-### 3. Commit Messages
-Use conventional commits:
-````bash
-feat: add wallet connection modal
-fix: resolve donation API error
-docs: update project README
-refactor: clean up project creation form
-````
-### 4. Submitting a Pull Request (PR)
-Push your branch:
-```bash
-git push origin feature/add-donation-flow
-```
-Open a Pull Request from your fork back to the main branch.
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-# 📜 License
-MIT License — free to use, modify, and distribute.
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
