@@ -36,19 +36,16 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-export const logoutUser = createAsyncThunk(
-  'auth/logoutUser',
-  async (_, { dispatch }) => {
-    try {
-      await apiClient.post('/api/auth/logout');
-    } catch {
-      // Proceed with local logout even if API call fails
-    } finally {
-      localStorage.removeItem('refreshToken');
-      dispatch(clearCredentials());
-    }
+export const logoutUser = createAsyncThunk('auth/logoutUser', async (_, { dispatch }) => {
+  try {
+    await apiClient.post('/api/auth/logout');
+  } catch {
+    // Proceed with local logout even if API call fails
+  } finally {
+    localStorage.removeItem('refreshToken');
+    dispatch(clearCredentials());
   }
-);
+});
 
 export const verifyEmail = createAsyncThunk(
   'auth/verifyEmail',
@@ -108,6 +105,23 @@ export const resetPassword = createAsyncThunk(
     } catch (error: any) {
       const message = error.response?.data?.message || 'Reset failed';
       dispatch(setAuthError(message));
+      throw error;
+    }
+  }
+);
+
+export const fetchCurrentUser = createAsyncThunk(
+  'auth/fetchCurrentUser',
+  async (_, { dispatch }) => {
+    dispatch(setAuthLoading(true));
+    try {
+      const response = await apiClient.get('/api/auth/me');
+      dispatch(
+        setCredentials({ user: response.data, token: localStorage.getItem('accessToken') || '' })
+      );
+      return response.data;
+    } catch (error: any) {
+      dispatch(setAuthError(error.response?.data?.message || 'Failed to fetch user'));
       throw error;
     }
   }

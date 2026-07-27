@@ -8,7 +8,7 @@ import {
   addDonation,
   updateDonation,
   setLoading,
-  setError
+  setError,
 } from './donationsSlice';
 
 // Fetch all donations (admin only)
@@ -18,9 +18,9 @@ export const fetchAllDonations = createAsyncThunk(
     try {
       dispatch(setLoading(true));
       const response = await fetch('/api/donations');
-      
+
       if (!response.ok) throw new Error('Failed to fetch donations');
-      
+
       const donations = await response.json();
       dispatch(setDonations(donations));
       dispatch(setError(null));
@@ -41,9 +41,9 @@ export const fetchUserDonations = createAsyncThunk(
     try {
       dispatch(setLoading(true));
       const response = await fetch(`/api/users/${userId}/donations`);
-      
+
       if (!response.ok) throw new Error('Failed to fetch user donations');
-      
+
       const donations = await response.json();
       dispatch(setUserDonations(donations));
       dispatch(setError(null));
@@ -64,9 +64,9 @@ export const fetchCampaignDonations = createAsyncThunk(
     try {
       dispatch(setLoading(true));
       const response = await fetch(`/api/campaigns/${campaignId}/donations`);
-      
+
       if (!response.ok) throw new Error('Failed to fetch campaign donations');
-      
+
       const donations = await response.json();
       dispatch(setCampaignDonations(donations));
       dispatch(setError(null));
@@ -91,9 +91,9 @@ export const processDonation = createAsyncThunk(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(donationData),
       });
-      
+
       if (!response.ok) throw new Error('Failed to process donation');
-      
+
       const newDonation = await response.json();
       dispatch(addDonation(newDonation));
       dispatch(setError(null));
@@ -118,9 +118,9 @@ export const updateDonationStatus = createAsyncThunk(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       });
-      
+
       if (!response.ok) throw new Error('Failed to update donation status');
-      
+
       const updatedDonation = await response.json();
       dispatch(updateDonation(updatedDonation));
       dispatch(setError(null));

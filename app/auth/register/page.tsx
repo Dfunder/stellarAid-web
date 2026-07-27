@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useRouter } from 'next/navigation';
 import { registerUser } from '../../features/auth/authThunks';
 import { selectAuthLoading, selectAuthError } from '../../features/auth/authSelectors';
@@ -10,10 +10,10 @@ import ButtonSpinner from '../../components/common/ButtonSpinner';
 import PasswordStrengthIndicator from '../../components/common/PasswordStrengthIndicator';
 
 const RegisterPage = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const router = useRouter();
-  const isLoading = useSelector(selectAuthLoading);
-  const authError = useSelector(selectAuthError);
+  const isLoading = useAppSelector(selectAuthLoading);
+  const authError = useAppSelector(selectAuthError);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -32,7 +32,7 @@ const RegisterPage = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      setLocalError("Passwords do not match.");
+      setLocalError('Passwords do not match.');
       return;
     }
     setLocalError(null);
@@ -95,7 +95,11 @@ const RegisterPage = () => {
           />
         </div>
         <button type="submit" disabled={isLoading}>
-          {isLoading ? <ButtonSpinner /> : 'Sign Up'}
+          {isLoading ? (
+            <ButtonSpinner isLoading={isLoading}>Signing Up...</ButtonSpinner>
+          ) : (
+            'Sign Up'
+          )}
         </button>
       </form>
     </div>

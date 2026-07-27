@@ -35,5 +35,6 @@ const errorSlice = createSlice({
   },
 });
 
-export const { setGlobalError, setApiError, clearApiError, clearAllApiErrors, clearAllErrors } = errorSlice.actions;
+export const { setGlobalError, setApiError, clearApiError, clearAllApiErrors, clearAllErrors } =
+  errorSlice.actions;
 export default errorSlice.reducer;

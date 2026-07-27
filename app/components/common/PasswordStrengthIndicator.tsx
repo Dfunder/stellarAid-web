@@ -6,9 +6,7 @@ interface PasswordStrengthIndicatorProps {
   password?: string;
 }
 
-const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({
-  password,
-}) => {
+const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({ password }) => {
   const getStrength = () => {
     if (!password) return 0;
     let score = 0;

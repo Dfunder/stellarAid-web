@@ -12,7 +12,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const variants = {
   primary: 'bg-primary-700 hover:bg-primary-800 text-white',
   secondary: 'bg-secondary-500 hover:bg-secondary-600 text-white',
-  outline: 'border-2 border-primary-700 text-primary-700 hover:bg-primary-50 dark:hover:bg-primary-900/20',
+  outline:
+    'border-2 border-primary-700 text-primary-700 hover:bg-primary-50 dark:hover:bg-primary-900/20',
   ghost: 'text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800',
   danger: 'bg-red-600 hover:bg-red-700 text-white',
 };
@@ -24,7 +25,20 @@ const sizes = {
 };
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'primary', size = 'md', isLoading, leftIcon, rightIcon, className, children, disabled, ...props }, ref) => (
+  (
+    {
+      variant = 'primary',
+      size = 'md',
+      isLoading,
+      leftIcon,
+      rightIcon,
+      className,
+      children,
+      disabled,
+      ...props
+    },
+    ref
+  ) => (
     <button
       ref={ref}
       disabled={disabled || isLoading}
@@ -38,8 +52,19 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     >
       {isLoading ? (
         <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+          />
         </svg>
       ) : leftIcon ? (
         <span className="mr-2">{leftIcon}</span>
@@ -51,4 +76,5 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = 'Button';
+export { Button };
 export default Button;
