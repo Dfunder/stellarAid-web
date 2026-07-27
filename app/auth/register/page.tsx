@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useRouter } from 'next/navigation';
-import { useAppDispatch } from '@/app/store/hooks';
+import { useAppDispatch } from '../../store/hooks';
 import { registerUser } from '../../features/auth/authThunks';
 import { selectAuthLoading, selectAuthError } from '../../features/auth/authSelectors';
 import ErrorMessage from '../../components/common/ErrorMessage';
@@ -37,9 +37,8 @@ const RegisterPage = () => {
       return;
     }
     setLocalError(null);
-    try {
-      const resultAction = await dispatch(registerUser({ fullName, email, password }));
-      if (registerUser.fulfilled.match(resultAction)) {
+    dispatch(registerUser({ fullName, email, password })).then((result: any) => {
+      if (registerUser.fulfilled.match(result)) {
         router.push('/auth/check-email');
       }
     } catch {
@@ -98,12 +97,8 @@ const RegisterPage = () => {
             required
           />
         </div>
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? (
-            <ButtonSpinner isLoading={isLoading}>Signing Up...</ButtonSpinner>
-          ) : (
-            'Sign Up'
-          )}
+        <button type="submit" disabled={Boolean(isLoading)}>
+          <ButtonSpinner isLoading={Boolean(isLoading)}>Sign Up</ButtonSpinner>
         </button>
       </form>
     </div>

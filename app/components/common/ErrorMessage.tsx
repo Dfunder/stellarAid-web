@@ -10,11 +10,11 @@ interface ErrorMessageProps {
   className?: string;
 }
 
-const ErrorMessage: React.FC<ErrorMessageProps> = ({ errorKey = '', message, className = '' }) => {
-  const selectorMessage = useAppSelector(selectApiErrorByKey(errorKey));
-  const errorMessage = message || selectorMessage;
+const ErrorMessage: React.FC<ErrorMessageProps> = ({ errorKey, message, className = '' }) => {
+  const storeError = useAppSelector(selectApiErrorByKey(errorKey || ''));
+  const displayMessage = message || storeError;
 
-  if (!errorMessage) return null;
+  if (!displayMessage) return null;
 
   return (
     <div
@@ -38,7 +38,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({ errorKey = '', message, cla
         </svg>
       </div>
       <div className="ml-3">
-        <p className="text-sm font-medium text-red-800">{errorMessage}</p>
+        <p className="text-sm font-medium text-red-800">{displayMessage}</p>
       </div>
     </div>
   );

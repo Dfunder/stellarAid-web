@@ -1,2 +1,2 @@
-export * from './HowItWorks';
-export { default as HowItWorks } from './HowItWorks';
+export { default as CategoriesShowcase } from './CategoriesShowcase';
+export * from './CategoriesShowcase';
