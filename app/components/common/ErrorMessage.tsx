@@ -5,12 +5,14 @@ import { useAppSelector } from '../../store/hooks';
 import { selectApiErrorByKey } from '../../features/errors/errorSelectors';
 
 interface ErrorMessageProps {
-  errorKey: string;
+  errorKey?: string;
+  message?: string;
   className?: string;
 }
 
-const ErrorMessage: React.FC<ErrorMessageProps> = ({ errorKey, className = '' }) => {
-  const errorMessage = useAppSelector(selectApiErrorByKey(errorKey));
+const ErrorMessage: React.FC<ErrorMessageProps> = ({ errorKey = '', message, className = '' }) => {
+  const reduxErrorMessage = useAppSelector(selectApiErrorByKey(errorKey));
+  const errorMessage = message || reduxErrorMessage;
 
   if (!errorMessage) return null;
 

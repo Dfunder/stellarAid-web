@@ -68,7 +68,13 @@ export default function AvatarUpload({ currentAvatar, onUpload }: AvatarUploadPr
           <span className="flex h-full items-center justify-center text-gray-400 text-3xl">+</span>
         )}
       </button>
-      <input ref={inputRef} type="file" accept=".jpg,.jpeg,.png" className="hidden" onChange={handleFileChange} />
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".jpg,.jpeg,.png"
+        className="hidden"
+        onChange={handleFileChange}
+      />
       {error && <p className="text-sm text-red-600">{error}</p>}
       {preview && (
         <button

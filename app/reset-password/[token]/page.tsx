@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff, Lock } from 'lucide-react';
 import { toastSuccess, toastError } from '@/utils/toast';
-import { Spinner } from '@/components/common';
+import { Spinner } from '@/app/components/common';
 
 const resetPasswordSchema = z
   .object({
@@ -27,11 +27,7 @@ const resetPasswordSchema = z
 
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
-export default function ResetPasswordPage({
-  params,
-}: {
-  params: { token: string };
-}) {
+export default function ResetPasswordPage({ params }: { params: { token: string } }) {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -90,9 +86,7 @@ export default function ResetPasswordPage({
           <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
             <Lock className="w-8 h-8 text-red-600 dark:text-red-400" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Link Expired
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Link Expired</h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
             This password reset link has expired or is invalid.
           </p>
@@ -114,12 +108,8 @@ export default function ResetPasswordPage({
           <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
             <Lock className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Password Reset!
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Redirecting to login...
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Password Reset!</h1>
+          <p className="text-gray-600 dark:text-gray-400">Redirecting to login...</p>
         </div>
       </div>
     );
@@ -132,12 +122,8 @@ export default function ResetPasswordPage({
           <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
             <Lock className="w-8 h-8 text-blue-600 dark:text-blue-400" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Reset Password
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Enter your new password below
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Reset Password</h1>
+          <p className="text-gray-600 dark:text-gray-400">Enter your new password below</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -161,11 +147,7 @@ export default function ResetPasswordPage({
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
               >
-                {showPassword ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
             {errors.password && (
@@ -195,11 +177,7 @@ export default function ResetPasswordPage({
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
               >
-                {showConfirmPassword ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
+                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
             {errors.confirmPassword && (

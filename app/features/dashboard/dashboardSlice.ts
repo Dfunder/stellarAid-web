@@ -53,11 +53,6 @@ const dashboardSlice = createSlice({
   },
 });
 
-export const {
-  setStats,
-  setRecentActivity,
-  addActivity,
-  setLoading,
-  setError
-} = dashboardSlice.actions;
+export const { setStats, setRecentActivity, addActivity, setLoading, setError } =
+  dashboardSlice.actions;
 export default dashboardSlice.reducer;

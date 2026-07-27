@@ -20,14 +20,14 @@ export const fetchData = createAsyncThunk(
   'api/fetchData',
   async (url: string, { rejectWithValue }) => {
     const loadingToastId = toastLoading('Fetching data from API...');
-    
+
     try {
       const response = await fetch(url);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       toastDismiss(loadingToastId);
       toastSuccess('Data fetched successfully!');
