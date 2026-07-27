@@ -9,6 +9,8 @@ import dashboardReducer from '../features/dashboard/dashboardSlice';
 import adminReducer from '../features/admin/adminSlice';
 import bookmarksReducer from '../features/bookmarks/bookmarksSlice';
 import errorsReducer from '../features/errors/errorSlice';
+import artistsReducer from '../features/artists/artistsSlice';
+import portfoliosReducer from '../features/portfolios/portfoliosSlice';
 
 const rootReducer = combineReducers({
   api: apiReducer,
@@ -19,6 +21,8 @@ const rootReducer = combineReducers({
   admin: adminReducer,
   bookmarks: bookmarksReducer,
   errors: errorsReducer,
+  artists: artistsReducer,
+  portfolios: portfoliosReducer,
 });
 
 export default rootReducer;
