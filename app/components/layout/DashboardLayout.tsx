@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 const sidebarLinks = [
   { name: 'Overview', href: '/dashboard' },
   { name: 'My Campaigns', href: '/dashboard/campaigns' },
+  { name: 'My Portfolios', href: '/dashboard/artist/portfolios' },
   { name: 'Donations', href: '/dashboard/donations' },
   { name: 'Wallet', href: '/dashboard/wallet' },
   { name: 'Settings', href: '/dashboard/settings' },
