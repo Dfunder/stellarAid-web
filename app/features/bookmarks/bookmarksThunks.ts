@@ -7,7 +7,7 @@ import {
   removeBookmark,
   updateBookmarkNotes,
   setLoading,
-  setError
+  setError,
 } from './bookmarksSlice';
 
 // Fetch user's bookmarks
@@ -17,9 +17,9 @@ export const fetchUserBookmarks = createAsyncThunk(
     try {
       dispatch(setLoading(true));
       const response = await fetch(`/api/users/${userId}/bookmarks`);
-      
+
       if (!response.ok) throw new Error('Failed to fetch bookmarks');
-      
+
       const bookmarks = await response.json();
       dispatch(setBookmarks(bookmarks));
       dispatch(setError(null));
@@ -44,9 +44,9 @@ export const createBookmark = createAsyncThunk(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bookmarkData),
       });
-      
+
       if (!response.ok) throw new Error('Failed to create bookmark');
-      
+
       const newBookmark = await response.json();
       dispatch(addBookmark(newBookmark));
       dispatch(setError(null));
@@ -69,9 +69,9 @@ export const deleteBookmark = createAsyncThunk(
       const response = await fetch(`/api/bookmarks/${id}`, {
         method: 'DELETE',
       });
-      
+
       if (!response.ok) throw new Error('Failed to delete bookmark');
-      
+
       dispatch(removeBookmark(id));
       dispatch(setError(null));
     } catch (error: any) {
@@ -94,9 +94,9 @@ export const updateNotes = createAsyncThunk(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes }),
       });
-      
+
       if (!response.ok) throw new Error('Failed to update bookmark notes');
-      
+
       dispatch(updateBookmarkNotes({ id, notes }));
       dispatch(setError(null));
     } catch (error: any) {

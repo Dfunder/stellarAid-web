@@ -15,7 +15,7 @@ export const profileSuccess = (message: string): void => {
  * Show an error toast notification
  * @param message - The message to display
  */
-export const profileError  = (message: string): void => {
+export const profileError = (message: string): void => {
   toast.error(message, {
     duration: 5000,
     position: 'top-right',

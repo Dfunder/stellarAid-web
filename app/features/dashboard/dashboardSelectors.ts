@@ -32,5 +32,5 @@ export const selectAverageDonation = (state: RootState) => {
 
 // Filter activity by type
 export const selectActivityByType = (type: string) => (state: RootState) => {
-  return state.dashboard.recentActivity.filter(activity => activity.type === type);
+  return state.dashboard.recentActivity.filter((activity) => activity.type === type);
 };

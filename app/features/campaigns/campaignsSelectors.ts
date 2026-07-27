@@ -17,17 +17,17 @@ export const selectCampaignsError = (state: RootState) => state.campaigns.error;
 // Select active campaigns (not ended)
 export const selectActiveCampaigns = (state: RootState) => {
   const now = new Date().toISOString();
-  return state.campaigns.items.filter(campaign => campaign.endDate > now);
+  return state.campaigns.items.filter((campaign) => campaign.endDate > now);
 };
 
 // Select campaigns by category
 export const selectCampaignsByCategory = (category: string) => (state: RootState) => {
-  return state.campaigns.items.filter(campaign => campaign.category === category);
+  return state.campaigns.items.filter((campaign) => campaign.category === category);
 };
 
 // Select campaigns by organizer ID
 export const selectCampaignsByOrganizer = (organizerId: string) => (state: RootState) => {
-  return state.campaigns.items.filter(campaign => campaign.organizerId === organizerId);
+  return state.campaigns.items.filter((campaign) => campaign.organizerId === organizerId);
 };
 
 // Calculate total raised across all campaigns

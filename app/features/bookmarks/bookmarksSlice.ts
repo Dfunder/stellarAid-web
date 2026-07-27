@@ -33,10 +33,10 @@ const bookmarksSlice = createSlice({
       state.items.push(action.payload);
     },
     removeBookmark: (state, action: PayloadAction<string>) => {
-      state.items = state.items.filter(bookmark => bookmark.id !== action.payload);
+      state.items = state.items.filter((bookmark) => bookmark.id !== action.payload);
     },
     updateBookmarkNotes: (state, action: PayloadAction<{ id: string; notes: string }>) => {
-      const bookmark = state.items.find(b => b.id === action.payload.id);
+      const bookmark = state.items.find((b) => b.id === action.payload.id);
       if (bookmark) {
         bookmark.notes = action.payload.notes;
       }
@@ -56,6 +56,6 @@ export const {
   removeBookmark,
   updateBookmarkNotes,
   setLoading,
-  setError
+  setError,
 } = bookmarksSlice.actions;
 export default bookmarksSlice.reducer;
