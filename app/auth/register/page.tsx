@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
+import { useAppDispatch } from '@/app/store/hooks';
 import { registerUser } from '../../features/auth/authThunks';
 import { selectAuthLoading, selectAuthError } from '../../features/auth/authSelectors';
 import ErrorMessage from '../../components/common/ErrorMessage';
@@ -10,7 +11,7 @@ import ButtonSpinner from '../../components/common/ButtonSpinner';
 import PasswordStrengthIndicator from '../../components/common/PasswordStrengthIndicator';
 
 const RegisterPage = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const router = useRouter();
   const isLoading = useSelector(selectAuthLoading);
   const authError = useSelector(selectAuthError);
@@ -29,18 +30,21 @@ const RegisterPage = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       setLocalError('Passwords do not match.');
       return;
     }
     setLocalError(null);
-    dispatch(registerUser({ fullName, email, password })).then((result) => {
-      if (registerUser.fulfilled.match(result)) {
+    try {
+      const resultAction = await dispatch(registerUser({ fullName, email, password }));
+      if (registerUser.fulfilled.match(resultAction)) {
         router.push('/auth/check-email');
       }
-    });
+    } catch {
+      // Handled by Redux authError state
+    }
   };
 
   return (
@@ -94,9 +98,9 @@ const RegisterPage = () => {
             required
           />
         </div>
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? <ButtonSpinner /> : 'Sign Up'}
-        </button>
+        <ButtonSpinner isLoading={isLoading} type="submit">
+          Sign Up
+        </ButtonSpinner>
       </form>
     </div>
   );

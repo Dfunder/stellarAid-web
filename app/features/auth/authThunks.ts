@@ -109,3 +109,19 @@ export const resetPassword = createAsyncThunk(
     }
   }
 );
+
+export const fetchCurrentUser = createAsyncThunk(
+  'auth/fetchCurrentUser',
+  async (_, { dispatch }) => {
+    dispatch(setAuthLoading(true));
+    try {
+      const response = await apiClient.get('/api/auth/me');
+      const { user } = response.data;
+      dispatch(setCredentials({ user, token: localStorage.getItem('refreshToken') }));
+      return response.data;
+    } catch (error: any) {
+      dispatch(setAuthLoading(false));
+      throw error;
+    }
+  }
+);
