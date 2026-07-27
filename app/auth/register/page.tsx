@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useRouter } from 'next/navigation';
 import { useAppDispatch } from '../../store/hooks';
 import { registerUser } from '../../features/auth/authThunks';
@@ -13,8 +13,8 @@ import PasswordStrengthIndicator from '../../components/common/PasswordStrengthI
 const RegisterPage = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const isLoading = useSelector(selectAuthLoading);
-  const authError = useSelector(selectAuthError);
+  const isLoading = useAppSelector(selectAuthLoading);
+  const authError = useAppSelector(selectAuthError);
 
   const [formData, setFormData] = useState({
     fullName: '',
