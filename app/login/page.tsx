@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import Button from '@/app/components/ui/Button';
 import { Input } from '@/app/components/ui/Input';
 
 const loginSchema = z.object({

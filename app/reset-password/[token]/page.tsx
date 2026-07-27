@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff, Lock } from 'lucide-react';
 import { toastSuccess, toastError } from '@/utils/toast';
-import { Spinner } from '@/components/common';
+import { Spinner } from '@/app/components/common';
 
 const resetPasswordSchema = z
   .object({

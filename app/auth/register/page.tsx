@@ -30,7 +30,7 @@ const RegisterPage = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       setLocalError('Passwords do not match.');
@@ -41,7 +41,9 @@ const RegisterPage = () => {
       if (registerUser.fulfilled.match(result)) {
         router.push('/auth/check-email');
       }
-    });
+    } catch {
+      // Handled by Redux authError state
+    }
   };
 
   return (
