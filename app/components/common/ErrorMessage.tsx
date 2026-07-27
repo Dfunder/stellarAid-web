@@ -11,8 +11,8 @@ interface ErrorMessageProps {
 }
 
 const ErrorMessage: React.FC<ErrorMessageProps> = ({ errorKey = '', message, className = '' }) => {
-  const reduxErrorMessage = useAppSelector(selectApiErrorByKey(errorKey));
-  const errorMessage = message || reduxErrorMessage;
+  const selectorMessage = useAppSelector(selectApiErrorByKey(errorKey));
+  const errorMessage = message || selectorMessage;
 
   if (!errorMessage) return null;
 

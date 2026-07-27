@@ -116,11 +116,12 @@ export const fetchCurrentUser = createAsyncThunk(
     dispatch(setAuthLoading(true));
     try {
       const response = await apiClient.get('/api/auth/me');
-      const { user } = response.data;
-      dispatch(setCredentials({ user, token: localStorage.getItem('refreshToken') }));
+      dispatch(
+        setCredentials({ user: response.data, token: localStorage.getItem('accessToken') || '' })
+      );
       return response.data;
     } catch (error: any) {
-      dispatch(setAuthLoading(false));
+      dispatch(setAuthError(error.response?.data?.message || 'Failed to fetch user'));
       throw error;
     }
   }
