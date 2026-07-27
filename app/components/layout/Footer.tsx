@@ -45,7 +45,8 @@ export default function Footer() {
               <span className="text-xl font-bold">Lumora</span>
             </Link>
             <p className="mt-4 text-sm text-neutral-400">
-              Blockchain-based crowdfunding on the Stellar Network. Empowering creators and changemakers worldwide.
+              Blockchain-based crowdfunding on the Stellar Network. Empowering creators and
+              changemakers worldwide.
             </p>
           </div>
 
@@ -54,7 +55,10 @@ export default function Footer() {
             <ul className="mt-4 space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-sm text-neutral-400 hover:text-white transition-colors">
+                  <Link
+                    href={link.href}
+                    className="text-sm text-neutral-400 hover:text-white transition-colors"
+                  >
                     {link.name}
                   </Link>
                 </li>
@@ -67,7 +71,10 @@ export default function Footer() {
             <ul className="mt-4 space-y-3">
               {footerLinks.legal.map((link) => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-sm text-neutral-400 hover:text-white transition-colors">
+                  <Link
+                    href={link.href}
+                    className="text-sm text-neutral-400 hover:text-white transition-colors"
+                  >
                     {link.name}
                   </Link>
                 </li>

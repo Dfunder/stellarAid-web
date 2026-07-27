@@ -50,7 +50,9 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Profile Settings</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Full Name
+            </label>
             <input
               type="text"
               value={fullName}
@@ -59,7 +61,9 @@ export default function SettingsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Stellar Wallet Address</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Stellar Wallet Address
+            </label>
             <input
               type="text"
               value={walletAddress}
@@ -70,7 +74,10 @@ export default function SettingsPage() {
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
           {saved && <p className="text-sm text-green-600">Profile updated successfully.</p>}
-          <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+          <button
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
             Save Changes
           </button>
         </form>

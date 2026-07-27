@@ -85,10 +85,18 @@ export default function LoginPage() {
 
             <div className="flex items-center justify-between">
               <label className="flex items-center">
-                <input type="checkbox" className="rounded border-neutral-300 text-primary-700 focus:ring-primary-500" />
-                <span className="ml-2 text-sm text-neutral-600 dark:text-neutral-400">Remember me</span>
+                <input
+                  type="checkbox"
+                  className="rounded border-neutral-300 text-primary-700 focus:ring-primary-500"
+                />
+                <span className="ml-2 text-sm text-neutral-600 dark:text-neutral-400">
+                  Remember me
+                </span>
               </label>
-              <Link href="/forgot-password" className="text-sm text-primary-700 hover:text-primary-800 dark:text-primary-400">
+              <Link
+                href="/forgot-password"
+                className="text-sm text-primary-700 hover:text-primary-800 dark:text-primary-400"
+              >
                 Forgot password?
               </Link>
             </div>
@@ -100,7 +108,10 @@ export default function LoginPage() {
 
           <p className="mt-6 text-center text-sm text-neutral-500 dark:text-neutral-400">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-primary-700 hover:text-primary-800 dark:text-primary-400 font-medium">
+            <Link
+              href="/signup"
+              className="text-primary-700 hover:text-primary-800 dark:text-primary-400 font-medium"
+            >
               Sign up
             </Link>
           </p>

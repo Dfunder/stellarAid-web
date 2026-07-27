@@ -49,7 +49,7 @@ const donationsSlice = createSlice({
     },
     updateDonation: (state, action: PayloadAction<Donation>) => {
       const updateInList = (list: Donation[]) => {
-        const index = list.findIndex(item => item.id === action.payload.id);
+        const index = list.findIndex((item) => item.id === action.payload.id);
         if (index !== -1) list[index] = action.payload;
       };
       updateInList(state.items);
@@ -72,6 +72,6 @@ export const {
   addDonation,
   updateDonation,
   setLoading,
-  setError
+  setError,
 } = donationsSlice.actions;
 export default donationsSlice.reducer;

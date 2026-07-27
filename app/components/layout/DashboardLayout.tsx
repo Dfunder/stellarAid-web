@@ -30,10 +30,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={"block px-3 py-2 rounded-lg text-sm font-medium transition-colors " +
+                  className={
+                    'block px-3 py-2 rounded-lg text-sm font-medium transition-colors ' +
                     (active
                       ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800')}
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800')
+                  }
                 >
                   {link.name}
                 </Link>

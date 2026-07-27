@@ -14,13 +14,18 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+          <label
+            htmlFor={inputId}
+            className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5"
+          >
             {label}
           </label>
         )}
         <div className="relative">
           {leftIcon && (
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">{leftIcon}</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
+              {leftIcon}
+            </span>
           )}
           <input
             ref={ref}
@@ -55,7 +60,10 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={textareaId} className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+          <label
+            htmlFor={textareaId}
+            className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5"
+          >
             {label}
           </label>
         )}
