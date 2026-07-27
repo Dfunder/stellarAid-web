@@ -1,7 +1,10 @@
 'use client';
 
 import { useAppSelector } from '@/app/store/hooks';
-import { selectDashboardStats, selectDashboardLoading } from '@/app/features/dashboard/dashboardSelectors';
+import {
+  selectDashboardStats,
+  selectDashboardLoading,
+} from '@/app/features/dashboard/dashboardSelectors';
 
 interface StatCardProps {
   label: string;
@@ -37,7 +40,7 @@ export default function DonationStatsWidget() {
 
   return (
     <div className="grid grid-cols-2 gap-4">
-      <StatCard label="Total Donated" value={"$" + stats.totalRaised.toLocaleString()} />
+      <StatCard label="Total Donated" value={'$' + stats.totalRaised.toLocaleString()} />
       <StatCard label="Total Donations" value={stats.totalDonations} />
       <StatCard label="Campaigns Supported" value={stats.activeCampaigns} />
       <StatCard label="Total Users" value={stats.totalUsers} />

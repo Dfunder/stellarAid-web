@@ -21,9 +21,11 @@ export default function DashboardPage() {
     <DashboardLayout>
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Welcome back{user?.name ? ", " + user.name : ""}
+          Welcome back{user?.name ? ', ' + user.name : ''}
         </h1>
-        <p className="text-gray-500 dark:text-gray-400">Here is what is happening with your account.</p>
+        <p className="text-gray-500 dark:text-gray-400">
+          Here is what is happening with your account.
+        </p>
       </div>
     </DashboardLayout>
   );

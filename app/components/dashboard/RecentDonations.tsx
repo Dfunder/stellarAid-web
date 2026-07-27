@@ -2,7 +2,10 @@
 
 import Link from 'next/link';
 import { useAppSelector } from '@/app/store/hooks';
-import { selectRecentActivity, selectDashboardLoading } from '@/app/features/dashboard/dashboardSelectors';
+import {
+  selectRecentActivity,
+  selectDashboardLoading,
+} from '@/app/features/dashboard/dashboardSelectors';
 
 export default function RecentDonations() {
   const activity = useAppSelector(selectRecentActivity);
@@ -33,7 +36,9 @@ export default function RecentDonations() {
         <table className="min-w-full text-sm">
           <thead>
             <tr className="border-b border-gray-200 dark:border-gray-700">
-              <th className="text-left py-2 text-gray-500 dark:text-gray-400 font-medium">Description</th>
+              <th className="text-left py-2 text-gray-500 dark:text-gray-400 font-medium">
+                Description
+              </th>
               <th className="text-left py-2 text-gray-500 dark:text-gray-400 font-medium">Date</th>
             </tr>
           </thead>
@@ -50,7 +55,9 @@ export default function RecentDonations() {
         </table>
       </div>
       <div className="mt-3 text-right">
-        <Link href="/dashboard/donations" className="text-sm text-blue-600 hover:underline">View All</Link>
+        <Link href="/dashboard/donations" className="text-sm text-blue-600 hover:underline">
+          View All
+        </Link>
       </div>
     </div>
   );

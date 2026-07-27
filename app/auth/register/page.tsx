@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
+import { useAppDispatch } from '../../store/hooks';
 import { registerUser } from '../../features/auth/authThunks';
 import { selectAuthLoading, selectAuthError } from '../../features/auth/authSelectors';
 import ErrorMessage from '../../components/common/ErrorMessage';
@@ -10,7 +11,7 @@ import ButtonSpinner from '../../components/common/ButtonSpinner';
 import PasswordStrengthIndicator from '../../components/common/PasswordStrengthIndicator';
 
 const RegisterPage = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const router = useRouter();
   const isLoading = useSelector(selectAuthLoading);
   const authError = useSelector(selectAuthError);
@@ -32,11 +33,11 @@ const RegisterPage = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      setLocalError("Passwords do not match.");
+      setLocalError('Passwords do not match.');
       return;
     }
     setLocalError(null);
-    dispatch(registerUser({ fullName, email, password })).then((result) => {
+    dispatch(registerUser({ fullName, email, password })).then((result: any) => {
       if (registerUser.fulfilled.match(result)) {
         router.push('/auth/check-email');
       }
@@ -94,8 +95,8 @@ const RegisterPage = () => {
             required
           />
         </div>
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? <ButtonSpinner /> : 'Sign Up'}
+        <button type="submit" disabled={Boolean(isLoading)}>
+          <ButtonSpinner isLoading={Boolean(isLoading)}>Sign Up</ButtonSpinner>
         </button>
       </form>
     </div>

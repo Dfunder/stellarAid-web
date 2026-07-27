@@ -1,37 +1,27 @@
 'use client';
 
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import {
-  setUsers,
-  setSettings,
-  updateUser,
-  removeUser,
-  setLoading,
-  setError
-} from './adminSlice';
+import { setUsers, setSettings, updateUser, removeUser, setLoading, setError } from './adminSlice';
 
 // Fetch all users (admin only)
-export const fetchAllUsers = createAsyncThunk(
-  'admin/fetchAllUsers',
-  async (_, { dispatch }) => {
-    try {
-      dispatch(setLoading(true));
-      const response = await fetch('/api/admin/users');
-      
-      if (!response.ok) throw new Error('Failed to fetch users');
-      
-      const users = await response.json();
-      dispatch(setUsers(users));
-      dispatch(setError(null));
-      return users;
-    } catch (error: any) {
-      dispatch(setError(error.message));
-      throw error;
-    } finally {
-      dispatch(setLoading(false));
-    }
+export const fetchAllUsers = createAsyncThunk('admin/fetchAllUsers', async (_, { dispatch }) => {
+  try {
+    dispatch(setLoading(true));
+    const response = await fetch('/api/admin/users');
+
+    if (!response.ok) throw new Error('Failed to fetch users');
+
+    const users = await response.json();
+    dispatch(setUsers(users));
+    dispatch(setError(null));
+    return users;
+  } catch (error: any) {
+    dispatch(setError(error.message));
+    throw error;
+  } finally {
+    dispatch(setLoading(false));
   }
-);
+});
 
 // Update user role or status
 export const updateUserDetails = createAsyncThunk(
@@ -44,9 +34,9 @@ export const updateUserDetails = createAsyncThunk(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      
+
       if (!response.ok) throw new Error('Failed to update user');
-      
+
       const updatedUser = await response.json();
       dispatch(updateUser(updatedUser));
       dispatch(setError(null));
@@ -61,27 +51,24 @@ export const updateUserDetails = createAsyncThunk(
 );
 
 // Delete a user
-export const deleteUser = createAsyncThunk(
-  'admin/deleteUser',
-  async (id: string, { dispatch }) => {
-    try {
-      dispatch(setLoading(true));
-      const response = await fetch(`/api/admin/users/${id}`, {
-        method: 'DELETE',
-      });
-      
-      if (!response.ok) throw new Error('Failed to delete user');
-      
-      dispatch(removeUser(id));
-      dispatch(setError(null));
-    } catch (error: any) {
-      dispatch(setError(error.message));
-      throw error;
-    } finally {
-      dispatch(setLoading(false));
-    }
+export const deleteUser = createAsyncThunk('admin/deleteUser', async (id: string, { dispatch }) => {
+  try {
+    dispatch(setLoading(true));
+    const response = await fetch(`/api/admin/users/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) throw new Error('Failed to delete user');
+
+    dispatch(removeUser(id));
+    dispatch(setError(null));
+  } catch (error: any) {
+    dispatch(setError(error.message));
+    throw error;
+  } finally {
+    dispatch(setLoading(false));
   }
-);
+});
 
 // Fetch admin settings
 export const fetchAdminSettings = createAsyncThunk(
@@ -90,9 +77,9 @@ export const fetchAdminSettings = createAsyncThunk(
     try {
       dispatch(setLoading(true));
       const response = await fetch('/api/admin/settings');
-      
+
       if (!response.ok) throw new Error('Failed to fetch settings');
-      
+
       const settings = await response.json();
       dispatch(setSettings(settings));
       dispatch(setError(null));
@@ -117,9 +104,9 @@ export const updateAdminSettings = createAsyncThunk(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settingsData),
       });
-      
+
       if (!response.ok) throw new Error('Failed to update settings');
-      
+
       const updatedSettings = await response.json();
       dispatch(setSettings(updatedSettings));
       dispatch(setError(null));

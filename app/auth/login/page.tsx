@@ -62,15 +62,16 @@ export default function LoginPage() {
               className="p-4 rounded-lg bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-800"
               role="alert"
             >
-              <p className="text-sm font-medium text-red-800 dark:text-red-400">
-                {displayError}
-              </p>
+              <p className="text-sm font-medium text-red-800 dark:text-red-400">{displayError}</p>
             </div>
           )}
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
                 Email Address
               </label>
               <div className="relative">
@@ -92,7 +93,10 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
                 Password
               </label>
               <div className="relative">
@@ -116,11 +120,7 @@ export default function LoginPage() {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
             </div>
@@ -147,7 +147,7 @@ export default function LoginPage() {
 
         <div className="text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <a
               href="/auth/register"
               className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"

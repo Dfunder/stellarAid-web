@@ -5,14 +5,16 @@ import { useAppSelector } from '../../store/hooks';
 import { selectApiErrorByKey } from '../../features/errors/errorSelectors';
 
 interface ErrorMessageProps {
-  errorKey: string;
+  errorKey?: string;
+  message?: string;
   className?: string;
 }
 
-const ErrorMessage: React.FC<ErrorMessageProps> = ({ errorKey, className = '' }) => {
-  const errorMessage = useAppSelector(selectApiErrorByKey(errorKey));
+const ErrorMessage: React.FC<ErrorMessageProps> = ({ errorKey, message, className = '' }) => {
+  const storeError = useAppSelector(selectApiErrorByKey(errorKey || ''));
+  const displayMessage = message || storeError;
 
-  if (!errorMessage) return null;
+  if (!displayMessage) return null;
 
   return (
     <div
@@ -36,7 +38,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({ errorKey, className = '' })
         </svg>
       </div>
       <div className="ml-3">
-        <p className="text-sm font-medium text-red-800">{errorMessage}</p>
+        <p className="text-sm font-medium text-red-800">{displayMessage}</p>
       </div>
     </div>
   );
