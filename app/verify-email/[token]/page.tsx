@@ -82,11 +82,7 @@ export default function VerifyEmailPage({ params }: { params: { token: string } 
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               Your email has been successfully verified. You can now log in to your account.
             </p>
-            <ButtonSpinner
-              isLoading={false}
-              onClick={handleLogin}
-              className="w-full"
-            >
+            <ButtonSpinner isLoading={false} onClick={handleLogin} className="w-full">
               Go to Login
             </ButtonSpinner>
           </div>
@@ -110,11 +106,10 @@ export default function VerifyEmailPage({ params }: { params: { token: string } 
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
               Verification Failed
             </h2>
-            {error && (
-              <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
-            )}
+            {error && <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>}
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              The verification link is invalid or has expired. Please request a new verification email.
+              The verification link is invalid or has expired. Please request a new verification
+              email.
             </p>
             <div className="mb-4">
               <input

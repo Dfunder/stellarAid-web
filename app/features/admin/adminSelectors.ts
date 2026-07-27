@@ -16,26 +16,27 @@ export const selectAdminError = (state: RootState) => state.admin.error;
 
 // Filter users by role
 export const selectUsersByRole = (role: string) => (state: RootState) => {
-  return state.admin.users.filter(user => user.role === role);
+  return state.admin.users.filter((user) => user.role === role);
 };
 
 // Get active users
 export const selectActiveUsers = (state: RootState) => {
-  return state.admin.users.filter(user => user.isActive);
+  return state.admin.users.filter((user) => user.isActive);
 };
 
 // Get inactive users
 export const selectInactiveUsers = (state: RootState) => {
-  return state.admin.users.filter(user => !user.isActive);
+  return state.admin.users.filter((user) => !user.isActive);
 };
 
 // Find user by ID
 export const selectUserById = (userId: string) => (state: RootState) => {
-  return state.admin.users.find(user => user.id === userId);
+  return state.admin.users.find((user) => user.id === userId);
 };
 
 // Get user count
 export const selectUserCount = (state: RootState) => state.admin.users.length;
 
 // Check if maintenance mode is enabled
-export const selectMaintenanceMode = (state: RootState) => state.admin.settings?.maintenanceMode || false;
+export const selectMaintenanceMode = (state: RootState) =>
+  state.admin.settings?.maintenanceMode || false;

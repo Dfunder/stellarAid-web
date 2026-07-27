@@ -36,19 +36,16 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-export const logoutUser = createAsyncThunk(
-  'auth/logoutUser',
-  async (_, { dispatch }) => {
-    try {
-      await apiClient.post('/api/auth/logout');
-    } catch {
-      // Proceed with local logout even if API call fails
-    } finally {
-      localStorage.removeItem('refreshToken');
-      dispatch(clearCredentials());
-    }
+export const logoutUser = createAsyncThunk('auth/logoutUser', async (_, { dispatch }) => {
+  try {
+    await apiClient.post('/api/auth/logout');
+  } catch {
+    // Proceed with local logout even if API call fails
+  } finally {
+    localStorage.removeItem('refreshToken');
+    dispatch(clearCredentials());
   }
-);
+});
 
 export const verifyEmail = createAsyncThunk(
   'auth/verifyEmail',

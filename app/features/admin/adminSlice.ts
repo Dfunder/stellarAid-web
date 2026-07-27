@@ -42,13 +42,13 @@ const adminSlice = createSlice({
       state.settings = action.payload;
     },
     updateUser: (state, action: PayloadAction<User>) => {
-      const index = state.users.findIndex(user => user.id === action.payload.id);
+      const index = state.users.findIndex((user) => user.id === action.payload.id);
       if (index !== -1) {
         state.users[index] = action.payload;
       }
     },
     removeUser: (state, action: PayloadAction<string>) => {
-      state.users = state.users.filter(user => user.id !== action.payload);
+      state.users = state.users.filter((user) => user.id !== action.payload);
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
@@ -59,12 +59,6 @@ const adminSlice = createSlice({
   },
 });
 
-export const {
-  setUsers,
-  setSettings,
-  updateUser,
-  removeUser,
-  setLoading,
-  setError
-} = adminSlice.actions;
+export const { setUsers, setSettings, updateUser, removeUser, setLoading, setError } =
+  adminSlice.actions;
 export default adminSlice.reducer;

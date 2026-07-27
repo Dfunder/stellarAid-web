@@ -25,13 +25,16 @@ app/
 Each feature folder contains three standard files:
 
 ### 1. `[feature]Slice.ts`
+
 Contains the Redux slice definition with:
+
 - State interface
 - Initial state
 - Reducers and actions
 - Default export of the slice reducer
 
 Example:
+
 ```typescript
 // authSlice.ts
 const authSlice = createSlice({
@@ -48,29 +51,32 @@ export default authSlice.reducer;
 ```
 
 ### 2. `[feature]Thunks.ts`
+
 Contains async thunks for side effects and API calls:
+
 - Uses `createAsyncThunk` from Redux Toolkit
 - Handles async operations like API calls
 - Dispatches slice actions to manage state
 
 Example:
+
 ```typescript
 // authThunks.ts
-export const loginUser = createAsyncThunk(
-  'auth/loginUser',
-  async (credentials, { dispatch }) => {
-    // API call logic here
-  }
-);
+export const loginUser = createAsyncThunk('auth/loginUser', async (credentials, { dispatch }) => {
+  // API call logic here
+});
 ```
 
 ### 3. `[feature]Selectors.ts`
+
 Contains reselect functions to access state:
+
 - Memoized selectors for derived data
 - Type-safe state access
 - Encapsulates state shape from components
 
 Example:
+
 ```typescript
 // authSelectors.ts
 export const selectUser = (state: RootState) => state.auth.user;

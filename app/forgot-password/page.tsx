@@ -31,11 +31,9 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
       <div className="max-w-md w-full">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Forgot Password
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Forgot Password</h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Enter your email address and we'll send you a link to reset your password.
+            Enter your email address and we&apos;ll send you a link to reset your password.
           </p>
 
           {isSubmitted ? (
@@ -47,7 +45,10 @@ export default function ForgotPasswordPage() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   Email Address
                 </label>
                 <input
