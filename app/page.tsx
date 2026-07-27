@@ -9,67 +9,9 @@ import env from './config/env';
 import { Spinner, FullPageLoader, ButtonSpinner } from './components/common';
 import { MainLayout } from './components/layout';
 import FeaturedArtists from '@/components/landing/FeaturedArtists';
+import { Hero } from './components/landing';
 
 export default function Home() {
-  const { loading, error, data } = useAppSelector((state) => state.api);
-  const dispatch = useAppDispatch();
-  const [loadingToastId, setLoadingToastId] = useState<string | null>(null);
-
-  // State for spinner demos
-  const [showFullPageLoader, setShowFullPageLoader] = useState(false);
-  const [isButtonLoading, setIsButtonLoading] = useState(false);
-
-  // Log environment configuration on component mount
-  useEffect(() => {
-    console.log('🌐 Environment Configuration:', {
-      apiBaseUrl: env.apiBaseUrl,
-      stellarNetwork: env.stellarNetwork,
-      isDevelopment: env.isDevelopment,
-      isProduction: env.isProduction,
-    });
-  }, []);
-
-  // Demo full page loader
-  const handleShowFullPageLoader = () => {
-    setShowFullPageLoader(true);
-    setTimeout(() => setShowFullPageLoader(false), 3000);
-  };
-
-  // Demo button loading state
-  const handleButtonLoading = () => {
-    setIsButtonLoading(true);
-    setTimeout(() => setIsButtonLoading(false), 3000);
-  };
-
-  const handleShowSuccess = () => {
-    toastSuccess('Operation completed successfully!');
-  };
-
-  const handleShowError = () => {
-    toastError('Something went wrong! Please try again.');
-  };
-
-  const handleShowInfo = () => {
-    toastInfo('Here is some useful information for you.');
-  };
-
-  const handleShowLoading = () => {
-    const id = toastLoading('Processing your request...');
-    setLoadingToastId(id);
-  };
-
-  const handleDismissLoading = () => {
-    if (loadingToastId) {
-      toastDismiss(loadingToastId);
-      setLoadingToastId(null);
-    }
-  };
-
-  const handleApiCall = () => {
-    // This will fail to demonstrate error handling
-    dispatch(fetchData('https://api.example.com/data'));
-  };
-
   return (
     <MainLayout>
       <FeaturedArtists />
