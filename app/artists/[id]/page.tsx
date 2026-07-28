@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
 import { selectCurrentArtist, selectArtistsLoading, selectArtistsError } from '@/app/features/artists/artistsSelectors';
@@ -136,9 +137,12 @@ export default function ArtistProfilePage() {
               <Mail className="w-4 h-4 mr-2" />
               Hire Me
             </Button>
-            <Button variant="outline" size="md">
+            <Link
+              href={`/commissions/new?artistId=${artist.id}&artistName=${encodeURIComponent(artist.name)}`}
+              className="inline-flex items-center justify-center rounded-xl border-2 border-primary-700 px-4 py-2 text-sm font-medium text-primary-700 transition-colors hover:bg-primary-50 dark:hover:bg-primary-900/20"
+            >
               Commission
-            </Button>
+            </Link>
           </div>
         </div>
 
