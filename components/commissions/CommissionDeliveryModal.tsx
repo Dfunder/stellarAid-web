@@ -63,7 +63,12 @@ export default function CommissionDeliveryModal({ isOpen, onClose }: CommissionD
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Submit Work</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">Upload files and send a quick note to your client.</p>
           </div>
-          <button onClick={onClose} className="rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>

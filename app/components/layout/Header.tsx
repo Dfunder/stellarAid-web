@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Bell } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/app/store/hooks';
 import { selectIsAuthenticated, selectUser } from '@/app/features/auth/authSelectors';
 import { logoutUser } from '@/app/features/auth/authThunks';
@@ -73,7 +74,16 @@ export default function Header() {
 
           <div className="hidden md:flex items-center space-x-4">
             {isAuth ? (
-              <div className="relative">
+              <>
+                <Link
+                  href="/settings/notifications"
+                  prefetch={false}
+                  aria-label="Notifications"
+                  className="p-2 rounded-full text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                >
+                  <Bell className="h-5 w-5" />
+                </Link>
+                <div className="relative">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -142,7 +152,8 @@ export default function Header() {
                     </button>
                   </div>
                 )}
-              </div>
+                </div>
+              </>
             ) : (
               <>
                 <Link

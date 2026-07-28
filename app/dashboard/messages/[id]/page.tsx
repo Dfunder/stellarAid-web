@@ -105,6 +105,7 @@ export default function MessageThreadPage({ params }: { params: { id: string } }
             />
             <button
               type="submit"
+              aria-label="Send message"
               className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-medium text-white"
             >
               Send
