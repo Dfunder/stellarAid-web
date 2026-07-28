@@ -1,0 +1,117 @@
+'use client';
+
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import DashboardLayout from '@/app/components/layout/DashboardLayout';
+import { getSocket } from '@/lib/socket';
+
+interface Message {
+  id: number;
+  sender: 'me' | 'them';
+  text: string;
+  createdAt: string;
+}
+
+const initialMessages: Message[] = [
+  { id: 1, sender: 'them', text: 'Hi! I can start on the draft this afternoon.', createdAt: '09:10' },
+  { id: 2, sender: 'me', text: 'Perfect, I will review the details then.', createdAt: '09:12' },
+];
+
+export default function MessageThreadPage({ params }: { params: { id: string } }) {
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [draft, setDraft] = useState('');
+  const [showTimestamp, setShowTimestamp] = useState<number | null>(null);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  const socket = useMemo(() => getSocket(), []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.emit('join_conversation', params.id);
+    socket.on('message_received', (payload: Message) => {
+      setMessages((current) => [payload, ...current]);
+    });
+
+    return () => {
+      socket.off('message_received');
+    };
+  }, [params.id, socket]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleSend = (event: FormEvent) => {
+    event.preventDefault();
+    if (!draft.trim()) return;
+
+    const optimisticMessage: Message = {
+      id: Date.now(),
+      sender: 'me',
+      text: draft.trim(),
+      createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+
+    setMessages((current) => [...current, optimisticMessage]);
+    socket?.emit('send_message', { conversationId: params.id, message: optimisticMessage });
+    setDraft('');
+  };
+
+  return (
+    <DashboardLayout>
+      <div className="flex h-[75vh] flex-col rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+          <div>
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Conversation #{params.id}</h1>
+            <p className="text-sm text-gray-500">Messages stay synced in real time.</p>
+          </div>
+          <button className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300">
+            Mark all read
+          </button>
+        </div>
+
+        <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+              onMouseEnter={() => setShowTimestamp(message.id)}
+              onMouseLeave={() => setShowTimestamp(null)}
+            >
+              <div
+                className={`max-w-[75%] rounded-2xl px-3 py-2 ${
+                  message.sender === 'me'
+                    ? 'bg-violet-600 text-white'
+                    : 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                }`}
+              >
+                <p>{message.text}</p>
+                {showTimestamp === message.id && (
+                  <p className="mt-1 text-[11px] opacity-70">{message.createdAt}</p>
+                )}
+              </div>
+            </div>
+          ))}
+          <div ref={bottomRef} />
+        </div>
+
+        <form onSubmit={handleSend} className="border-t border-gray-200 p-4 dark:border-gray-800">
+          <div className="flex gap-2">
+            <input
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder="Write a message"
+              className="flex-1 rounded-xl border border-gray-300 px-3 py-2 text-sm outline-none focus:border-violet-500 dark:border-gray-700 dark:bg-gray-800"
+            />
+            <button
+              type="submit"
+              className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-medium text-white"
+            >
+              Send
+            </button>
+          </div>
+        </form>
+      </div>
+    </DashboardLayout>
+  );
+}
