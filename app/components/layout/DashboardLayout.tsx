@@ -53,7 +53,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </div>
       </aside>
-      <main className="flex-1 p-8">{children}</main>
+      <main id="main-content" tabIndex={-1} className="flex-1 p-8">{children}</main>
     </div>
   );
 }

@@ -15,7 +15,7 @@ export default function MainLayout({ children, isLoggedIn = false, user }: MainL
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
       <Navbar isLoggedIn={isLoggedIn} user={user} />
-      <main className="flex-1">{children}</main>
+      <main id="main-content" tabIndex={-1} className="flex-1">{children}</main>
       <Footer />
     </div>
   );
