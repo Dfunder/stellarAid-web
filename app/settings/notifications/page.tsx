@@ -58,7 +58,11 @@ export default function NotificationSettingsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8"
+    >
       <header className="mb-8">
         <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
           Notification preferences
@@ -118,6 +122,6 @@ export default function NotificationSettingsPage() {
           {saving ? 'Saving...' : 'Save preferences'}
         </button>
       </div>
-    </div>
+    </main>
   );
 }
