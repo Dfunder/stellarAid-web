@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import WalletBalance from '@/components/wallet/WalletBalance';
 
 const sidebarLinks = [
   { name: 'Overview', href: '/dashboard' },
@@ -44,6 +45,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               );
             })}
           </nav>
+
+          <div className="mt-6">
+            <WalletBalance />
+          </div>
         </div>
       </aside>
       <main className="flex-1 p-8">{children}</main>
