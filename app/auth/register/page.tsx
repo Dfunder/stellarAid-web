@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useRouter } from 'next/navigation';
-import { useAppDispatch } from '../../store/hooks';
 import { registerUser } from '../../features/auth/authThunks';
 import { selectAuthLoading, selectAuthError } from '../../features/auth/authSelectors';
 import ErrorMessage from '../../components/common/ErrorMessage';
@@ -41,9 +40,9 @@ const RegisterPage = () => {
       if (registerUser.fulfilled.match(result)) {
         router.push('/auth/check-email');
       }
-    } catch {
+    }).catch(() => {
       // Handled by Redux authError state
-    }
+    });
   };
 
   return (

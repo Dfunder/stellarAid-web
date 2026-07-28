@@ -11,6 +11,7 @@ import bookmarksReducer from '../features/bookmarks/bookmarksSlice';
 import errorsReducer from '../features/errors/errorSlice';
 import artistsReducer from '../features/artists/artistsSlice';
 import portfoliosReducer from '../features/portfolios/portfoliosSlice';
+import servicesReducer from '../features/services/servicesSlice';
 
 const rootReducer = combineReducers({
   api: apiReducer,
@@ -23,6 +24,7 @@ const rootReducer = combineReducers({
   errors: errorsReducer,
   artists: artistsReducer,
   portfolios: portfoliosReducer,
+  services: servicesReducer,
 });
 
 export default rootReducer;
