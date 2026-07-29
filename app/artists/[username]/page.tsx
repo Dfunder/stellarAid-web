@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default function ArtistProfile({ params }: Props) {
   return (
-    <main className="flex min-h-screen flex-col items-center p-24">
+    <main id="main-content" className="flex min-h-screen flex-col items-center p-24">
       <h1 className="text-4xl font-bold mb-8">{params.username}'s Profile</h1>
       <p className="text-xl text-gray-600">Artist profile page</p>
     </main>

@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default function PortfolioDetail({ params }: Props) {
   return (
-    <main className="flex min-h-screen flex-col items-center p-24">
+    <main id="main-content" className="flex min-h-screen flex-col items-center p-24">
       <h1 className="text-4xl font-bold mb-8">Portfolio Detail #{params.id}</h1>
       <p className="text-xl text-gray-600">Portfolio item details page</p>
     </main>
