@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { Toaster } from 'react-hot-toast';
 import { ReduxProvider } from './providers/ReduxProvider';
+import { QueryProvider } from './providers/QueryProvider';
 import { ErrorBoundary } from './components/common';
 import { Header, Footer } from './components/layout';
 import './globals.css';
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ReduxProvider>
+          <QueryProvider>
           <ErrorBoundary>
             <Header />
             {children}
@@ -91,6 +93,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               }}
             />
           </ErrorBoundary>
+          </QueryProvider>
         </ReduxProvider>
       </body>
     </html>
