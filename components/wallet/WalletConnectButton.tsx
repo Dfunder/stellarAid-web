@@ -13,7 +13,6 @@ declare global {
       isConnected?: () => Promise<boolean>;
       connect?: () => Promise<string | { publicKey?: string }>;
       getPublicKey?: () => Promise<string>;
-      signTransaction?: (xdr: string) => Promise<string>;
     };
   }
 }

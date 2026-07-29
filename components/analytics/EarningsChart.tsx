@@ -5,198 +5,178 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts';
-import { TrendingUp } from 'lucide-react';
+import { getEarnings } from '@/lib/api/analytics';
+import ErrorMessage from '@/app/components/common/ErrorMessage';
 import Spinner from '@/app/components/common/Spinner';
-import { apiClient } from '@/utils/apiClient';
-
-interface MonthlyEarningsPoint {
-  month: string;
-  earnings: number;
-}
 
 interface EarningsChartProps {
-  data?: MonthlyEarningsPoint[];
-  loading?: boolean;
-  error?: string | null;
+  title?: string;
+  description?: string;
+  data?: unknown;
 }
 
-function normalizeChartData(payload: unknown): MonthlyEarningsPoint[] {
-  if (Array.isArray(payload)) {
-    return payload
-      .map((item) => {
-        const entry = (item ?? {}) as Record<string, unknown>;
-        const month = String(entry.month ?? entry.label ?? entry.period ?? entry.name ?? '');
-        const earnings = Number(
-          entry.earnings ?? entry.amount ?? entry.value ?? entry.total ?? entry.usdc ?? 0
-        );
+interface ChartPoint {
+  label: string;
+  amount: number;
+}
 
-        if (!month) {
-          return null;
-        }
-
-        return {
-          month,
-          earnings: Number.isFinite(earnings) ? earnings : 0,
-        };
-      })
-      .filter((item): item is MonthlyEarningsPoint => Boolean(item));
+function getChartLabel(value: unknown): string {
+  if (!value && value !== 0) {
+    return '';
   }
 
-  if (payload && typeof payload === 'object') {
-    const candidate = payload as Record<string, unknown>;
-    const candidates = [candidate.data, candidate.monthlyEarnings, candidate.earnings, candidate.results];
+  const valueString = String(value).trim();
+  if (!valueString) {
+    return '';
+  }
 
-    for (const value of candidates) {
-      if (Array.isArray(value)) {
-        return normalizeChartData(value);
-      }
+  const isoMonth = /^\d{4}-\d{2}$/;
+  const isoDate = /^\d{4}-\d{2}-\d{2}$/;
+  const yearMonth = isoMonth.test(valueString);
+  const fullDate = isoDate.test(valueString);
+
+  if (yearMonth || fullDate) {
+    const date = new Date(valueString + (yearMonth ? '-01' : ''));
+    if (!Number.isNaN(date.getTime())) {
+      return date.toLocaleString('en-US', { month: 'short' });
     }
   }
 
-  return [];
+  const parsed = new Date(valueString);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.toLocaleString('en-US', { month: 'short' });
+  }
+
+  return valueString;
 }
 
-function formatUSDC(value: number) {
-  return `$${value.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })} USDC`;
+function normalizeEarnings(payload: unknown): ChartPoint[] {
+  if (!payload) {
+    return [];
+  }
+
+  let items: unknown[] = [];
+
+  if (Array.isArray(payload)) {
+    items = payload;
+  } else if (typeof payload === 'object') {
+    const candidate = payload as Record<string, unknown>;
+    if (Array.isArray(candidate.data)) {
+      items = candidate.data;
+    } else if (Array.isArray(candidate.earnings)) {
+      items = candidate.earnings;
+    } else if (Array.isArray(candidate.monthlyEarnings)) {
+      items = candidate.monthlyEarnings;
+    } else if (Array.isArray(candidate.rows)) {
+      items = candidate.rows;
+    } else if (Array.isArray(candidate.series)) {
+      items = candidate.series;
+    }
+  }
+
+  return items
+    .map((item) => {
+      const entry = (item ?? {}) as Record<string, unknown>;
+      const rawLabel = entry.month ?? entry.label ?? entry.date ?? entry.period ?? entry.name ?? '';
+      const amount = Number(entry.amount ?? entry.earnings ?? entry.value ?? entry.total ?? 0);
+      return {
+        label: getChartLabel(rawLabel) || String(entry.month ?? entry.label ?? entry.date ?? ''),
+        amount: Number.isFinite(amount) ? amount : 0,
+      };
+    })
+    .filter((point) => point.label && point.amount >= 0)
+    .slice(-6);
 }
 
-export default function EarningsChart({ data, loading, error }: EarningsChartProps) {
-  const [chartData, setChartData] = useState<MonthlyEarningsPoint[]>([]);
-  const [internalLoading, setInternalLoading] = useState(!data);
-  const [internalError, setInternalError] = useState<string | null>(null);
+function formatMoney(value: number): string {
+  return `$${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} USDC`;
+}
 
-  const resolvedData = data ?? chartData;
-  const resolvedLoading = loading ?? internalLoading;
-  const resolvedError = error ?? internalError;
+export default function EarningsChart({ title = 'Earnings', description = 'Monthly earnings for the last six months.', data }: EarningsChartProps) {
+  const [earningsData, setEarningsData] = useState<unknown | null>(data ?? null);
+  const [loading, setLoading] = useState(!Boolean(data));
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (data) {
+      setLoading(false);
+      setError(null);
       return;
     }
 
     let active = true;
 
-    const loadData = async () => {
+    const loadEarnings = async () => {
       try {
-        setInternalLoading(true);
-        setInternalError(null);
-
-        const response = await apiClient.get('/analytics/earnings');
-
-        if (!active) {
-          return;
-        }
-
-        setChartData(normalizeChartData(response.data).slice(-6));
-      } catch {
-        if (active) {
-          setInternalError('We could not load the latest earnings history right now.');
-        }
+        setLoading(true);
+        setError(null);
+        const response = await getEarnings();
+        if (!active) return;
+        setEarningsData(response);
+      } catch (cause) {
+        setError('Unable to load earnings chart. Please try again later.');
       } finally {
-        if (active) {
-          setInternalLoading(false);
-        }
+        if (active) setLoading(false);
       }
     };
 
-    loadData();
+    loadEarnings();
 
     return () => {
       active = false;
     };
   }, [data]);
 
-  const summary = useMemo(() => {
-    const total = resolvedData.reduce((sum, item) => sum + item.earnings, 0);
-    const current = resolvedData[resolvedData.length - 1]?.earnings ?? 0;
-
-    return {
-      total,
-      current,
-    };
-  }, [resolvedData]);
+  const chartPoints = useMemo(() => normalizeEarnings(earningsData), [earningsData]);
+  const totalEarnings = chartPoints.reduce((sum, point) => sum + point.amount, 0);
+  const lastPoint = chartPoints[chartPoints.length - 1];
+  const currentMonthEarnings = lastPoint ? lastPoint.amount : 0;
 
   return (
-    <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="flex items-center gap-2 text-sm font-medium text-blue-600">
-            <TrendingUp className="h-4 w-4" />
-            <span>Weekly earnings trend</span>
+          <p className="text-sm font-medium text-blue-600">{title}</p>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{description}</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Total earnings</p>
+            <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">{formatMoney(totalEarnings)}</p>
           </div>
-          <h2 className="mt-2 text-lg font-semibold text-gray-900 dark:text-white">
-            Earnings overview
-          </h2>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Review your recent monthly earnings in USDC.
-          </p>
+          <div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Current month</p>
+            <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">{formatMoney(currentMonthEarnings)}</p>
+          </div>
         </div>
       </div>
 
-      {resolvedError ? (
-        <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 dark:border-blue-900/40 dark:bg-blue-950/20 dark:text-blue-200">
-          {resolvedError}
+      {error ? (
+        <div className="mt-6">
+          <ErrorMessage message={error} />
         </div>
-      ) : null}
-
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-950/50">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total earnings</p>
-          <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
-            {formatUSDC(summary.total)}
-          </p>
+      ) : loading ? (
+        <div className="mt-6 flex min-h-[24rem] items-center justify-center">
+          <Spinner size="lg" className="text-blue-600" />
         </div>
-        <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-950/50">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Current month</p>
-          <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
-            {formatUSDC(summary.current)}
-          </p>
-        </div>
-      </div>
-
-      {resolvedLoading ? (
-        <div className="mt-8 flex min-h-72 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white p-8 dark:border-gray-700 dark:bg-gray-950/40">
-          <div className="flex flex-col items-center gap-3 text-gray-500 dark:text-gray-400">
-            <Spinner size="lg" className="text-blue-600" />
-            <p className="text-sm">Loading earnings history…</p>
-          </div>
-        </div>
-      ) : resolvedData.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
-          No earning data available for the last six months.
+      ) : chartPoints.length === 0 ? (
+        <div className="mt-6 flex min-h-[24rem] items-center justify-center rounded-3xl border border-dashed border-gray-300 bg-gray-50 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-400">
+          No earnings data available for the last six months.
         </div>
       ) : (
-        <div className="mt-8 h-80 w-full">
+        <div className="mt-6 h-[24rem]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={resolvedData} margin={{ top: 8, right: 12, left: -16, bottom: 4 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-              <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: '#6B7280', fontSize: 12 }}
-                tickFormatter={(value) => `$${value}`}
-              />
-              <Tooltip
-                cursor={{ fill: 'rgba(59, 130, 246, 0.08)' }}
-                formatter={(value: number | string | readonly (number | string)[] | undefined) =>
-                  formatUSDC(Number(Array.isArray(value) ? value[0] ?? 0 : value ?? 0))
-                }
-              />
-              <Bar dataKey="earnings" radius={[8, 8, 0, 0]}>
-                {resolvedData.map((entry, index) => (
-                  <Cell key={`${entry.month}-${index}`} fill={index === resolvedData.length - 1 ? '#2563EB' : '#93C5FD'} />
-                ))}
-              </Bar>
+            <BarChart data={chartPoints} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
+              <XAxis dataKey="label" tick={{ fill: '#6B7280', fontSize: 12 }} axisLine={false} tickLine={false} />
+              <YAxis tickFormatter={(value) => `$${value}`} tick={{ fill: '#6B7280', fontSize: 12 }} axisLine={false} tickLine={false} />
+              <Tooltip formatter={(value) => formatMoney(Number(value ?? 0))} cursor={{ fill: 'rgba(59, 130, 246, 0.08)' }} />
+              <Bar dataKey="amount" fill="#2563EB" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

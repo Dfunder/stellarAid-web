@@ -6,7 +6,6 @@ import { ArrowRight, MessageSquareText, PlusCircle, Sparkles } from 'lucide-reac
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import ErrorMessage from '@/app/components/common/ErrorMessage';
 import Spinner from '@/app/components/common/Spinner';
-import EarningsChart from '@/components/analytics/EarningsChart';
 import { apiClient } from '@/utils/apiClient';
 
 type CommissionStatus = 'PENDING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
@@ -331,8 +330,6 @@ export default function ArtistDashboardPage() {
                 </div>
               ))}
             </section>
-
-            <EarningsChart />
 
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
               <div className="flex items-center justify-between gap-3">
