@@ -8,6 +8,17 @@ import { useState, useCallback } from 'react';
 import env from './config/env';
 import { Spinner, FullPageLoader, ButtonSpinner } from './components/common';
 import { MainLayout } from './components/layout';
+// Metadata for the Home page, including title, description, and Open Graph settings for social sharing
+export const metadata: Metadata = {
+  title: "Home | StellarAid",
+  description: "Discover and support blockchain-based crowdfunding projects on the Stellar Network. Empower creators and make a difference with transparent, decentralized fundraising.",
+  openGraph: {
+    title: "Home | StellarAid",
+    description: "Discover and support blockchain-based crowdfunding projects on the Stellar Network. Empower creators and make a difference with transparent, decentralized fundraising.",
+    images: ["/og-image.jpg"],
+  },
+};
+// Home component that demonstrates toast notifications, API calls, and loading spinners
 
 export default function Home() {
   const dispatch = useAppDispatch();

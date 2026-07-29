@@ -6,9 +6,9 @@ import { QueryProvider } from './providers/QueryProvider';
 import { ErrorBoundary } from './components/common';
 import { Header, Footer } from './components/layout';
 import './globals.css';
-
+// Font configuration
 const inter = Inter({ subsets: ['latin'] });
-
+// Viewport configuration for responsive design and theme color
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -17,7 +17,7 @@ export const viewport: Viewport = {
     { media: '(prefers-color-scheme: dark)', color: '#1a1a2e' },
   ],
 };
-
+// Metadata configuration for SEO and social sharing
 export const metadata: Metadata = {
   metadataBase: new URL('https://stellaraid.com'),
   title: {
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     },
   },
 };
-
+// Root layout component that wraps the entire application with global providers and layout components
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
