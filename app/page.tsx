@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 import env from './config/env';
 import { Spinner, FullPageLoader, ButtonSpinner } from './components/common';
 import { MainLayout } from './components/layout';
-
+// Metadata for the Home page, including title, description, and Open Graph settings for social sharing
 export const metadata: Metadata = {
   title: "Home | StellarAid",
   description: "Discover and support blockchain-based crowdfunding projects on the Stellar Network. Empower creators and make a difference with transparent, decentralized fundraising.",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     images: ["/og-image.jpg"],
   },
 };
-
+// Home component that demonstrates toast notifications, API calls, and loading spinners
 export default function Home() {
   return (
     <main id="main-content" className="flex min-h-screen flex-col items-center p-24">
