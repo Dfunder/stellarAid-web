@@ -1,5 +1,6 @@
 'use client';
 
+import { Metadata } from "next";
 import Image from "next/image";
 import { toastSuccess, toastError, toastInfo, toastLoading, toastDismiss } from '@/utils/toast';
 import { useAppSelector, useAppDispatch } from './store/hooks';
@@ -7,6 +8,16 @@ import { fetchData } from './store/slices/apiSlice';
 import { useState, useEffect } from 'react';
 import env from './config/env';
 import { Spinner, FullPageLoader, ButtonSpinner } from './components/common';
+
+export const metadata: Metadata = {
+  title: "Home | StellarAid",
+  description: "Discover and support blockchain-based crowdfunding projects on the Stellar Network. Empower creators and make a difference with transparent, decentralized fundraising.",
+  openGraph: {
+    title: "Home | StellarAid",
+    description: "Discover and support blockchain-based crowdfunding projects on the Stellar Network. Empower creators and make a difference with transparent, decentralized fundraising.",
+    images: ["/og-image.jpg"],
+  },
+};
 
 export default function Home() {
   const { loading, error, data } = useAppSelector((state) => state.api);

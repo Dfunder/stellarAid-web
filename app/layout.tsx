@@ -7,8 +7,43 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "StellarAid",
-  description: "Blockchain-based crowdfunding on the Stellar Network",
+  metadataBase: new URL('https://stellaraid.com'),
+  title: {
+    default: "StellarAid | Blockchain Crowdfunding on Stellar Network",
+    template: "%s | StellarAid"
+  },
+  description: "Blockchain-based crowdfunding platform on the Stellar Network. Support creators, artists, and entrepreneurs with transparent, decentralized fundraising.",
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://stellaraid.com/',
+    siteName: 'StellarAid',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'StellarAid - Blockchain Crowdfunding on Stellar Network'
+      }
+    ]
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "StellarAid | Blockchain Crowdfunding on Stellar Network",
+    description: "Blockchain-based crowdfunding platform on the Stellar Network. Support creators, artists, and entrepreneurs with transparent, decentralized fundraising.",
+    images: ['/og-image.jpg'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 export default function RootLayout({
