@@ -34,8 +34,8 @@ const validateEnv = (): void => {
   if (missingVars.length > 0) {
     console.warn(
       `⚠️  Missing required environment variables: ${missingVars.join(', ')}\n` +
-      'Please check your .env.local file and ensure all required variables are set.\n' +
-      'Refer to .env.example for the complete list of required variables.'
+        'Please check your .env.local file and ensure all required variables are set.\n' +
+        'Refer to .env.example for the complete list of required variables.'
     );
   } else {
     console.log('✅ All environment variables loaded successfully');

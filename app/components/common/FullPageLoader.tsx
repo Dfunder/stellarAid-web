@@ -13,12 +13,12 @@ interface FullPageLoaderProps {
  * @param message - Optional loading message to display
  * @param showSpinner - Whether to show the spinner (default: true)
  */
-const FullPageLoader: React.FC<FullPageLoaderProps> = ({ 
-  message = 'Loading...', 
-  showSpinner = true 
+const FullPageLoader: React.FC<FullPageLoaderProps> = ({
+  message = 'Loading...',
+  showSpinner = true,
 }) => {
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm"
       aria-label="Loading page"
       role="status"

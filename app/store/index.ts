@@ -1,13 +1,12 @@
 'use client';
 
 import { configureStore } from '@reduxjs/toolkit';
-import apiReducer from './slices/apiSlice';
+import rootReducer from './rootReducer';
+
+export { rootReducer };
 
 export const store = configureStore({
-  reducer: {
-    api: apiReducer,
-    // Add other reducers here as they are created
-  },
+  reducer: rootReducer,
   // Redux DevTools are automatically configured by RTK in development
 });
 
