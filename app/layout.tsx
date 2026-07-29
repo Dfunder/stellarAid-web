@@ -19,17 +19,42 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://stellaraid.com'),
   title: {
-    default: 'Lumora',
-    template: '%s | Lumora',
+    default: "StellarAid | Blockchain Crowdfunding on Stellar Network",
+    template: "%s | StellarAid"
   },
-  description:
-    'Blockchain-based crowdfunding on the Stellar Network. Empowering creators and changemakers worldwide.',
-  keywords: ['crowdfunding', 'stellar', 'blockchain', 'web3', 'fundraising'],
+  description: "Blockchain-based crowdfunding platform on the Stellar Network. Support creators, artists, and entrepreneurs with transparent, decentralized fundraising.",
   openGraph: {
-    title: 'Lumora',
-    description: 'Blockchain-based crowdfunding on the Stellar Network',
     type: 'website',
+    locale: 'en_US',
+    url: 'https://stellaraid.com/',
+    siteName: 'StellarAid',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'StellarAid - Blockchain Crowdfunding on Stellar Network'
+      }
+    ]
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "StellarAid | Blockchain Crowdfunding on Stellar Network",
+    description: "Blockchain-based crowdfunding platform on the Stellar Network. Support creators, artists, and entrepreneurs with transparent, decentralized fundraising.",
+    images: ['/og-image.jpg'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
 };
 
@@ -37,6 +62,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
+        <a 
+          href="#main-content" 
+          className="skip-to-content"
+        >
+          Skip to main content
+        </a>
         <ReduxProvider>
           <QueryProvider>
           <ErrorBoundary>
