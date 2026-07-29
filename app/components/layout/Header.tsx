@@ -7,6 +7,7 @@ import { useAppSelector, useAppDispatch } from '@/app/store/hooks';
 import { selectIsAuthenticated, selectUser } from '@/app/features/auth/authSelectors';
 import { logoutUser } from '@/app/features/auth/authThunks';
 import { useRole } from '@/app/hooks/useRole';
+import NotificationBell from '@/app/components/layout/NotificationBell';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -71,9 +72,11 @@ export default function Header() {
             ))}
           </nav>
 
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-2">
             {isAuth ? (
-              <div className="relative">
+              <>
+                <NotificationBell />
+                <div className="relative">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -142,7 +145,8 @@ export default function Header() {
                     </button>
                   </div>
                 )}
-              </div>
+                </div>
+              </>
             ) : (
               <>
                 <Link

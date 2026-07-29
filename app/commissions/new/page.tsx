@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useMutation } from '@tanstack/react-query';
 import CommissionDeliveryModal from '@/components/commissions/CommissionDeliveryModal';
 
 interface NewCommissionPageProps {
@@ -21,20 +22,10 @@ export default function NewCommissionPage({ searchParams }: NewCommissionPagePro
   const [budget, setBudget] = useState(searchParams?.serviceBudget || '');
   const [deadline, setDeadline] = useState('');
   const [files, setFiles] = useState<File[]>([]);
-  const [status, setStatus] = useState('');
-  const [loading, setLoading] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFiles(Array.from(event.target.files || []));
-  };
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setLoading(true);
-    setStatus('');
-
-    try {
+  const mutation = useMutation({
+    mutationFn: async () => {
       const formData = new FormData();
       formData.append('artist', artist);
       formData.append('title', title);
@@ -43,21 +34,19 @@ export default function NewCommissionPage({ searchParams }: NewCommissionPagePro
       formData.append('deadline', deadline);
       files.forEach((file) => formData.append('attachments', file));
 
-      const response = await fetch('/commissions', {
-        method: 'POST',
-        body: formData,
-      });
+      const response = await fetch('/commissions', { method: 'POST', body: formData });
+      if (!response.ok) throw new Error('Unable to create commission request.');
+      return response.json();
+    },
+  });
 
-      if (!response.ok) {
-        throw new Error('Unable to create commission request.');
-      }
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    mutation.mutate();
+  };
 
-      setStatus('Commission request sent successfully.');
-    } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Something went wrong.');
-    } finally {
-      setLoading(false);
-    }
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFiles(Array.from(event.target.files || []));
   };
 
   return (
@@ -156,15 +145,16 @@ export default function NewCommissionPage({ searchParams }: NewCommissionPagePro
             </div>
           )}
 
-          {status && <p className="text-sm text-green-600 dark:text-green-400">{status}</p>}
+          {mutation.isSuccess && <p className="text-sm text-green-600 dark:text-green-400">Commission request sent successfully.</p>}
+          {mutation.isError && <p className="text-sm text-red-600 dark:text-red-400">{(mutation.error as Error).message}</p>}
 
           <div className="flex flex-wrap gap-3">
             <button
               type="submit"
-              disabled={loading}
+              disabled={mutation.isPending}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
             >
-              {loading ? 'Sending...' : 'Submit Request'}
+              {mutation.isPending ? 'Sending...' : 'Submit Request'}
             </button>
             <button
               type="button"
