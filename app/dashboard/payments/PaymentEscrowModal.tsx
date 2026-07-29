@@ -4,13 +4,6 @@ import { useState } from 'react';
 import Modal from '@/app/components/common/Modal';
 import { Button } from '@/app/components/ui/Button';
 
-declare global {
-  interface Window {
-    freighter?: {
-      signTransaction?: (xdr: string) => Promise<string>;
-    };
-  }
-}
 
 interface PaymentEscrowModalProps {
   isOpen: boolean;

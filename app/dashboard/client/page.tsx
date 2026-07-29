@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, MessageSquareText, PlusCircle, Sparkles } from 'lucide-react';
+import { ArrowRight, MessageSquareText, Search, Sparkles } from 'lucide-react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import ErrorMessage from '@/app/components/common/ErrorMessage';
 import Spinner from '@/app/components/common/Spinner';
@@ -14,65 +14,59 @@ type CommissionStatus = 'PENDING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
 interface CommissionItem {
   id: string;
   title: string;
-  clientName: string;
+  artistName: string;
   status: CommissionStatus;
-  budgetUsdc: number;
+  totalUsdc: number;
   createdAt: string;
-  rating?: number;
 }
 
 interface DashboardStats {
-  totalEarnings: number;
   activeCommissions: number;
-  pendingRequests: number;
-  averageRating: number;
+  totalSpent: number;
+  artistsHired: number;
+  pendingReviews: number;
 }
 
 const FALLBACK_COMMISSIONS: CommissionItem[] = [
   {
-    id: 'c-101',
+    id: 'c-201',
     title: 'Album cover art for debut EP',
-    clientName: 'Tope Adekunle',
-    status: 'PENDING',
-    budgetUsdc: 350,
-    createdAt: '2026-07-01',
-    rating: 4.9,
+    artistName: 'Ngozi Okafor',
+    status: 'ACTIVE',
+    totalUsdc: 350,
+    createdAt: '2026-07-10',
   },
   {
-    id: 'c-102',
+    id: 'c-202',
     title: 'Brand illustration set',
-    clientName: 'Lumora HQ',
-    status: 'ACTIVE',
-    budgetUsdc: 600,
-    createdAt: '2026-06-26',
-    rating: 4.8,
-  },
-  {
-    id: 'c-103',
-    title: 'Custom mascot for Discord server',
-    clientName: 'PixelHaven DAO',
+    artistName: 'Amara Diallo',
     status: 'COMPLETED',
-    budgetUsdc: 220,
+    totalUsdc: 600,
+    createdAt: '2026-06-28',
+  },
+  {
+    id: 'c-203',
+    title: 'Custom mascot for Discord server',
+    artistName: 'Wei Chen',
+    status: 'PENDING',
+    totalUsdc: 220,
     createdAt: '2026-06-18',
-    rating: 5,
   },
   {
-    id: 'c-104',
-    title: 'Music festival poster',
-    clientName: 'Festival Crew',
+    id: 'c-204',
+    title: 'Wedding invite illustrations',
+    artistName: 'Lara Ferreira',
     status: 'CANCELLED',
-    budgetUsdc: 180,
+    totalUsdc: 180,
     createdAt: '2026-06-10',
-    rating: 4.2,
   },
   {
-    id: 'c-105',
-    title: 'Short-form social animation pack',
-    clientName: 'Meli Studio',
+    id: 'c-205',
+    title: 'Social animation pack',
+    artistName: 'Reece Holloway',
     status: 'ACTIVE',
-    budgetUsdc: 470,
-    createdAt: '2026-06-03',
-    rating: 4.7,
+    totalUsdc: 470,
+    createdAt: '2026-05-31',
   },
 ];
 
@@ -113,29 +107,23 @@ function normalizeStatus(value: unknown): CommissionStatus {
   return 'CANCELLED';
 }
 
-function normalizeEarnings(payload: unknown): number {
-  if (typeof payload === 'number') {
-    return payload;
-  }
-
+function normalizeStats(payload: unknown): DashboardStats {
   if (payload && typeof payload === 'object') {
     const candidate = payload as Record<string, unknown>;
-    const values = [
-      candidate.totalEarnings,
-      candidate.total,
-      candidate.totalAmount,
-      candidate.earnings,
-      candidate.amount,
-    ];
-
-    for (const value of values) {
-      if (typeof value === 'number') {
-        return value;
-      }
-    }
+    return {
+      activeCommissions: Number(candidate.activeCommissions ?? candidate.active ?? 0),
+      totalSpent: Number(candidate.totalSpent ?? candidate.total ?? candidate.amount ?? 0),
+      artistsHired: Number(candidate.artistsHired ?? candidate.artists ?? candidate.count ?? 0),
+      pendingReviews: Number(candidate.pendingReviews ?? candidate.reviews ?? candidate.pending ?? 0),
+    };
   }
 
-  return 0;
+  return {
+    activeCommissions: 0,
+    totalSpent: 0,
+    artistsHired: 0,
+    pendingReviews: 0,
+  };
 }
 
 function normalizeCommissions(payload: unknown): CommissionItem[] {
@@ -160,25 +148,24 @@ function normalizeCommissions(payload: unknown): CommissionItem[] {
 
 function normalizeCommission(item: unknown, index: number): CommissionItem {
   const entry = (item ?? {}) as Record<string, unknown>;
-  const client = (entry.client as Record<string, unknown> | undefined) ?? {};
+  const artist = (entry.artist as Record<string, unknown> | undefined) ?? {};
 
   return {
     id: String(entry.id ?? `commission-${index + 1}`),
     title: String(entry.title ?? entry.name ?? 'Untitled commission'),
-    clientName: String(client.name ?? entry.clientName ?? entry.client ?? 'Client'),
+    artistName: String(artist.name ?? entry.artistName ?? entry.artist ?? 'Artist'),
     status: normalizeStatus(entry.status),
-    budgetUsdc: Number(entry.budgetUsdc ?? entry.budget ?? entry.amount ?? entry.price ?? 0),
+    totalUsdc: Number(entry.totalUsdc ?? entry.total ?? entry.amount ?? entry.budgetUsdc ?? 0),
     createdAt: String(entry.createdAt ?? entry.created_at ?? entry.updatedAt ?? ''),
-    rating: typeof entry.rating === 'number' ? entry.rating : undefined,
   };
 }
 
-export default function ArtistDashboardPage() {
+export default function ClientDashboardPage() {
   const [stats, setStats] = useState<DashboardStats>({
-    totalEarnings: 0,
     activeCommissions: 0,
-    pendingRequests: 0,
-    averageRating: 0,
+    totalSpent: 0,
+    artistsHired: 0,
+    pendingReviews: 0,
   });
   const [commissions, setCommissions] = useState<CommissionItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -192,8 +179,8 @@ export default function ArtistDashboardPage() {
         setIsLoading(true);
         setError(null);
 
-        const [earningsResponse, commissionsResponse] = await Promise.all([
-          apiClient.get('/analytics/earnings'),
+        const [statsResponse, commissionsResponse] = await Promise.all([
+          apiClient.get('/analytics/spending'),
           apiClient.get('/commissions'),
         ]);
 
@@ -201,32 +188,18 @@ export default function ArtistDashboardPage() {
           return;
         }
 
-        const nextCommissions = normalizeCommissions(commissionsResponse.data);
-        const activeCount = nextCommissions.filter((item) => item.status === 'ACTIVE').length;
-        const pendingCount = nextCommissions.filter((item) => item.status === 'PENDING').length;
-        const ratings = nextCommissions
-          .map((item) => item.rating)
-          .filter((value): value is number => typeof value === 'number');
-        const averageRating = ratings.length
-          ? ratings.reduce((sum, value) => sum + value, 0) / ratings.length
-          : 4.7;
-
-        setCommissions(nextCommissions.slice(0, 5));
-        setStats({
-          totalEarnings: normalizeEarnings(earningsResponse.data),
-          activeCommissions: activeCount,
-          pendingRequests: pendingCount,
-          averageRating,
-        });
-      } catch (error) {
+        const nextCommissions = normalizeCommissions(commissionsResponse.data).slice(0, 5);
+        setCommissions(nextCommissions.length > 0 ? nextCommissions : FALLBACK_COMMISSIONS);
+        setStats(normalizeStats(statsResponse.data));
+      } catch {
         if (active) {
-          setError('We could not load the artist overview right now. Showing the latest sample data instead.');
+          setError('We could not load your client overview right now. Showing the latest sample data instead.');
           setCommissions(FALLBACK_COMMISSIONS);
           setStats({
-            totalEarnings: 1250,
             activeCommissions: 2,
-            pendingRequests: 1,
-            averageRating: 4.8,
+            totalSpent: 1250,
+            artistsHired: 5,
+            pendingReviews: 1,
           });
         }
       } finally {
@@ -252,30 +225,30 @@ export default function ArtistDashboardPage() {
           <div>
             <div className="flex items-center gap-2 text-sm font-medium text-blue-600">
               <Sparkles className="h-4 w-4" />
-              <span>Artist overview</span>
+              <span>Client overview</span>
             </div>
             <h1 className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
-              Welcome back, your studio is moving.
+              Welcome back, here is your creative activity.
             </h1>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Track earnings, outstanding requests, and your latest commissions in one place.
+              Keep track of spending, active projects, and your recent commissions in one place.
             </p>
           </div>
 
           <div className="flex flex-wrap gap-2">
             <Link
-              href="/dashboard/artist/portfolios/new"
+              href="/artists"
               className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:border-blue-200 hover:text-blue-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
             >
-              <PlusCircle className="h-4 w-4" />
-              New Portfolio
+              <Search className="h-4 w-4" />
+              Find Artist
             </Link>
             <Link
-              href="/dashboard/artist/services"
+              href="/marketplace"
               className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:border-blue-200 hover:text-blue-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
             >
-              <PlusCircle className="h-4 w-4" />
-              Add Service
+              <Sparkles className="h-4 w-4" />
+              Browse Marketplace
             </Link>
             <Link
               href="/dashboard/messages/1"
@@ -301,24 +274,24 @@ export default function ArtistDashboardPage() {
             <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {[
                 {
-                  label: 'Total earnings',
-                  value: `$${stats.totalEarnings.toLocaleString()} USDC`,
-                  helper: 'Lifetime volume',
-                },
-                {
                   label: 'Active commissions',
                   value: stats.activeCommissions.toString(),
-                  helper: 'Live work in progress',
+                  helper: 'Live projects in motion',
                 },
                 {
-                  label: 'Pending requests',
-                  value: stats.pendingRequests.toString(),
-                  helper: 'Awaiting your reply',
+                  label: 'Total spent (USDC)',
+                  value: `$${stats.totalSpent.toLocaleString()}`,
+                  helper: 'Lifetime spend on commissions',
                 },
                 {
-                  label: 'Average rating',
-                  value: `${stats.averageRating.toFixed(1)} ★`,
-                  helper: 'Based on recent feedback',
+                  label: 'Artists hired',
+                  value: stats.artistsHired.toString(),
+                  helper: 'Unique collaborators',
+                },
+                {
+                  label: 'Pending reviews',
+                  value: stats.pendingReviews.toString(),
+                  helper: 'Awaiting your feedback',
                 },
               ].map((item) => (
                 <div
@@ -337,15 +310,13 @@ export default function ArtistDashboardPage() {
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Recent commissions
-                  </h2>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent commissions</h2>
                   <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    The most recent work and requests from your clients.
+                    Your latest commission requests and workstreams.
                   </p>
                 </div>
                 <Link
-                  href="/dashboard/artist/commissions"
+                  href="/dashboard/client/commissions"
                   className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700"
                 >
                   View all
@@ -355,7 +326,7 @@ export default function ArtistDashboardPage() {
 
               {recentCommissions.length === 0 ? (
                 <div className="mt-6 rounded-2xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
-                  No commissions yet. New requests will appear here.
+                  No commissions yet. Start browsing artists to create your first request.
                 </div>
               ) : (
                 <div className="mt-6 overflow-x-auto">
@@ -363,9 +334,9 @@ export default function ArtistDashboardPage() {
                     <thead>
                       <tr className="text-gray-500 dark:text-gray-400">
                         <th className="px-3 py-2 font-medium">Commission</th>
-                        <th className="px-3 py-2 font-medium">Client</th>
+                        <th className="px-3 py-2 font-medium">Artist</th>
                         <th className="px-3 py-2 font-medium">Status</th>
-                        <th className="px-3 py-2 font-medium">Budget</th>
+                        <th className="px-3 py-2 font-medium">Amount</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
@@ -379,7 +350,7 @@ export default function ArtistDashboardPage() {
                               </div>
                             ) : null}
                           </td>
-                          <td className="px-3 py-3">{commission.clientName}</td>
+                          <td className="px-3 py-3">{commission.artistName}</td>
                           <td className="px-3 py-3">
                             <span
                               className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_BADGE[commission.status].className}`}
@@ -387,7 +358,7 @@ export default function ArtistDashboardPage() {
                               {STATUS_BADGE[commission.status].label}
                             </span>
                           </td>
-                          <td className="px-3 py-3">${commission.budgetUsdc.toFixed(2)} USDC</td>
+                          <td className="px-3 py-3">${commission.totalUsdc.toFixed(2)} USDC</td>
                         </tr>
                       ))}
                     </tbody>
