@@ -22,40 +22,54 @@ export const metadata: Metadata = {
 
 export default function Home() {
   const dispatch = useAppDispatch();
-  const { data, loading, error } = useAppSelector((state) => state.api);
-  const [isButtonLoading, setIsButtonLoading] = useState(false);
+  const { loading, error, data } = useAppSelector((state: any) => state.api);
   const [showFullPageLoader, setShowFullPageLoader] = useState(false);
+  const [isButtonLoading, setIsButtonLoading] = useState(false);
   const [loadingToastId, setLoadingToastId] = useState<string | null>(null);
 
-  const handleShowSuccess = useCallback(() => toastSuccess('Operation completed successfully!'), []);
-  const handleShowError = useCallback(() => toastError('Something went wrong!'), []);
-  const handleShowInfo = useCallback(() => toastInfo('Here is some information.'), []);
+  useEffect(() => {
+    if (!showFullPageLoader) return;
 
-  const handleShowLoading = useCallback(() => {
-    const id = toastLoading('Loading...');
+    const timer = window.setTimeout(() => setShowFullPageLoader(false), 1200);
+    return () => window.clearTimeout(timer);
+  }, [showFullPageLoader]);
+
+  const handleShowSuccess = () => {
+    toastSuccess('Success toast triggered!');
+  };
+
+  const handleShowError = () => {
+    toastError('Error toast triggered!');
+  };
+
+  const handleShowInfo = () => {
+    toastInfo('Info toast triggered!');
+  };
+
+  const handleShowLoading = () => {
+    const id = toastLoading('Loading toast triggered...');
     setLoadingToastId(id);
-  }, []);
+  };
 
-  const handleDismissLoading = useCallback(() => {
+  const handleDismissLoading = () => {
     if (loadingToastId) {
       toastDismiss(loadingToastId);
       setLoadingToastId(null);
     }
-  }, [loadingToastId]);
+  };
 
-  const handleApiCall = useCallback(() => {
-    dispatch(fetchData(env.apiBaseUrl));
-  }, [dispatch]);
+  const handleApiCall = () => {
+    dispatch(fetchData('/api/health'));
+  };
 
-  const handleButtonLoading = useCallback(() => {
+  const handleButtonLoading = () => {
     setIsButtonLoading(true);
-    setTimeout(() => setIsButtonLoading(false), 2000);
-  }, []);
+    window.setTimeout(() => setIsButtonLoading(false), 1000);
+  };
 
-  const handleShowFullPageLoader = useCallback(() => {
+  const handleShowFullPageLoader = () => {
     setShowFullPageLoader(true);
-    setTimeout(() => setShowFullPageLoader(false), 3000);
-  }, []);
+  };
 
   return (
     <MainLayout>

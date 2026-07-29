@@ -304,7 +304,7 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
           >
             {role}
           </button>{' '}
-          (toggle to preview the other role's actions)
+          (toggle to preview the other role&apos;s actions)
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
