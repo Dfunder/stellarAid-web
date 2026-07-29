@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { X } from 'lucide-react';
 
 interface CommissionDeliveryModalProps {
@@ -12,24 +13,9 @@ export default function CommissionDeliveryModal({ isOpen, onClose }: CommissionD
   const [commissionId, setCommissionId] = useState('');
   const [message, setMessage] = useState('');
   const [files, setFiles] = useState<File[]>([]);
-  const [status, setStatus] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  if (!isOpen) {
-    return null;
-  }
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = Array.from(event.target.files || []);
-    setFiles(selected);
-  };
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setLoading(true);
-    setStatus('');
-
-    try {
+  const mutation = useMutation({
+    mutationFn: async () => {
       const formData = new FormData();
       formData.append('message', message);
       formData.append('commissionId', commissionId);
@@ -39,20 +25,25 @@ export default function CommissionDeliveryModal({ isOpen, onClose }: CommissionD
         method: 'PATCH',
         body: formData,
       });
-
-      if (!response.ok) {
-        throw new Error('Unable to submit your work.');
-      }
-
-      setStatus('Work submitted successfully.');
+      if (!response.ok) throw new Error('Unable to submit your work.');
+      return response.json();
+    },
+    onSuccess: () => {
       setCommissionId('');
       setMessage('');
       setFiles([]);
-    } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Something went wrong.');
-    } finally {
-      setLoading(false);
-    }
+    },
+  });
+
+  if (!isOpen) return null;
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFiles(Array.from(event.target.files || []));
+  };
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    mutation.mutate();
   };
 
   return (
@@ -115,7 +106,8 @@ export default function CommissionDeliveryModal({ isOpen, onClose }: CommissionD
             </div>
           )}
 
-          {status && <p className="text-sm text-green-600 dark:text-green-400">{status}</p>}
+          {mutation.isSuccess && <p className="text-sm text-green-600 dark:text-green-400">Work submitted successfully.</p>}
+          {mutation.isError && <p className="text-sm text-red-600 dark:text-red-400">{(mutation.error as Error).message}</p>}
 
           <div className="flex justify-end gap-2">
             <button
@@ -127,10 +119,10 @@ export default function CommissionDeliveryModal({ isOpen, onClose }: CommissionD
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={mutation.isPending}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
             >
-              {loading ? 'Submitting...' : 'Submit Work'}
+              {mutation.isPending ? 'Submitting...' : 'Submit Work'}
             </button>
           </div>
         </form>

@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { toastSuccess, toastError, toastInfo, toastLoading, toastDismiss } from '@/utils/toast';
 import { useAppSelector, useAppDispatch } from './store/hooks';
 import { fetchData } from './store/slices/apiSlice';
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import env from './config/env';
 import { Spinner, FullPageLoader, ButtonSpinner } from './components/common';
 import { MainLayout } from './components/layout';
@@ -62,9 +62,9 @@ export default function Home() {
 
   return (
     <MainLayout>
-      <div className="flex flex-col items-center p-24">
+      <div id="main-content" className="flex min-h-screen flex-col items-center p-24">
         <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-          <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
+          <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
             StellarAid: Redux Toolkit + Toast System Demo
           </p>
           <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
@@ -208,7 +208,6 @@ export default function Home() {
               Loading Spinner Components
             </h3>
 
-            {/* Spinner Sizes */}
             <div className="mb-6">
               <h4 className="text-md font-medium mb-3 text-gray-700 dark:text-gray-300">
                 Spinner Sizes (sm, md, lg):
@@ -229,7 +228,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Button Spinner Demo */}
             <div className="mb-6">
               <h4 className="text-md font-medium mb-3 text-gray-700 dark:text-gray-300">
                 ButtonSpinner Demo:
@@ -275,12 +273,11 @@ export default function Home() {
               </li>
               <li>
                 <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">app/layout.tsx</code> -
-                Added Toaster & ReduxProvider
+                Added Toaster &amp; ReduxProvider
               </li>
             </ul>
           </div>
 
-          {/* Full Page Loader - will overlay everything when active */}
           {showFullPageLoader && <FullPageLoader message="Loading content..." />}
         </div>
       </div>

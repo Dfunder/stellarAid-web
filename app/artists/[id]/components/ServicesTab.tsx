@@ -1,25 +1,24 @@
 'use client';
 
-import { useEffect } from 'react';
 import Link from 'next/link';
-import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
-import { selectServices, selectServicesLoading } from '@/app/features/services/servicesSelectors';
-import { fetchServices } from '@/app/features/services/servicesThunks';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/app/services/api';
 import { Skeleton } from '@/app/components/ui/Skeleton';
-import { Briefcase, Clock, RefreshCw, DollarSign } from 'lucide-react';
+import { Briefcase, Clock, RefreshCw } from 'lucide-react';
 
 interface ServicesTabProps {
   artistId: string;
 }
 
 export default function ServicesTab({ artistId }: ServicesTabProps) {
-  const dispatch = useAppDispatch();
-  const services = useAppSelector(selectServices);
-  const loading = useAppSelector(selectServicesLoading);
-
-  useEffect(() => {
-    dispatch(fetchServices({ artistId }));
-  }, [artistId, dispatch]);
+  const { data: services = [], isLoading: loading } = useQuery({
+    queryKey: ['artistServices', artistId],
+    queryFn: async () => {
+      const { data } = await api.get(`/services?artistId=${artistId}`);
+      return data;
+    },
+    enabled: !!artistId,
+  });
 
   if (loading && services.length === 0) {
     return (
@@ -53,7 +52,7 @@ export default function ServicesTab({ artistId }: ServicesTabProps) {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {services.map((service) => (
+      {services.map((service: any) => (
         <Link
           key={service.id}
           href={`/marketplace/services/${service.id}`}

@@ -7,6 +7,7 @@ import { selectAuthLoading, selectAuthError } from '@/app/features/auth/authSele
 import { useRouter } from 'next/navigation';
 import FullPageLoader from '@/app/components/common/FullPageLoader';
 import ButtonSpinner from '@/app/components/common/ButtonSpinner';
+import { toastError, toastSuccess } from '@/utils/toast';
 
 export default function VerifyEmailPage({ params }: { params: { token: string } }) {
   const dispatch = useAppDispatch();
@@ -33,14 +34,14 @@ export default function VerifyEmailPage({ params }: { params: { token: string } 
 
   const handleResendEmail = async () => {
     if (!email) {
-      alert('Please enter your email address');
+      toastError('Please enter your email address');
       return;
     }
 
     setIsResending(true);
     try {
       await dispatch(resendVerificationEmail(email)).unwrap();
-      alert('Verification email sent successfully!');
+      toastSuccess('Verification email sent successfully!');
     } catch (err) {
       // Error is already handled by the thunk
     } finally {

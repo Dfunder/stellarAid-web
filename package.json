@@ -14,11 +14,14 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@reduxjs/toolkit": "^2.12.0",
+    "@stellar/freighter-api": "^6.0.1",
     "@stellar/stellar-sdk": "^14.5.0",
     "@tailwindcss/postcss": "^4.2.0",
     "@tanstack/react-query": "^5.56.2",
@@ -27,6 +30,7 @@
     "@types/yup": "^0.29.14",
     "axios": "^1.13.5",
     "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
     "dotenv": "^17.3.1",
     "framer-motion": "^12.38.0",
     "lucide-react": "^0.575.0",
@@ -62,6 +66,7 @@
     "ajv": "^8.20.0",
     "ajv-keywords": "^5.1.0",
     "autoprefixer": "^10.0.1",
+    "cypress": "^15.19.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.3",
     "eslint-config-prettier": "^10.1.8",
