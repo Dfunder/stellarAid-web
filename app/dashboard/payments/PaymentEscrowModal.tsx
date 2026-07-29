@@ -4,6 +4,14 @@ import { useState } from 'react';
 import Modal from '@/app/components/common/Modal';
 import { Button } from '@/app/components/ui/Button';
 
+declare global {
+  interface Window {
+    freighter?: {
+      signTransaction?: (xdr: string) => Promise<string>;
+    };
+  }
+}
+
 interface PaymentEscrowModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -35,8 +43,9 @@ export default function PaymentEscrowModal({ isOpen, onClose }: PaymentEscrowMod
 
       setStatus('success');
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Unexpected error');
+      const message = error instanceof Error ? error.message : 'Unexpected error';
       setStatus('error');
+      console.error(message);
     }
   };
 

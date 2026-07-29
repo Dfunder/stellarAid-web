@@ -270,7 +270,7 @@ export default function ProfileSettingsPage() {
               </div>
               {emailChanged && (
                 <p className="mt-2 text-sm text-orange-600">
-                  You've changed your email. Please re-verify it to maintain account access.
+                  You&apos;ve changed your email. Please re-verify it to maintain account access.
                 </p>
               )}
             </div>

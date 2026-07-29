@@ -10,6 +10,56 @@ import { Spinner, FullPageLoader, ButtonSpinner } from './components/common';
 import { MainLayout } from './components/layout';
 
 export default function Home() {
+  const dispatch = useAppDispatch();
+  const { loading, error, data } = useAppSelector((state: any) => state.api);
+  const [showFullPageLoader, setShowFullPageLoader] = useState(false);
+  const [isButtonLoading, setIsButtonLoading] = useState(false);
+  const [loadingToastId, setLoadingToastId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!showFullPageLoader) return;
+
+    const timer = window.setTimeout(() => setShowFullPageLoader(false), 1200);
+    return () => window.clearTimeout(timer);
+  }, [showFullPageLoader]);
+
+  const handleShowSuccess = () => {
+    toastSuccess('Success toast triggered!');
+  };
+
+  const handleShowError = () => {
+    toastError('Error toast triggered!');
+  };
+
+  const handleShowInfo = () => {
+    toastInfo('Info toast triggered!');
+  };
+
+  const handleShowLoading = () => {
+    const id = toastLoading('Loading toast triggered...');
+    setLoadingToastId(id);
+  };
+
+  const handleDismissLoading = () => {
+    if (loadingToastId) {
+      toastDismiss(loadingToastId);
+      setLoadingToastId(null);
+    }
+  };
+
+  const handleApiCall = () => {
+    dispatch(fetchData('/api/health'));
+  };
+
+  const handleButtonLoading = () => {
+    setIsButtonLoading(true);
+    window.setTimeout(() => setIsButtonLoading(false), 1000);
+  };
+
+  const handleShowFullPageLoader = () => {
+    setShowFullPageLoader(true);
+  };
+
   return (
     <MainLayout>
       <div className="flex flex-col items-center p-24">
