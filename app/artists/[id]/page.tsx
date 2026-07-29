@@ -1,11 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
-import { selectCurrentArtist, selectArtistsLoading, selectArtistsError } from '@/app/features/artists/artistsSelectors';
-import { fetchArtistById } from '@/app/features/artists/artistsThunks';
+import { useArtist } from '@/hooks/useArtist';
 import PortfolioTab from './components/PortfolioTab';
 import ServicesTab from './components/ServicesTab';
 import ReviewsTab from './components/ReviewsTab';
@@ -18,19 +16,10 @@ type TabKey = 'portfolio' | 'services' | 'reviews';
 export default function ArtistProfilePage() {
   const params = useParams();
   const artistId = params.id as string;
-  const dispatch = useAppDispatch();
-  const artist = useAppSelector(selectCurrentArtist);
-  const loading = useAppSelector(selectArtistsLoading);
-  const error = useAppSelector(selectArtistsError);
+  const { data: artist, isLoading: loading, error } = useArtist(artistId);
   const [activeTab, setActiveTab] = useState<TabKey>('portfolio');
 
-  useEffect(() => {
-    if (artistId) {
-      dispatch(fetchArtistById(artistId));
-    }
-  }, [artistId, dispatch]);
-
-  if (loading) {
+  if (loading && !artist) {
     return (
       <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
         <Skeleton className="h-56 w-full rounded-none" />

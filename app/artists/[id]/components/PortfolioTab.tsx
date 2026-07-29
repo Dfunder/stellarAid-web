@@ -1,10 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
 import Link from 'next/link';
-import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
-import { selectPublishedPortfolios, selectPortfoliosLoading } from '@/app/features/portfolios/portfoliosSelectors';
-import { fetchArtistPortfolios } from '@/app/features/portfolios/portfoliosThunks';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/app/services/api';
 import { Skeleton } from '@/app/components/ui/Skeleton';
 import { Image, FolderOpen } from 'lucide-react';
 
@@ -13,15 +11,14 @@ interface PortfolioTabProps {
 }
 
 export default function PortfolioTab({ artistId }: PortfolioTabProps) {
-  const dispatch = useAppDispatch();
-  const portfolios = useAppSelector(selectPublishedPortfolios);
-  const loading = useAppSelector(selectPortfoliosLoading);
-
-  useEffect(() => {
-    if (artistId) {
-      dispatch(fetchArtistPortfolios(artistId));
-    }
-  }, [artistId, dispatch]);
+  const { data: portfolios = [], isLoading: loading } = useQuery({
+    queryKey: ['artistPortfolios', artistId],
+    queryFn: async () => {
+      const { data } = await api.get(`/artists/${artistId}/portfolios`);
+      return data;
+    },
+    enabled: !!artistId,
+  });
 
   if (loading) {
     return (
@@ -57,7 +54,7 @@ export default function PortfolioTab({ artistId }: PortfolioTabProps) {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {portfolios.map((portfolio) => (
+      {portfolios.map((portfolio: any) => (
         <Link
           key={portfolio.id}
           href={`/portfolios/${portfolio.id}`}
@@ -90,7 +87,7 @@ export default function PortfolioTab({ artistId }: PortfolioTabProps) {
             </p>
             {portfolio.tags && portfolio.tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-3">
-                {portfolio.tags.slice(0, 3).map((tag) => (
+                {portfolio.tags.slice(0, 3).map((tag: string) => (
                   <span
                     key={tag}
                     className="px-2 py-0.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 text-xs rounded-md"
