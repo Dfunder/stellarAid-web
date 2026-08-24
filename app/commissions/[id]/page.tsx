@@ -191,11 +191,11 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
     switch (commission.status) {
       case 'PENDING':
         return role === 'artist' ? (
-          <div className="flex flex-wrap gap-2">
+          <>
             <button
               type="button"
               onClick={() => notice('Commission accepted')}
-              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+              className="inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 sm:flex-none"
             >
               <Check className="h-4 w-4" />
               Accept
@@ -203,19 +203,19 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
             <button
               type="button"
               onClick={() => notice('Commission rejected')}
-              className="inline-flex items-center gap-2 rounded-lg border border-rose-300 px-4 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-900/30"
+              className="inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-lg border border-rose-300 px-4 py-2.5 text-sm font-medium text-rose-700 hover:bg-rose-50 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-900/30 sm:flex-none"
             >
               <X className="h-4 w-4" />
               Reject
             </button>
-          </div>
+          </>
         ) : null;
       case 'IN_PROGRESS':
         return role === 'artist' ? (
           <button
             type="button"
             onClick={() => notice('Submit Work opened')}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 sm:flex-none"
           >
             Submit Work
           </button>
@@ -223,18 +223,18 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
           <button
             type="button"
             onClick={() => notice('Revision requested')}
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+            className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 sm:flex-none"
           >
             Request Revision
           </button>
         );
       case 'SUBMITTED':
         return role === 'client' ? (
-          <div className="flex flex-wrap gap-2">
+          <>
             <button
               type="button"
               onClick={() => notice('Submission approved')}
-              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+              className="inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 sm:flex-none"
             >
               <Check className="h-4 w-4" />
               Approve
@@ -242,18 +242,18 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
             <button
               type="button"
               onClick={() => notice('Revision requested')}
-              className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+              className="inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 sm:flex-none"
             >
               Request Revision
             </button>
-          </div>
+          </>
         ) : null;
       case 'COMPLETED':
         return role === 'client' ? (
           <button
             type="button"
             onClick={() => notice('Leave Review opened')}
-            className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600"
+            className="inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-amber-600 sm:flex-none"
           >
             <Star className="h-4 w-4" />
             Leave Review
@@ -268,39 +268,40 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
     <main
       id="main-content"
       tabIndex={-1}
-      className="min-h-screen bg-gray-50 px-4 py-10 dark:bg-gray-950"
+      className="min-h-screen overflow-x-hidden bg-gray-50 px-4 pb-24 pt-10 dark:bg-gray-950"
     >
       <div className="mx-auto max-w-3xl space-y-6">
         <Link
           href="/dashboard"
-          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          className="inline-flex min-h-[44px] items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
         >
           ← Back to dashboard
         </Link>
 
-        <header className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+        <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+          <div className="min-w-0">
+            <h1 className="break-words text-xl font-semibold text-gray-900 dark:text-white sm:text-2xl">
               {commission.title}
             </h1>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            <p className="mt-1 break-words text-sm text-gray-500 dark:text-gray-400">
               Commission #{commission.id} · {commission.client.name} →{' '}
               {commission.artist.name}
             </p>
           </div>
           <span
-            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${badge.className}`}
+            className={`inline-flex shrink-0 items-center rounded-full px-3 py-1 text-xs font-medium ${badge.className}`}
           >
             {badge.label}
           </span>
         </header>
 
-        <div className="rounded-xl border border-dashed border-gray-300 bg-white/60 px-3 py-2 text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-400">
+        <div className="rounded-xl border border-dashed border-gray-300 bg-white/60 px-3 py-2.5 text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-400">
           Viewing as{' '}
           <button
             type="button"
             onClick={() => setRole(role === 'client' ? 'artist' : 'client')}
-            className="font-semibold underline-offset-2 hover:underline"
+            aria-label={`Switch to preview the ${role === 'client' ? 'artist' : 'client'} role`}
+            className="min-h-[32px] min-w-[64px] rounded-md px-2 font-semibold underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600"
           >
             {role}
           </button>{' '}
@@ -384,13 +385,13 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
                   {commission.attachments.map((a) => (
                     <li
                       key={a.name}
-                      className="flex items-center justify-between text-sm"
+                      className="flex items-center justify-between gap-3 text-sm"
                     >
-                      <span className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                        <FileText className="h-4 w-4" />
-                        {a.name}
+                      <span className="flex min-w-0 items-center gap-2 text-gray-700 dark:text-gray-300">
+                        <FileText className="h-4 w-4 shrink-0" />
+                        <span className="break-all">{a.name}</span>
                       </span>
-                      <span className="text-xs text-gray-500">{a.size}</span>
+                      <span className="shrink-0 text-xs text-gray-500">{a.size}</span>
                     </li>
                   ))}
                 </ul>
@@ -401,7 +402,7 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
           <section className="space-y-6">
             {/* Progress bar */}
             <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-              <div className="flex items-end justify-between">
+              <div className="flex flex-wrap items-end justify-between gap-2">
                 <div>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">
                     Milestones progress
@@ -465,7 +466,7 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
                             </span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex w-full items-center justify-between gap-2 sm:w-auto">
                           <span
                             className={
                               'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ' +
@@ -480,7 +481,7 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
                             <button
                               type="button"
                               onClick={() => approveMilestone(m.id)}
-                              className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700"
+                              className="inline-flex min-h-[40px] items-center justify-center gap-1 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-700 sm:min-h-[32px] sm:px-3 sm:py-1.5"
                             >
                               <Check className="h-3.5 w-3.5" />
                               Approve
@@ -555,10 +556,10 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
                 {draftError && (
                   <p className="mt-3 text-xs text-rose-600 dark:text-rose-400">{draftError}</p>
                 )}
-                <div className="mt-4 flex justify-end">
+                <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                   <button
                     type="submit"
-                    className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                    className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 sm:w-auto"
                   >
                     <PlusCircle className="h-4 w-4" />
                     Add milestone
@@ -569,8 +570,11 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
           </section>
         )}
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-          <div className="flex flex-wrap justify-end gap-2">{renderActions()}</div>
+        {/* Action bar — sticky on mobile so Accept/Reject/Submit/Approve stay reachable */}
+        <div className="sticky bottom-0 z-10 -mx-4 border-t border-gray-200 bg-white/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:border-gray-800 dark:bg-gray-900/90">
+          <div className="mx-auto flex max-w-3xl flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+            {renderActions()}
+          </div>
         </div>
       </div>
     </main>
