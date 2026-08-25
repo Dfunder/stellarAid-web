@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import PaymentEscrowModal from '@/app/dashboard/payments/PaymentEscrowModal';
+import { txLink } from '@/lib/utils/stellarLinks';
 
 const payments = [
   {
@@ -132,7 +133,7 @@ export default function PaymentsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <a
-                      href={`https://stellar.expert/explorer/testnet/tx/${payment.txHash}`}
+                      href={txLink(payment.txHash)}
                       target="_blank"
                       rel="noreferrer"
                       className="text-violet-600 hover:underline"
