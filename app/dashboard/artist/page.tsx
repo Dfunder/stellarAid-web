@@ -203,12 +203,17 @@ export default function ArtistDashboardPage() {
         const nextCommissions = normalizeCommissions(commissionsResponse.data);
         const activeCount = nextCommissions.filter((item) => item.status === 'ACTIVE').length;
         const pendingCount = nextCommissions.filter((item) => item.status === 'PENDING').length;
+        
         const ratings = nextCommissions
           .map((item) => item.rating)
-          .filter((value): value is number => typeof value === 'number');
-        const averageRating = ratings.length
-          ? ratings.reduce((sum, value) => sum + value, 0) / ratings.length
-          : 4.7;
+          .filter((value): value is number => typeof value === 'number' && value >= 1 && value <= 5);
+        
+        let averageRating = 0;
+        if (ratings.length > 0) {
+          const totalStars = ratings.reduce((sum, value) => sum + value, 0);
+          averageRating = Math.round((totalStars / ratings.length) * 10) / 10;
+          averageRating = Math.max(0, Math.min(5, averageRating));
+        }
 
         setCommissions(nextCommissions.slice(0, 5));
         setStats({

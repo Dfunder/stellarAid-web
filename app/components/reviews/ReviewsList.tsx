@@ -46,14 +46,20 @@ export default function ReviewsList({ reviews, pageSize = 5 }: ReviewsListProps)
     }
     const distribution: number[] = [0, 0, 0, 0, 0];
     let totalStars = 0;
+    let validCount = 0;
     for (const review of reviews) {
-      const clamped = Math.max(1, Math.min(5, Math.round(review.stars)));
-      distribution[clamped - 1]! += 1;
-      totalStars += review.stars;
+      const stars = typeof review.stars === 'number' ? review.stars : 0;
+      if (stars >= 1 && stars <= 5) {
+        const clamped = Math.round(stars);
+        distribution[clamped - 1]! += 1;
+        totalStars += stars;
+        validCount++;
+      }
     }
+    const average = validCount > 0 ? Math.round((totalStars / validCount) * 10) / 10 : 0;
     return {
-      average: totalStars / reviews.length,
-      total: reviews.length,
+      average: Math.max(0, Math.min(5, average)),
+      total: validCount,
       distribution,
     };
   }, [reviews]);
