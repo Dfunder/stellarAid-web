@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
 import { verifyEmail, resendVerificationEmail } from '@/app/features/auth/authThunks';
 import { selectAuthLoading, selectAuthError } from '@/app/features/auth/authSelectors';
@@ -8,6 +8,8 @@ import { useRouter } from 'next/navigation';
 import FullPageLoader from '@/app/components/common/FullPageLoader';
 import ButtonSpinner from '@/app/components/common/ButtonSpinner';
 import { toastError, toastSuccess } from '@/utils/toast';
+
+const RATE_LIMIT_SECONDS = 60;
 
 export default function VerifyEmailPage({ params }: { params: { token: string } }) {
   const dispatch = useAppDispatch();
@@ -17,6 +19,7 @@ export default function VerifyEmailPage({ params }: { params: { token: string } 
   const [isVerified, setIsVerified] = useState(false);
   const [email, setEmail] = useState('');
   const [isResending, setIsResending] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
     const token = params.token;
@@ -32,9 +35,28 @@ export default function VerifyEmailPage({ params }: { params: { token: string } 
     }
   }, [params.token, dispatch]);
 
-  const handleResendEmail = async () => {
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
+  const handleResendEmail = useCallback(async () => {
     if (!email) {
       toastError('Please enter your email address');
+      return;
+    }
+
+    if (cooldown > 0) {
+      toastError(`Please wait ${cooldown} seconds before trying again`);
       return;
     }
 
@@ -42,12 +64,13 @@ export default function VerifyEmailPage({ params }: { params: { token: string } 
     try {
       await dispatch(resendVerificationEmail(email)).unwrap();
       toastSuccess('Verification email sent successfully!');
+      setCooldown(RATE_LIMIT_SECONDS);
     } catch (err) {
       // Error is already handled by the thunk
     } finally {
       setIsResending(false);
     }
-  };
+  }, [email, cooldown, dispatch]);
 
   const handleLogin = () => {
     router.push('/login');
@@ -117,16 +140,17 @@ export default function VerifyEmailPage({ params }: { params: { token: string } 
                 type="email"
                 placeholder="Enter your email address"
                 value={email}
-                onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white mb-3"
               />
               <ButtonSpinner
                 isLoading={isResending}
                 loadingText="Sending..."
                 onClick={handleResendEmail}
+                disabled={cooldown > 0}
                 className="w-full"
               >
-                Resend Verification Email
+                {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend Verification Email'}
               </ButtonSpinner>
             </div>
           </div>
