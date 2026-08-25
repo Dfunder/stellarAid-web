@@ -16,7 +16,7 @@ import {
 import { toastSuccess, toastError } from '@/utils/toast';
 
 export interface ServiceFilters {
-  category?: string;
+  category?: string | string[];
   minPrice?: number;
   maxPrice?: number;
   maxDeliveryDays?: number;
@@ -43,7 +43,11 @@ export const fetchServices = createAsyncThunk(
     try {
       dispatch(setServicesLoading(true));
       const params = new URLSearchParams();
-      if (filters.category && filters.category !== 'all') params.append('category', filters.category);
+      if (filters.category) {
+        const categories = Array.isArray(filters.category) ? filters.category : [filters.category];
+        const validCategories = categories.filter((c) => c && c !== 'all');
+        validCategories.forEach((c) => params.append('category', c));
+      }
       if (filters.minPrice !== undefined) params.append('minPrice', String(filters.minPrice));
       if (filters.maxPrice !== undefined) params.append('maxPrice', String(filters.maxPrice));
       if (filters.maxDeliveryDays !== undefined) params.append('maxDeliveryDays', String(filters.maxDeliveryDays));
