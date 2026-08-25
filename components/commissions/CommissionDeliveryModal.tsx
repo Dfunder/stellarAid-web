@@ -2,7 +2,10 @@
 
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { X } from 'lucide-react';
+import { X, AlertTriangle } from 'lucide-react';
+
+const MAX_FILE_SIZE_MB = 10;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 interface CommissionDeliveryModalProps {
   isOpen: boolean;
@@ -13,6 +16,7 @@ export default function CommissionDeliveryModal({ isOpen, onClose }: CommissionD
   const [commissionId, setCommissionId] = useState('');
   const [message, setMessage] = useState('');
   const [files, setFiles] = useState<File[]>([]);
+  const [fileError, setFileError] = useState<string | null>(null);
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -32,17 +36,34 @@ export default function CommissionDeliveryModal({ isOpen, onClose }: CommissionD
       setCommissionId('');
       setMessage('');
       setFiles([]);
+      setFileError(null);
     },
   });
 
   if (!isOpen) return null;
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFiles(Array.from(event.target.files || []));
+    setFileError(null);
+    const selectedFiles = Array.from(event.target.files || []);
+    const oversizedFiles = selectedFiles.filter((file) => file.size > MAX_FILE_SIZE_BYTES);
+
+    if (oversizedFiles.length > 0) {
+      const names = oversizedFiles.map((f) => f.name).join(', ');
+      setFileError(
+        `File${oversizedFiles.length > 1 ? 's' : ''} ${names} exceed${oversizedFiles.length === 1 ? 's' : ''} the ${MAX_FILE_SIZE_MB}MB size limit. Please choose smaller files.`
+      );
+      setFiles(selectedFiles.filter((file) => file.size <= MAX_FILE_SIZE_BYTES));
+    } else {
+      setFiles(selectedFiles);
+    }
   };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
+    if (files.some((file) => file.size > MAX_FILE_SIZE_BYTES)) {
+      setFileError(`One or more files exceed the ${MAX_FILE_SIZE_MB}MB size limit.`);
+      return;
+    }
     mutation.mutate();
   };
 
@@ -90,7 +111,15 @@ export default function CommissionDeliveryModal({ isOpen, onClose }: CommissionD
               onChange={handleFileChange}
               className="w-full rounded-lg border border-dashed border-gray-300 px-3 py-3 text-sm dark:border-gray-700"
             />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Maximum file size: {MAX_FILE_SIZE_MB}MB per file</p>
           </div>
+
+          {fileError && (
+            <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950/30">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+              <p className="text-sm text-amber-700 dark:text-amber-300">{fileError}</p>
+            </div>
+          )}
 
           {files.length > 0 && (
             <div className="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
@@ -99,7 +128,7 @@ export default function CommissionDeliveryModal({ isOpen, onClose }: CommissionD
                 {files.map((file) => (
                   <li key={file.name} className="flex items-center justify-between">
                     <span>{file.name}</span>
-                    <span>{(file.size / 1024).toFixed(1)} KB</span>
+                    <span>{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
                   </li>
                 ))}
               </ul>
@@ -119,7 +148,7 @@ export default function CommissionDeliveryModal({ isOpen, onClose }: CommissionD
             </button>
             <button
               type="submit"
-              disabled={mutation.isPending}
+              disabled={mutation.isPending || files.length === 0}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
             >
               {mutation.isPending ? 'Submitting...' : 'Submit Work'}

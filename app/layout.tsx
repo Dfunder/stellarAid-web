@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { ReduxProvider } from './providers/ReduxProvider';
+import ThemeProvider from './providers/ThemeProvider';
 import ToastProvider from '@/app/components/ui/ToastProvider';
 import { QueryProvider } from './providers/QueryProvider';
 import { ErrorBoundary } from './components/common';
@@ -62,22 +63,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <a 
-          href="#main-content" 
-          className="skip-to-content"
-        >
-          Skip to main content
-        </a>
-        <ReduxProvider>
-          <QueryProvider>
-          <ErrorBoundary>
-            <Header />
-            {children}
-            <Footer />
-            <ToastProvider />
-          </ErrorBoundary>
-          </QueryProvider>
-        </ReduxProvider>
+        <ThemeProvider>
+          <a 
+            href="#main-content" 
+            className="skip-to-content"
+          >
+            Skip to main content
+          </a>
+          <ReduxProvider>
+            <QueryProvider>
+            <ErrorBoundary>
+              <Header />
+              {children}
+              <Footer />
+              <ToastProvider />
+            </ErrorBoundary>
+            </QueryProvider>
+          </ReduxProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

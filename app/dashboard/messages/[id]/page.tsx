@@ -20,6 +20,7 @@ export default function MessageThreadPage({ params }: { params: { id: string } }
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [draft, setDraft] = useState('');
   const [showTimestamp, setShowTimestamp] = useState<number | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const socket = useMemo(() => getSocket(), []);
@@ -27,13 +28,38 @@ export default function MessageThreadPage({ params }: { params: { id: string } }
   useEffect(() => {
     if (!socket) return;
 
-    socket.emit('join_conversation', params.id);
-    socket.on('message_received', (payload: Message) => {
-      setMessages((current) => [payload, ...current]);
-    });
+    const handleConnect = () => setIsConnected(true);
+    const handleDisconnect = () => setIsConnected(false);
+
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+
+    if (socket.connected) {
+      setIsConnected(true);
+    }
 
     return () => {
-      socket.off('message_received');
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+    };
+  }, [socket]);
+
+  useEffect(() => {
+    if (!socket || !params.id) return;
+
+    socket.emit('join_conversation', params.id);
+
+    const handleMessage = (payload: Message) => {
+      setMessages((current) => {
+        if (current.some((m) => m.id === payload.id)) return current;
+        return [payload, ...current];
+      });
+    };
+
+    socket.on('message_received', handleMessage);
+
+    return () => {
+      socket.off('message_received', handleMessage);
     };
   }, [params.id, socket]);
 
@@ -63,11 +89,16 @@ export default function MessageThreadPage({ params }: { params: { id: string } }
         <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-800">
           <div>
             <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Conversation #{params.id}</h1>
-            <p className="text-sm text-gray-500">Messages stay synced in real time.</p>
+            <p className="text-sm text-gray-500">
+              {isConnected ? 'Connected — messages sync in real time.' : 'Reconnecting...'}
+            </p>
           </div>
-          <button className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300">
-            Mark all read
-          </button>
+          <div className="flex items-center gap-2">
+            <span className={`inline-block h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-amber-500 animate-pulse'}`} />
+            <button className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300">
+              Mark all read
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
@@ -105,7 +136,8 @@ export default function MessageThreadPage({ params }: { params: { id: string } }
             />
             <button
               type="submit"
-              className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-medium text-white"
+              disabled={!isConnected}
+              className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
             >
               Send
             </button>

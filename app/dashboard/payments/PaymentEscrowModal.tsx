@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Modal from '@/app/components/common/Modal';
 import { Button } from '@/app/components/ui/Button';
+import { initiateEscrow, confirmPayment } from '@/lib/api/payments';
 
 declare global {
   interface Window {
@@ -17,40 +18,80 @@ interface PaymentEscrowModalProps {
   onClose: () => void;
 }
 
+type PaymentStatus = 'idle' | 'initiating' | 'signing' | 'confirming' | 'success' | 'error' | 'rolling_back';
+
 export default function PaymentEscrowModal({ isOpen, onClose }: PaymentEscrowModalProps) {
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<PaymentStatus>('idle');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [paymentId, setPaymentId] = useState<string | null>(null);
 
-  const handlePay = async () => {
-    setStatus('loading');
+  const resetState = () => {
+    setStatus('idle');
+    setErrorMessage(null);
+    setPaymentId(null);
+  };
+
+  const rollbackPayment = async (id: string) => {
     try {
-      const response = await fetch('/api/payments/commissions/1/escrow', {
+      setStatus('rolling_back');
+      await fetch(`/api/payments/${id}/rollback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data?.message || 'Escrow setup failed');
-
-      const signedXdr = await window.freighter?.signTransaction?.(data.unsignedXdr);
-      if (!signedXdr) throw new Error('Freighter signing was cancelled');
-
-      const confirmResponse = await fetch('/api/payments/confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ signedXdr }),
-      });
-      const confirmData = await confirmResponse.json();
-      if (!confirmResponse.ok) throw new Error(confirmData?.message || 'Payment confirmation failed');
-
-      setStatus('success');
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unexpected error';
-      setStatus('error');
-      console.error(message);
+    } catch (rollbackError) {
+      console.error('Rollback failed:', rollbackError);
     }
   };
 
+  const handlePay = async () => {
+    setStatus('initiating');
+    setErrorMessage(null);
+
+    try {
+      const escrowData = await initiateEscrow({
+        commissionId: '1',
+        amount: 140,
+        asset: 'XLM',
+        destination: '',
+      });
+
+      const id = escrowData?.id || escrowData?.paymentId;
+      if (id) setPaymentId(id);
+
+      if (!escrowData?.unsignedXdr) {
+        throw new Error('Failed to initialize escrow payment');
+      }
+
+      setStatus('signing');
+      const signedXdr = await window.freighter?.signTransaction?.(escrowData.unsignedXdr);
+      if (!signedXdr) {
+        if (id) await rollbackPayment(id);
+        throw new Error('Transaction signing was cancelled');
+      }
+
+      setStatus('confirming');
+      const confirmData = await confirmPayment(id || '', signedXdr);
+
+      if (!confirmData) {
+        if (id) await rollbackPayment(id);
+        throw new Error('Payment confirmation failed');
+      }
+
+      setStatus('success');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unexpected error occurred';
+      setErrorMessage(message);
+      setStatus('error');
+    }
+  };
+
+  const handleClose = () => {
+    resetState();
+    onClose();
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Fund Escrow" size="md">
+    <Modal isOpen={isOpen} onClose={handleClose} title="Fund Escrow" size="md">
       <div className="space-y-4">
         <div className="rounded-xl bg-gray-50 p-4 dark:bg-gray-800">
           <p className="text-sm text-gray-500">Amount breakdown</p>
@@ -68,18 +109,41 @@ export default function PaymentEscrowModal({ isOpen, onClose }: PaymentEscrowMod
           </div>
         </div>
 
-        <Button onClick={handlePay} className="w-full" isLoading={status === 'loading'}>
-          Pay with Freighter
-        </Button>
-
-        {status === 'success' && (
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
-            Escrow funded successfully.
+        {status === 'rolling_back' && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+            Rolling back incomplete transaction...
           </div>
         )}
-        {status === 'error' && (
-          <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-            Payment failed. Please try again.
+
+        {status !== 'success' && status !== 'rolling_back' && (
+          <Button
+            onClick={handlePay}
+            className="w-full"
+            isLoading={status === 'initiating' || status === 'signing' || status === 'confirming'}
+            disabled={status === 'initiating' || status === 'signing' || status === 'confirming'}
+          >
+            {status === 'initiating' && 'Initializing escrow...'}
+            {status === 'signing' && 'Waiting for Freighter signature...'}
+            {status === 'confirming' && 'Confirming payment...'}
+            {status === 'idle' && 'Pay with Freighter'}
+            {status === 'error' && 'Try Again'}
+          </Button>
+        )}
+
+        {status === 'success' && (
+          <div className="space-y-3">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
+              Escrow funded successfully.
+            </div>
+            <Button onClick={handleClose} className="w-full" variant="secondary">
+              Close
+            </Button>
+          </div>
+        )}
+
+        {status === 'error' && errorMessage && (
+          <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300">
+            {errorMessage}
           </div>
         )}
       </div>

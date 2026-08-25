@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Star, ArrowRight, Sparkles, User, AlertCircle } from 'lucide-react';
+import VerifiedBadge from '@/components/common/VerifiedBadge';
 import api from '@/app/services/api';
 
 export interface FeaturedArtist {
@@ -14,6 +15,7 @@ export interface FeaturedArtist {
   rating: number;
   reviewCount?: number;
   profileUrl?: string;
+  verified?: boolean;
 }
 
 // 6 fallback mock artists for development/fallback when API is unavailable
@@ -248,9 +250,12 @@ export default function FeaturedArtists() {
 
                   {/* Artist Info */}
                   <div className="mb-5">
-                    <h3 className="text-xl font-bold text-neutral-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-1">
-                      {artist.name}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xl font-bold text-neutral-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-1">
+                        {artist.name}
+                      </h3>
+                      {artist.verified && <VerifiedBadge size="sm" />}
+                    </div>
 
                     {/* Top Skill Tag */}
                     <div className="mt-2.5 inline-block px-3 py-1 rounded-lg bg-neutral-100 dark:bg-neutral-700/60 text-neutral-700 dark:text-neutral-300 text-xs font-medium border border-neutral-200/60 dark:border-neutral-600/50">

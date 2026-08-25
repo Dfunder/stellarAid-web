@@ -20,6 +20,7 @@ import {
   Calendar,
   User,
 } from 'lucide-react';
+import VerifiedBadge from '@/components/common/VerifiedBadge';
 
 export default function ServiceDetailPage() {
   const params = useParams();
@@ -261,9 +262,12 @@ export default function ServiceDetailPage() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-neutral-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors truncate">
-                          {artist.name}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-neutral-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors truncate">
+                            {artist.name}
+                          </p>
+                          {artist.verified && <VerifiedBadge size="sm" />}
+                        </div>
                         {artist.rating !== undefined && (
                           <div className="flex items-center gap-1 text-amber-500 text-sm">
                             <Star className="w-3.5 h-3.5 fill-current" />
