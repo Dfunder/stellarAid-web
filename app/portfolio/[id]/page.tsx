@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import FallbackImage from "@/components/common/FallbackImage";
 
 type Props = {
   params: { id: string };
