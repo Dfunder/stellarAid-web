@@ -1,0 +1,47 @@
+export const ERROR_MESSAGES = {
+  PAYMENT: {
+    RECEIVED: 'Payment received successfully.',
+    FAILED: 'Payment failed. Please try again.',
+    ESCROW_LOCKED: 'Payment is currently locked in escrow.',
+    CANCELLED: 'Payment was cancelled.',
+    NETWORK: 'Unable to connect to the payment network. Please check your connection.',
+    INSUFFICIENT_FUNDS: 'Insufficient funds to complete this transaction.',
+    TRANSACTION_TIMEOUT: 'Transaction timed out. Please try again.',
+  },
+  WALLET: {
+    NOT_INSTALLED: 'Freighter wallet is not installed. Please install the Freighter browser extension.',
+    CONNECTION_FAILED: 'Unable to connect to wallet. Please try again.',
+    CONNECTION_TIMEOUT: 'Wallet connection timed out. Please try again.',
+    ADDRESS_UNAVAILABLE: 'Unable to retrieve wallet address.',
+    SIGNING_CANCELLED: 'Transaction signing was cancelled.',
+    NETWORK_ERROR: 'Unable to reach the Stellar network. Please check your connection.',
+  },
+  COMMISSION: {
+    CREATE_FAILED: 'Unable to create commission request. Please try again.',
+    SUBMIT_FAILED: 'Unable to submit your work. Please try again.',
+    APPROVE_FAILED: 'Unable to approve work. Please try again.',
+    REJECT_FAILED: 'Unable to reject work. Please try again.',
+    CANCEL_FAILED: 'Unable to cancel commission. Please try again.',
+    NOT_FOUND: 'Commission not found.',
+  },
+  FILE: {
+    TOO_LARGE: (maxMB: number) => `File exceeds the ${maxMB}MB size limit.`,
+    INVALID_TYPE: 'Invalid file type. Please upload a supported format.',
+    UPLOAD_FAILED: 'File upload failed. Please try again.',
+  },
+  AUTH: {
+    LOGIN_FAILED: 'Login failed. Please check your credentials.',
+    REGISTER_FAILED: 'Registration failed. Please try again.',
+    VERIFICATION_FAILED: 'Email verification failed. The link may be invalid or expired.',
+    VERIFICATION_RESENT: 'Verification email sent successfully.',
+    PASSWORD_RESET_FAILED: 'Password reset failed. Please try again.',
+    SESSION_EXPIRED: 'Your session has expired. Please log in again.',
+  },
+  GENERAL: {
+    UNKNOWN: 'An unexpected error occurred. Please try again.',
+    NETWORK: 'Unable to connect to the server. Please check your internet connection.',
+    LOADING_FAILED: 'Unable to load data. Please try again later.',
+    SAVE_FAILED: 'Unable to save changes. Please try again.',
+    DELETE_FAILED: 'Unable to delete. Please try again.',
+  },
+} as const;

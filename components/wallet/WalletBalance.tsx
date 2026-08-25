@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { RefreshCcw } from 'lucide-react';
+import { useWalletBalance } from '@/hooks/useWalletBalance';
 
 interface BalanceItem {
   code: string;
@@ -17,37 +17,19 @@ const initialBalances: BalanceItem[] = [
 ];
 
 export default function WalletBalance() {
-  const [balances, setBalances] = useState<BalanceItem[]>(initialBalances);
-  const [loading, setLoading] = useState(false);
+  const { data, isLoading, isFetching, refetch, error } = useWalletBalance();
 
-  const fetchBalances = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('/wallet/balance');
-      if (!response.ok) {
-        throw new Error('Unable to fetch balance');
-      }
+  const balances: BalanceItem[] = initialBalances.map((item) => {
+    const match = data?.balances?.find(
+      (balance: { code: string; amount: string | number }) => balance.code === item.code
+    );
+    return {
+      ...item,
+      amount: match ? Number(match.amount || 0) : 0,
+    };
+  });
 
-      const data = await response.json();
-      const nextBalances = initialBalances.map((item) => {
-        const match = data?.balances?.find((balance: { code: string; amount: string | number }) => balance.code === item.code);
-        return {
-          ...item,
-          amount: match ? Number(match.amount || 0) : 0,
-        };
-      });
-
-      setBalances(nextBalances);
-    } catch {
-      setBalances(initialBalances);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchBalances();
-  }, []);
+  const loading = isLoading || isFetching;
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
@@ -57,13 +39,19 @@ export default function WalletBalance() {
           <p className="text-sm text-gray-500 dark:text-gray-400">Your connected asset balances</p>
         </div>
         <button
-          onClick={fetchBalances}
+          onClick={() => refetch()}
           className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
         >
           <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           Refresh
         </button>
       </div>
+
+      {error && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
+          Unable to load wallet balance. Please try again.
+        </div>
+      )}
 
       <div className="space-y-3">
         {balances.map((balance) => (
@@ -81,7 +69,11 @@ export default function WalletBalance() {
               </div>
             </div>
             <p className="text-sm font-semibold text-gray-900 dark:text-white">
-              {balance.amount.toFixed(2)}
+              {isLoading ? (
+                <span className="inline-block h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+              ) : (
+                balance.amount.toFixed(2)
+              )}
             </p>
           </div>
         ))}
