@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, AlertCircle, RefreshCw } from 'lucide-react';
 import Modal from '@/app/components/common/Modal';
 import Button from '@/app/components/ui/Button';
 
@@ -25,25 +25,68 @@ interface DisputedCommission {
 // Resolution types
 type ResolutionType = 'refund' | 'release' | 'partial';
 
+function normalizeDisputes(payload: unknown): DisputedCommission[] {
+  if (Array.isArray(payload)) {
+    return payload.map(normalizeDispute);
+  }
+
+  if (payload && typeof payload === 'object') {
+    const candidate = payload as Record<string, unknown>;
+    const disputes = candidate.disputes || candidate.data || candidate.items;
+    if (Array.isArray(disputes)) {
+      return disputes.map(normalizeDispute);
+    }
+  }
+
+  return [];
+}
+
+function normalizeDispute(item: unknown, index?: number): DisputedCommission {
+  const entry = (item ?? {}) as Record<string, unknown>;
+  const client = (entry.client as Record<string, unknown>) || {};
+  const artist = (entry.artist as Record<string, unknown>) || {};
+
+  return {
+    id: String(entry.id ?? entry.commissionId ?? `dispute-${(index ?? 0) + 1}`),
+    title: String(entry.title ?? entry.commissionTitle ?? 'Untitled dispute'),
+    client: {
+      name: String(client.name ?? entry.clientName ?? 'Client'),
+      email: String(client.email ?? entry.clientEmail ?? ''),
+    },
+    artist: {
+      name: String(artist.name ?? entry.artistName ?? 'Artist'),
+      email: String(artist.email ?? entry.artistEmail ?? ''),
+    },
+    amount: Number(entry.amount ?? entry.totalAmount ?? entry.budgetUsdc ?? 0),
+    disputeReason: String(entry.disputeReason ?? entry.reason ?? entry.description ?? 'No reason provided'),
+    createdAt: String(entry.createdAt ?? entry.created_at ?? ''),
+  };
+}
+
 export default function AdminDisputesPage() {
   const [disputes, setDisputes] = useState<DisputedCommission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedDispute, setSelectedDispute] = useState<DisputedCommission | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [resolutionType, setResolutionType] = useState<ResolutionType>('refund');
-  const [splitPercentage, setSplitPercentage] = useState(50); // client % / artist % (100 - client)
+  const [splitPercentage, setSplitPercentage] = useState(50);
   const [submitting, setSubmitting] = useState(false);
 
-  // Fetch disputed commissions
   const fetchDisputes = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const response = await fetch('/admin/commissions/disputes');
-      if (response.ok) {
-        const data = await response.json();
-        setDisputes(data);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch disputes (${response.status})`);
       }
-    } catch (error) {
-      console.error('Failed to fetch disputes:', error);
+      const data = await response.json();
+      const normalized = normalizeDisputes(data);
+      setDisputes(normalized);
+    } catch (err) {
+      console.error('Failed to fetch disputes:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load disputes');
     } finally {
       setLoading(false);
     }
@@ -125,6 +168,22 @@ export default function AdminDisputesPage() {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dispute Management</h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">Manage and resolve disputed commissions</p>
         </div>
+
+        {error && (
+          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950/40">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+              <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+              <button
+                onClick={fetchDisputes}
+                className="ml-auto inline-flex items-center gap-2 rounded-lg border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/50"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
 
         {disputes.length === 0 ? (
           <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center">

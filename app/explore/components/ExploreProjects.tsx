@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useInView } from 'react-intersection-observer';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 export interface ExploreProject {
   id: string;
@@ -26,19 +27,13 @@ const CATEGORIES = [
   'Education',
 ] as const;
 
-/**
- * Fetches one page of explore projects.
- * Replace the mock generator with a real API call, e.g.:
- *   const res = await fetch(`/api/projects?page=${page}&limit=${PAGE_SIZE}`);
- *   if (!res.ok) throw new Error('Failed to fetch projects');
- *   return res.json() as Promise<{ items: ExploreProject[]; nextPage: number | null }>
- */
 async function fetchProjectsPage({
   pageParam,
+  category,
 }: {
   pageParam: number;
+  category?: string;
 }): Promise<{ items: ExploreProject[]; nextPage: number | null }> {
-  // Simulate network latency so the skeleton states are observable in dev
   await new Promise((resolve) => setTimeout(resolve, 600));
 
   const totalItems = 54;
@@ -49,13 +44,16 @@ async function fetchProjectsPage({
     { length: Math.min(PAGE_SIZE, totalItems - start) },
     (_, i) => {
       const n = start + i + 1;
-      const category = CATEGORIES[n % CATEGORIES.length] ?? 'Community';
+      const projectCategory = CATEGORIES[n % CATEGORIES.length] ?? 'Community';
+      if (category && category !== 'all' && projectCategory !== category) {
+        return null;
+      }
       const goalXlm = ((n % 8) + 3) * 500;
       return {
         id: `proj-${String(n).padStart(3, '0')}`,
-        title: `${category} project #${n}`,
+        title: `${projectCategory} project #${n}`,
         creator: `creator${(n % 12) + 1}`,
-        category,
+        category: projectCategory,
         description:
           'A community-funded initiative powered by the Stellar network with transparent on-chain milestones.',
         raisedXlm: Math.round(goalXlm * (((n % 9) + 1) / 10)),
@@ -63,7 +61,7 @@ async function fetchProjectsPage({
         backers: (n * 7) % 240,
       };
     },
-  );
+  ).filter((item): item is ExploreProject => item !== null);
 
   const nextPage = start + PAGE_SIZE < totalItems ? pageParam + 1 : null;
   return { items, nextPage };
@@ -129,6 +127,12 @@ function ProjectCard({ project }: { project: ExploreProject }) {
 }
 
 export default function ExploreProjects() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const initialCategory = searchParams.get('category') || 'all';
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+
   const {
     data,
     status,
@@ -137,13 +141,12 @@ export default function ExploreProjects() {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ['explore-projects'],
-    queryFn: fetchProjectsPage,
+    queryKey: ['explore-projects', selectedCategory],
+    queryFn: ({ pageParam }) => fetchProjectsPage({ pageParam, category: selectedCategory === 'all' ? undefined : selectedCategory }),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => lastPage.nextPage,
   });
 
-  // Intersection Observer — triggers the next page fetch when the sentinel enters the viewport
   const { ref: sentinelRef, inView } = useInView({ rootMargin: '400px 0px' });
 
   useEffect(() => {
@@ -151,6 +154,17 @@ export default function ExploreProjects() {
       fetchNextPage();
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const handleCategoryChange = useCallback((category: string) => {
+    setSelectedCategory(category);
+    const params = new URLSearchParams(searchParams.toString());
+    if (category === 'all') {
+      params.delete('category');
+    } else {
+      params.set('category', category);
+    }
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [searchParams, router, pathname]);
 
   if (status === 'pending') {
     return (
@@ -176,6 +190,33 @@ export default function ExploreProjects() {
 
   return (
     <>
+      {/* Category Filter */}
+      <div className="mb-6 flex flex-wrap gap-2">
+        <button
+          onClick={() => handleCategoryChange('all')}
+          className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+            selectedCategory === 'all'
+              ? 'bg-violet-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+          }`}
+        >
+          All
+        </button>
+        {CATEGORIES.map((category) => (
+          <button
+            key={category}
+            onClick={() => handleCategoryChange(category)}
+            className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+              selectedCategory === category
+                ? 'bg-violet-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+            }`}
+          >
+            {category}
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {data.pages.map((page) =>
           page.items.map((project) => (
@@ -184,12 +225,10 @@ export default function ExploreProjects() {
         )}
       </div>
 
-      {/* Sentinel observed by the IntersectionObserver */}
       {hasNextPage && (
         <div ref={sentinelRef} aria-hidden="true" className="h-px w-full" />
       )}
 
-      {/* Skeleton cards shown while the next page loads */}
       {isFetchingNextPage && (
         <div aria-live="polite" aria-busy="true" className="mt-6 space-y-4">
           <p className="text-center text-sm text-gray-500 dark:text-gray-400">
