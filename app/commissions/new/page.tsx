@@ -50,14 +50,17 @@ export default function NewCommissionPage({ searchParams }: NewCommissionPagePro
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-10 dark:bg-gray-950">
-      <div className="mx-auto max-w-3xl rounded-3xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
+    <div className="min-h-screen overflow-x-hidden bg-gray-50 px-4 py-6 dark:bg-gray-950 sm:py-10">
+      <div className="mx-auto max-w-3xl rounded-3xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-8">
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
             <p className="text-sm font-medium text-blue-600">Create Commission</p>
-            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Request a custom project</h1>
+            <h1 className="break-words text-xl font-semibold text-gray-900 dark:text-white sm:text-2xl">Request a custom project</h1>
           </div>
-          <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400">
+          <Link
+            href="/dashboard"
+            className="inline-flex min-h-[44px] items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400"
+          >
             Back to dashboard
           </Link>
         </div>
@@ -148,18 +151,18 @@ export default function NewCommissionPage({ searchParams }: NewCommissionPagePro
           {mutation.isSuccess && <p className="text-sm text-green-600 dark:text-green-400">Commission request sent successfully.</p>}
           {mutation.isError && <p className="text-sm text-red-600 dark:text-red-400">{(mutation.error as Error).message}</p>}
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <button
               type="submit"
               disabled={mutation.isPending}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+              className="inline-flex min-h-[44px] w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60 sm:w-auto"
             >
               {mutation.isPending ? 'Sending...' : 'Submit Request'}
             </button>
             <button
               type="button"
               onClick={() => setShowSubmitModal(true)}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300"
+              className="inline-flex min-h-[44px] w-full items-center justify-center rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 sm:w-auto"
             >
               Submit Work
             </button>
