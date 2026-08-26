@@ -192,7 +192,7 @@ export default function ProfileSettingsPage() {
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Cover Photo</h2>
               <div className="space-y-4">
-                <div className="relative w-full h-48 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
+                <div className="relative w-full aspect-[3/1] rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
                   {(coverPhotoPreview || coverPhotoUrl) ? (
                     <Image
                       src={coverPhotoPreview || coverPhotoUrl}

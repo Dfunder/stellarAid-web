@@ -23,6 +23,16 @@ export interface ServiceFilters {
   sort?: 'newest' | 'price-asc' | 'price-desc' | 'top-rated';
   search?: string;
   artistId?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginatedServiceResponse {
+  services: Service[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 export interface ServiceFormData {
@@ -36,7 +46,7 @@ export interface ServiceFormData {
   status: ServiceStatus;
 }
 
-// Fetch marketplace services with filters
+// Fetch marketplace services with filters and pagination
 export const fetchServices = createAsyncThunk(
   'services/fetchServices',
   async (filters: ServiceFilters = {}, { dispatch }) => {
@@ -54,6 +64,8 @@ export const fetchServices = createAsyncThunk(
       if (filters.sort) params.append('sort', filters.sort);
       if (filters.search) params.append('search', filters.search);
       if (filters.artistId) params.append('artistId', filters.artistId);
+      params.append('page', String(filters.page ?? 1));
+      params.append('limit', String(filters.limit ?? 20));
 
       const query = params.toString() ? `?${params.toString()}` : '';
       const response = await api.get(`/services${query}`);
@@ -66,6 +78,35 @@ export const fetchServices = createAsyncThunk(
       throw error;
     } finally {
       dispatch(setServicesLoading(false));
+    }
+  }
+);
+
+// Fetch next page of services (for infinite scroll)
+export const fetchServicesPage = createAsyncThunk(
+  'services/fetchServicesPage',
+  async (filters: ServiceFilters = {}, { dispatch }) => {
+    try {
+      const params = new URLSearchParams();
+      if (filters.category) {
+        const categories = Array.isArray(filters.category) ? filters.category : [filters.category];
+        const validCategories = categories.filter((c) => c && c !== 'all');
+        validCategories.forEach((c) => params.append('category', c));
+      }
+      if (filters.minPrice !== undefined) params.append('minPrice', String(filters.minPrice));
+      if (filters.maxPrice !== undefined) params.append('maxPrice', String(filters.maxPrice));
+      if (filters.maxDeliveryDays !== undefined) params.append('maxDeliveryDays', String(filters.maxDeliveryDays));
+      if (filters.sort) params.append('sort', filters.sort);
+      if (filters.search) params.append('search', filters.search);
+      if (filters.artistId) params.append('artistId', filters.artistId);
+      params.append('page', String(filters.page ?? 1));
+      params.append('limit', String(filters.limit ?? 20));
+
+      const query = params.toString() ? `?${params.toString()}` : '';
+      const response = await api.get(`/services${query}`);
+      return response.data as PaginatedServiceResponse;
+    } catch (error: any) {
+      throw error;
     }
   }
 );
