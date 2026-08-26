@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
 import { selectCurrentPortfolio, selectPortfoliosLoading } from '@/app/features/portfolios/portfoliosSelectors';
@@ -212,7 +213,7 @@ export default function EditPortfolioPage() {
             </label>
             {coverImage ? (
               <div className="relative rounded-xl overflow-hidden h-48 bg-neutral-100 dark:bg-neutral-800">
-                <img src={coverImage} alt="Cover" className="w-full h-full object-cover" />
+                <Image src={coverImage} alt="Cover" fill className="object-cover" sizes="(max-width: 768px) 100vw, 600px" />
                 <button
                   type="button"
                   onClick={handleRemoveImage}

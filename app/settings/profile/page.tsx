@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { useAppSelector } from '@/app/store/hooks';
 import { selectUser } from '@/app/features/auth/authSelectors';
 import { useRole } from '@/app/hooks/useRole';
@@ -193,10 +194,12 @@ export default function ProfileSettingsPage() {
               <div className="space-y-4">
                 <div className="relative w-full h-48 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
                   {(coverPhotoPreview || coverPhotoUrl) ? (
-                    <img 
-                      src={coverPhotoPreview || coverPhotoUrl} 
-                      alt="Cover" 
-                      className="w-full h-full object-cover"
+                    <Image
+                      src={coverPhotoPreview || coverPhotoUrl}
+                      alt="Cover"
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 600px"
                     />
                   ) : (
                     <button

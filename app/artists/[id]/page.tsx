@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useArtist } from '@/hooks/useArtist';
@@ -9,7 +10,7 @@ import ServicesTab from './components/ServicesTab';
 import ReviewsTab from './components/ReviewsTab';
 import Button from '@/app/components/ui/Button';
 import { Skeleton } from '@/app/components/ui/Skeleton';
-import { MapPin, Star, ShieldCheck, Briefcase, MessageSquare, Image, Mail } from 'lucide-react';
+import { MapPin, Star, ShieldCheck, Briefcase, MessageSquare, Image as ImageIcon, Mail } from 'lucide-react';
 
 type TabKey = 'portfolio' | 'services' | 'reviews';
 
@@ -77,10 +78,10 @@ export default function ArtistProfilePage() {
           {/* Avatar */}
           <div className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full border-4 border-white dark:border-neutral-900 overflow-hidden bg-neutral-200 dark:bg-neutral-700 shadow-lg flex-shrink-0">
             {artist.avatar ? (
-              <img src={artist.avatar} alt={artist.name} className="w-full h-full object-cover" />
+              <Image src={artist.avatar} alt={artist.name} fill className="object-cover" sizes="144px" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-neutral-400">
-                <Image className="w-12 h-12" />
+                <ImageIcon className="w-12 h-12" />
               </div>
             )}
           </div>
