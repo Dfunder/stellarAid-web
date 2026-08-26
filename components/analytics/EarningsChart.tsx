@@ -79,7 +79,7 @@ function normalizeEarnings(payload: unknown): ChartPoint[] {
     }
   }
 
-  return items
+  const points = items
     .map((item) => {
       const entry = (item ?? {}) as Record<string, unknown>;
       const rawLabel = entry.month ?? entry.label ?? entry.date ?? entry.period ?? entry.name ?? '';
@@ -89,8 +89,21 @@ function normalizeEarnings(payload: unknown): ChartPoint[] {
         amount: Number.isFinite(amount) ? amount : 0,
       };
     })
-    .filter((point) => point.label && point.amount >= 0)
-    .slice(-6);
+    .filter((point) => point.label);
+
+  if (points.length >= 6) {
+    return points.slice(-6);
+  }
+
+  const now = new Date();
+  const filled: ChartPoint[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const label = d.toLocaleString('en-US', { month: 'short' });
+    const existing = points.find((p) => p.label === label);
+    filled.push({ label, amount: existing ? existing.amount : 0 });
+  }
+  return filled;
 }
 
 function formatMoney(value: number): string {
