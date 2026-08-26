@@ -12,6 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { generatePdf } from '@/lib/pdfExport';
 
 type CommissionStatus =
   | 'PENDING'
@@ -186,6 +187,19 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
   };
 
   const badge = STATUS_BADGE[commission.status];
+
+  const handleExportPdf = () => {
+    generatePdf({
+      filename: `commission-${commission.id}.pdf`,
+      title: commission.title,
+      sections: [
+        { heading: 'Details', content: `Commission #${commission.id}\n${commission.client.name} → ${commission.artist.name}\nStatus: ${badge.label}\nDeadline: ${commission.deadline}` },
+        { heading: 'Budget', content: `$${commission.budgetUsdc.toFixed(2)} USDC` },
+        { heading: 'Description', content: commission.description },
+        { heading: 'Milestones', content: milestones.map((m) => `${m.approved ? '✓' : '○'} ${m.title} — $${m.amountUsdc.toFixed(2)} USDC (due ${m.dueDate})`).join('\n') },
+      ],
+    });
+  };
 
   const renderActions = () => {
     switch (commission.status) {
@@ -573,6 +587,14 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
         {/* Action bar — sticky on mobile so Accept/Reject/Submit/Approve stay reachable */}
         <div className="sticky bottom-0 z-10 -mx-4 border-t border-gray-200 bg-white/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:border-gray-800 dark:bg-gray-900/90">
           <div className="mx-auto flex max-w-3xl flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+            <button
+              type="button"
+              onClick={handleExportPdf}
+              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 sm:flex-none"
+            >
+              <FileText className="h-4 w-4" />
+              Export PDF
+            </button>
             {renderActions()}
           </div>
         </div>

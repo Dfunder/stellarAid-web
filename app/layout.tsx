@@ -1,12 +1,14 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
+import dynamic from 'next/dynamic';
 import { ReduxProvider } from './providers/ReduxProvider';
 import ThemeProvider from './providers/ThemeProvider';
-import ToastProvider from '@/app/components/ui/ToastProvider';
 import { QueryProvider } from './providers/QueryProvider';
 import { ErrorBoundary } from './components/common';
 import { Header, Footer } from './components/layout';
 import './globals.css';
+
+const ToastProvider = dynamic(() => import('@/app/components/ui/ToastProvider'), { ssr: false });
 // Font configuration
 const inter = Inter({ subsets: ['latin'] });
 // Viewport configuration for responsive design and theme color

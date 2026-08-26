@@ -3,14 +3,23 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 
+const FIVE_MINUTES = 5 * 60 * 1000;
+const THIRTY_SECONDS = 30 * 1000;
+
 export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000,
+            staleTime: FIVE_MINUTES,
+            gcTime: FIVE_MINUTES,
             retry: 1,
+            refetchOnWindowFocus: false,
+            refetchOnReconnect: false,
+          },
+          mutations: {
+            retry: 0,
           },
         },
       })
