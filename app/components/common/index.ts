@@ -7,3 +7,4 @@ export { default as ErrorBoundary } from './ErrorBoundary';
 export { default as ErrorMessage } from './ErrorMessage';
 export { default as Lightbox } from './Lightbox';
 export type { LightboxItem } from './Lightbox';
+export { default as FallbackImage } from '@/components/common/FallbackImage';

@@ -5,7 +5,6 @@ import Modal from '@/app/components/common/Modal';
 import { Button } from '@/app/components/ui/Button';
 import { initiateEscrow, confirmPayment } from '@/lib/api/payments';
 
-
 interface PaymentEscrowModalProps {
   isOpen: boolean;
   onClose: () => void;

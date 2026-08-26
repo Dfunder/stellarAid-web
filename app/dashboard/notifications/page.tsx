@@ -2,10 +2,12 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bell, CheckCheck, ChevronLeft, ChevronRight, Inbox } from 'lucide-react';
+import { Bell, CheckCheck, Inbox } from 'lucide-react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import ErrorMessage from '@/app/components/common/ErrorMessage';
 import Spinner from '@/app/components/common/Spinner';
+import Pagination from '@/app/components/ui/Pagination';
+import { usePagination } from '@/hooks/usePagination';
 
 type FilterValue = 'all' | 'unread';
 
@@ -17,8 +19,6 @@ interface NotificationItem {
   unread: boolean;
   destination: string;
 }
-
-const PAGE_SIZE = 6;
 
 const FALLBACK_NOTIFICATIONS: NotificationItem[] = [
   {
@@ -74,7 +74,6 @@ const FALLBACK_NOTIFICATIONS: NotificationItem[] = [
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [filter, setFilter] = useState<FilterValue>('all');
-  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -123,10 +122,6 @@ export default function NotificationsPage() {
     };
   }, []);
 
-  useEffect(() => {
-    setPage(1);
-  }, [filter]);
-
   const filteredNotifications = useMemo(() => {
     if (filter === 'unread') {
       return notifications.filter((item) => item.unread);
@@ -135,12 +130,12 @@ export default function NotificationsPage() {
     return notifications;
   }, [filter, notifications]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredNotifications.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const paginatedNotifications = filteredNotifications.slice(
-    (safePage - 1) * PAGE_SIZE,
-    safePage * PAGE_SIZE
-  );
+  const {
+    paginatedItems: paginatedNotifications,
+    page: safePage,
+    totalPages,
+    goToPage,
+  } = usePagination({ items: filteredNotifications, pageSize: 6 });
 
   const unreadCount = notifications.filter((item) => item.unread).length;
 
@@ -294,29 +289,7 @@ export default function NotificationsPage() {
                 Showing {paginatedNotifications.length} of {filteredNotifications.length}{' '}
                 notifications
               </p>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPage((current) => Math.max(1, current - 1))}
-                  disabled={safePage === 1}
-                  className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Prev
-                </button>
-                <span className="rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium dark:bg-gray-800">
-                  {safePage} / {totalPages}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-                  disabled={safePage === totalPages}
-                  className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700"
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
+              <Pagination page={safePage} totalPages={totalPages} onPageChange={goToPage} />
             </div>
           </div>
         )}

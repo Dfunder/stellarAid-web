@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import MarketplaceClient from './components/MarketplaceClient';
 
 export const metadata: Metadata = {
   title: 'Marketplace | StellarAid',
@@ -13,10 +14,5 @@ export const metadata: Metadata = {
 };
 
 export default function Marketplace() {
-  return (
-    <main id="main-content" className="flex min-h-screen flex-col items-center p-24">
-      <h1 className="text-4xl font-bold mb-8">Marketplace</h1>
-      <p className="text-xl text-gray-600">Discover and collect unique creative works</p>
-    </main>
-  );
+  return <MarketplaceClient />;
 }

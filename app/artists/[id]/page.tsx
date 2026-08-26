@@ -55,7 +55,11 @@ export default function ArtistProfilePage() {
             Artist Not Found
           </h1>
           <p className="text-neutral-500 dark:text-neutral-400">
-            {error instanceof Error ? error.message : typeof error === 'string' ? error : "We couldn't find the artist you're looking for."}
+            {error instanceof Error
+              ? error.message
+              : typeof error === 'string'
+                ? error
+                : "We couldn't find the artist you're looking for."}
           </p>
         </div>
       </div>

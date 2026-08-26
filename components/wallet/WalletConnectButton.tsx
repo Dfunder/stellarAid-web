@@ -7,7 +7,6 @@ interface WalletConnectButtonProps {
   onConnected?: (address: string) => void;
 }
 
-
 const MAX_RETRIES = 3;
 const BASE_DELAY = 1000;
 
