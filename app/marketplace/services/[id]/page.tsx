@@ -9,6 +9,7 @@ import { fetchServiceById } from '@/app/features/services/servicesThunks';
 import MainLayout from '@/app/components/layout/MainLayout';
 import Button from '@/app/components/ui/Button';
 import { Skeleton } from '@/app/components/ui/Skeleton';
+import Breadcrumb from '@/app/components/ui/Breadcrumb';
 import {
   Clock,
   RefreshCw,
@@ -66,13 +67,12 @@ export default function ServiceDetailPage() {
       <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
-          <Link
-            href="/marketplace"
-            className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 mb-6 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Marketplace
-          </Link>
+          <Breadcrumb
+            items={[
+              { label: 'Marketplace', href: '/marketplace' },
+              { label: service.title },
+            ]}
+          />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column */}
