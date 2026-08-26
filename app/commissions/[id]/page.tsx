@@ -2,24 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import {
-  Calendar,
-  Check,
-  Clock,
-  FileText,
-  PlusCircle,
-  Star,
-  X,
-} from 'lucide-react';
+import { Calendar, Check, Clock, FileText, PlusCircle, Star, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { generatePdf } from '@/lib/pdfExport';
 
-type CommissionStatus =
-  | 'PENDING'
-  | 'IN_PROGRESS'
-  | 'SUBMITTED'
-  | 'COMPLETED'
-  | 'CANCELLED';
+type CommissionStatus = 'PENDING' | 'IN_PROGRESS' | 'SUBMITTED' | 'COMPLETED' | 'CANCELLED';
 type Role = 'artist' | 'client';
 type Tab = 'overview' | 'milestones';
 
@@ -100,13 +87,11 @@ const STATUS_BADGE: Record<CommissionStatus, { label: string; className: string 
   },
   SUBMITTED: {
     label: 'Submitted',
-    className:
-      'bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-300',
+    className: 'bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-300',
   },
   COMPLETED: {
     label: 'Completed',
-    className:
-      'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+    className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
   },
   CANCELLED: {
     label: 'Cancelled',
@@ -117,8 +102,7 @@ const STATUS_BADGE: Record<CommissionStatus, { label: string; className: string 
 const notice = (label: string) => toast.success(`${label} (mock)`);
 
 export default function CommissionDetailPage({ params }: { params: { id: string } }) {
-  const commission =
-    MOCK_COMMISSIONS.find((c) => c.id === params.id) ?? MOCK_COMMISSIONS[0]!;
+  const commission = MOCK_COMMISSIONS.find((c) => c.id === params.id) ?? MOCK_COMMISSIONS[0]!;
 
   const [role, setRole] = useState<Role>('client');
   const [tab, setTab] = useState<Tab>('overview');
@@ -137,14 +121,10 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
     .reduce((sum, m) => sum + m.amountUsdc, 0);
   const totalProposed = milestones.reduce((sum, m) => sum + m.amountUsdc, 0);
   const pct =
-    commission.budgetUsdc === 0
-      ? 0
-      : Math.round((approvedTotal / commission.budgetUsdc) * 100);
+    commission.budgetUsdc === 0 ? 0 : Math.round((approvedTotal / commission.budgetUsdc) * 100);
 
   const approveMilestone = (id: string) => {
-    setMilestones((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, approved: true } : m)),
-    );
+    setMilestones((prev) => prev.map((m) => (m.id === id ? { ...m, approved: true } : m)));
     notice('Milestone approved');
   };
 
@@ -167,7 +147,7 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
     const projected = totalProposed + amount;
     if (projected > commission.budgetUsdc) {
       setDraftError(
-        `Sum of milestones ($${projected} USDC) would exceed the commission budget ($${commission.budgetUsdc} USDC).`,
+        `Sum of milestones ($${projected} USDC) would exceed the commission budget ($${commission.budgetUsdc} USDC).`
       );
       return;
     }
@@ -193,10 +173,21 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
       filename: `commission-${commission.id}.pdf`,
       title: commission.title,
       sections: [
-        { heading: 'Details', content: `Commission #${commission.id}\n${commission.client.name} → ${commission.artist.name}\nStatus: ${badge.label}\nDeadline: ${commission.deadline}` },
+        {
+          heading: 'Details',
+          content: `Commission #${commission.id}\n${commission.client.name} → ${commission.artist.name}\nStatus: ${badge.label}\nDeadline: ${commission.deadline}`,
+        },
         { heading: 'Budget', content: `$${commission.budgetUsdc.toFixed(2)} USDC` },
         { heading: 'Description', content: commission.description },
-        { heading: 'Milestones', content: milestones.map((m) => `${m.approved ? '✓' : '○'} ${m.title} — $${m.amountUsdc.toFixed(2)} USDC (due ${m.dueDate})`).join('\n') },
+        {
+          heading: 'Milestones',
+          content: milestones
+            .map(
+              (m) =>
+                `${m.approved ? '✓' : '○'} ${m.title} — $${m.amountUsdc.toFixed(2)} USDC (due ${m.dueDate})`
+            )
+            .join('\n'),
+        },
       ],
     });
   };
@@ -298,8 +289,7 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
               {commission.title}
             </h1>
             <p className="mt-1 break-words text-sm text-gray-500 dark:text-gray-400">
-              Commission #{commission.id} · {commission.client.name} →{' '}
-              {commission.artist.name}
+              Commission #{commission.id} · {commission.client.name} → {commission.artist.name}
             </p>
           </div>
           <span
@@ -351,10 +341,7 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
           </div>
         </div>
 
-        <nav
-          aria-label="Commission tabs"
-          className="border-b border-gray-200 dark:border-gray-800"
-        >
+        <nav aria-label="Commission tabs" className="border-b border-gray-200 dark:border-gray-800">
           <div className="flex gap-6">
             {(['overview', 'milestones'] as Tab[]).map((t) => (
               <button
@@ -378,29 +365,20 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
         {tab === 'overview' ? (
           <section className="space-y-6">
             <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
-                Description
-              </h2>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Description</h2>
               <p className="mt-2 whitespace-pre-line text-sm text-gray-700 dark:text-gray-300">
                 {commission.description}
               </p>
             </div>
 
             <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
-                Attachments
-              </h2>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Attachments</h2>
               {commission.attachments.length === 0 ? (
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  No attachments.
-                </p>
+                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">No attachments.</p>
               ) : (
                 <ul className="mt-3 space-y-2">
                   {commission.attachments.map((a) => (
-                    <li
-                      key={a.name}
-                      className="flex items-center justify-between gap-3 text-sm"
-                    >
+                    <li key={a.name} className="flex items-center justify-between gap-3 text-sm">
                       <span className="flex min-w-0 items-center gap-2 text-gray-700 dark:text-gray-300">
                         <FileText className="h-4 w-4 shrink-0" />
                         <span className="break-all">{a.name}</span>
@@ -441,16 +419,15 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
               </div>
               {totalProposed > commission.budgetUsdc && (
                 <p className="mt-3 text-xs text-rose-600 dark:text-rose-400">
-                  Proposed total ${totalProposed.toFixed(2)} exceeds budget ${commission.budgetUsdc.toFixed(2)}.
+                  Proposed total ${totalProposed.toFixed(2)} exceeds budget $
+                  {commission.budgetUsdc.toFixed(2)}.
                 </p>
               )}
             </div>
 
             {/* Milestone list */}
             <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
-                Milestones
-              </h2>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Milestones</h2>
               {milestones.length === 0 ? (
                 <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                   No milestones defined yet.
@@ -520,7 +497,8 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
                     Add milestone
                   </h2>
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    Proposed ${totalProposed.toFixed(2)} / Budget ${commission.budgetUsdc.toFixed(2)} USDC
+                    Proposed ${totalProposed.toFixed(2)} / Budget $
+                    {commission.budgetUsdc.toFixed(2)} USDC
                   </span>
                 </div>
                 <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">

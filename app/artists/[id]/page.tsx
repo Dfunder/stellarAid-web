@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
+import NextImage from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useArtist } from '@/hooks/useArtist';
@@ -10,7 +10,15 @@ import ServicesTab from './components/ServicesTab';
 import ReviewsTab from './components/ReviewsTab';
 import Button from '@/app/components/ui/Button';
 import { Skeleton } from '@/app/components/ui/Skeleton';
-import { MapPin, Star, ShieldCheck, Briefcase, MessageSquare, Image as ImageIcon, Mail } from 'lucide-react';
+import {
+  MapPin,
+  Star,
+  ShieldCheck,
+  Briefcase,
+  MessageSquare,
+  Image as ImageIcon,
+  Mail,
+} from 'lucide-react';
 
 type TabKey = 'portfolio' | 'services' | 'reviews';
 
@@ -41,11 +49,17 @@ export default function ArtistProfilePage() {
       <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950">
         <div className="text-center">
           <div className="w-20 h-20 bg-neutral-200 dark:bg-neutral-800 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Image className="w-10 h-10 text-neutral-400" />
+            <ImageIcon className="w-10 h-10 text-neutral-400" />
           </div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">Artist Not Found</h1>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">
+            Artist Not Found
+          </h1>
           <p className="text-neutral-500 dark:text-neutral-400">
-            {error || "We couldn't find the artist you're looking for."}
+            {error instanceof Error
+              ? error.message
+              : typeof error === 'string'
+                ? error
+                : "We couldn't find the artist you're looking for."}
           </p>
         </div>
       </div>
@@ -54,7 +68,7 @@ export default function ArtistProfilePage() {
 
   const tabs: { key: TabKey; label: string; icon: React.ReactNode }[] = [
     { key: 'portfolio', label: 'Portfolio', icon: <Briefcase className="w-4 h-4" /> },
-    { key: 'services', label: 'Services', icon: <Image className="w-4 h-4" /> },
+    { key: 'services', label: 'Services', icon: <ImageIcon className="w-4 h-4" /> },
     { key: 'reviews', label: 'Reviews', icon: <MessageSquare className="w-4 h-4" /> },
   ];
 
@@ -78,7 +92,13 @@ export default function ArtistProfilePage() {
           {/* Avatar */}
           <div className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full border-4 border-white dark:border-neutral-900 overflow-hidden bg-neutral-200 dark:bg-neutral-700 shadow-lg flex-shrink-0">
             {artist.avatar ? (
-              <Image src={artist.avatar} alt={artist.name} fill className="object-cover" sizes="144px" />
+              <NextImage
+                src={artist.avatar}
+                alt={artist.name}
+                fill
+                className="object-cover"
+                sizes="144px"
+              />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-neutral-400">
                 <ImageIcon className="w-12 h-12" />
@@ -100,7 +120,9 @@ export default function ArtistProfilePage() {
               )}
             </div>
             {artist.tagline && (
-              <p className="text-neutral-600 dark:text-neutral-400 mt-1 text-lg">{artist.tagline}</p>
+              <p className="text-neutral-600 dark:text-neutral-400 mt-1 text-lg">
+                {artist.tagline}
+              </p>
             )}
             <div className="flex items-center gap-4 mt-2 flex-wrap">
               <div className="flex items-center gap-1 text-amber-500">

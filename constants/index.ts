@@ -26,12 +26,7 @@ export const USER_ROLES = {
   ADMIN: 'admin',
 } as const;
 
-export const SUPPORTED_ASSETS = [
-  'XLM',
-  'USDC',
-  'NGNT',
-  'EURC',
-] as const;
+export const SUPPORTED_ASSETS = ['XLM', 'USDC', 'NGNT', 'EURC'] as const;
 
 export const STELLAR_NETWORK = {
   TESTNET: 'testnet',

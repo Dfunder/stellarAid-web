@@ -60,7 +60,8 @@ export const fetchServices = createAsyncThunk(
       }
       if (filters.minPrice !== undefined) params.append('minPrice', String(filters.minPrice));
       if (filters.maxPrice !== undefined) params.append('maxPrice', String(filters.maxPrice));
-      if (filters.maxDeliveryDays !== undefined) params.append('maxDeliveryDays', String(filters.maxDeliveryDays));
+      if (filters.maxDeliveryDays !== undefined)
+        params.append('maxDeliveryDays', String(filters.maxDeliveryDays));
       if (filters.sort) params.append('sort', filters.sort);
       if (filters.search) params.append('search', filters.search);
       if (filters.artistId) params.append('artistId', filters.artistId);
@@ -95,7 +96,8 @@ export const fetchServicesPage = createAsyncThunk(
       }
       if (filters.minPrice !== undefined) params.append('minPrice', String(filters.minPrice));
       if (filters.maxPrice !== undefined) params.append('maxPrice', String(filters.maxPrice));
-      if (filters.maxDeliveryDays !== undefined) params.append('maxDeliveryDays', String(filters.maxDeliveryDays));
+      if (filters.maxDeliveryDays !== undefined)
+        params.append('maxDeliveryDays', String(filters.maxDeliveryDays));
       if (filters.sort) params.append('sort', filters.sort);
       if (filters.search) params.append('search', filters.search);
       if (filters.artistId) params.append('artistId', filters.artistId);
@@ -142,7 +144,8 @@ export const fetchMyServices = createAsyncThunk(
       dispatch(setServicesError(null));
       return response.data;
     } catch (error: any) {
-      const message = error?.response?.data?.message || error.message || 'Failed to fetch your services';
+      const message =
+        error?.response?.data?.message || error.message || 'Failed to fetch your services';
       dispatch(setServicesError(message));
       throw error;
     } finally {
@@ -160,7 +163,9 @@ export const createService = createAsyncThunk(
       const response = await api.post('/services', data);
       dispatch(addService(response.data));
       dispatch(setServicesError(null));
-      toastSuccess(data.status === 'draft' ? 'Service saved as draft!' : 'Service published successfully!');
+      toastSuccess(
+        data.status === 'draft' ? 'Service saved as draft!' : 'Service published successfully!'
+      );
       return response.data;
     } catch (error: any) {
       const message = error?.response?.data?.message || error.message || 'Failed to create service';
@@ -229,7 +234,8 @@ export const toggleServiceStatus = createAsyncThunk(
       toastSuccess(`Service ${newStatus === 'published' ? 'activated' : 'deactivated'}!`);
       return response.data;
     } catch (error: any) {
-      const message = error?.response?.data?.message || error.message || 'Failed to update service status';
+      const message =
+        error?.response?.data?.message || error.message || 'Failed to update service status';
       dispatch(setServicesError(message));
       toastError(message);
       throw error;

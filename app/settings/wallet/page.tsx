@@ -35,14 +35,16 @@ export default function WalletSettingsPage() {
   // Fetch balances
   const fetchBalances = async () => {
     if (!walletAddress) return;
-    
+
     setLoading(true);
     try {
       const response = await fetch('/wallet/balance');
       if (response.ok) {
         const data = await response.json();
-        const updatedBalances = balances.map(item => {
-          const match = data?.balances?.find((b: { code: string; amount: string | number }) => b.code === item.code);
+        const updatedBalances = balances.map((item) => {
+          const match = data?.balances?.find(
+            (b: { code: string; amount: string | number }) => b.code === item.code
+          );
           return {
             ...item,
             amount: match ? Number(match.amount || 0) : 0,
@@ -79,7 +81,7 @@ export default function WalletSettingsPage() {
   };
 
   // Stellar Expert link for wallet history
-  const stellarExpertUrl = walletAddress 
+  const stellarExpertUrl = walletAddress
     ? `https://stellar.expert/explorer/public/account/${walletAddress}`
     : '#';
 
@@ -87,15 +89,19 @@ export default function WalletSettingsPage() {
     <div className="max-w-4xl mx-auto p-6 space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Wallet Settings</h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage your connected Stellar wallet and view balances.</p>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Manage your connected Stellar wallet and view balances.
+        </p>
       </div>
 
       {/* Wallet Connection Section */}
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Wallet Connection</h2>
-            
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Wallet Connection
+            </h2>
+
             {walletAddress ? (
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800">
@@ -116,10 +122,12 @@ export default function WalletSettingsPage() {
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-gray-500 dark:text-gray-400">No wallet connected. Connect your Freighter wallet to get started.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                No wallet connected. Connect your Freighter wallet to get started.
+              </p>
             )}
           </div>
-          
+
           <WalletConnectButton onConnected={(address) => setWalletAddress(address)} />
         </div>
       </div>
@@ -136,8 +144,18 @@ export default function WalletSettingsPage() {
             disabled={loading || !walletAddress}
             className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 disabled:opacity-50"
           >
-            <svg className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <svg
+              className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
             </svg>
             Refresh
           </button>
@@ -159,8 +177,12 @@ export default function WalletSettingsPage() {
                     {balance.logo}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{balance.code}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{balance.code} balance</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {balance.code}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {balance.code} balance
+                    </p>
                   </div>
                 </div>
                 <p className="text-base font-semibold text-gray-900 dark:text-white">
@@ -177,8 +199,12 @@ export default function WalletSettingsPage() {
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Transaction History</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">View your full transaction history on Stellar Expert</p>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Transaction History
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                View your full transaction history on Stellar Expert
+              </p>
             </div>
             <a
               href={stellarExpertUrl}

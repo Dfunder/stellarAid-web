@@ -8,6 +8,7 @@ export interface ServiceArtist {
   avatar?: string;
   rating?: number;
   reviewCount?: number;
+  verified?: boolean;
 }
 
 export interface ServiceReview {

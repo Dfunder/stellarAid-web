@@ -63,7 +63,7 @@ function loadReadIds(): Set<string> {
 
 function saveReadIds(ids: Set<string>) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...ids]));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(ids)));
   } catch {}
 }
 
@@ -105,21 +105,6 @@ export default function NotificationBell() {
     setReadIds(allIds);
     saveReadIds(allIds);
   }, [readIds]);
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEscape);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [open]);
-
-  const markAllRead = () => {
-    setNotifications((current) => current.map((n) => ({ ...n, unread: false })));
-  };
 
   return (
     <div ref={containerRef} className="relative">
@@ -127,9 +112,7 @@ export default function NotificationBell() {
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-label={
-          unreadCount > 0
-            ? `Notifications, ${unreadCount} unread`
-            : 'Notifications, no unread'
+          unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications, no unread'
         }
         aria-expanded={open}
         aria-haspopup="true"

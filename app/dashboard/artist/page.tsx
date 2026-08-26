@@ -203,11 +203,13 @@ export default function ArtistDashboardPage() {
         const nextCommissions = normalizeCommissions(commissionsResponse.data);
         const activeCount = nextCommissions.filter((item) => item.status === 'ACTIVE').length;
         const pendingCount = nextCommissions.filter((item) => item.status === 'PENDING').length;
-        
+
         const ratings = nextCommissions
           .map((item) => item.rating)
-          .filter((value): value is number => typeof value === 'number' && value >= 1 && value <= 5);
-        
+          .filter(
+            (value): value is number => typeof value === 'number' && value >= 1 && value <= 5
+          );
+
         let averageRating = 0;
         if (ratings.length > 0) {
           const totalStars = ratings.reduce((sum, value) => sum + value, 0);
@@ -224,7 +226,9 @@ export default function ArtistDashboardPage() {
         });
       } catch (error) {
         if (active) {
-          setError('We could not load the artist overview right now. Showing the latest sample data instead.');
+          setError(
+            'We could not load the artist overview right now. Showing the latest sample data instead.'
+          );
           setCommissions(FALLBACK_COMMISSIONS);
           setStats({
             totalEarnings: 1250,
@@ -291,7 +295,9 @@ export default function ArtistDashboardPage() {
           </div>
         </header>
 
-        {error ? <ErrorMessage message={error} className="border-blue-200 bg-blue-50 text-blue-800" /> : null}
+        {error ? (
+          <ErrorMessage message={error} className="border-blue-200 bg-blue-50 text-blue-800" />
+        ) : null}
 
         {isLoading ? (
           <div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white p-8 dark:border-gray-700 dark:bg-gray-900">
@@ -329,8 +335,12 @@ export default function ArtistDashboardPage() {
                   key={item.label}
                   className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
                 >
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{item.label}</p>
-                  <p className="mt-3 text-2xl font-semibold text-gray-900 dark:text-white">{item.value}</p>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {item.label}
+                  </p>
+                  <p className="mt-3 text-2xl font-semibold text-gray-900 dark:text-white">
+                    {item.value}
+                  </p>
                   <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{item.helper}</p>
                 </div>
               ))}
@@ -374,7 +384,9 @@ export default function ArtistDashboardPage() {
                       {recentCommissions.map((commission) => (
                         <tr key={commission.id} className="text-gray-700 dark:text-gray-300">
                           <td className="px-3 py-3">
-                            <div className="font-medium text-gray-900 dark:text-white">{commission.title}</div>
+                            <div className="font-medium text-gray-900 dark:text-white">
+                              {commission.title}
+                            </div>
                             {commission.createdAt ? (
                               <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                 {commission.createdAt}

@@ -72,8 +72,7 @@ const STATUS_BADGE: Record<Status, { label: string; className: string }> = {
   },
   COMPLETED: {
     label: 'Completed',
-    className:
-      'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+    className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
   },
   CANCELLED: {
     label: 'Cancelled',
@@ -91,9 +90,7 @@ export default function ClientCommissionsPage() {
       <main id="main-content" tabIndex={-1} className="space-y-6">
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-              My commissions
-            </h1>
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">My commissions</h1>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Track every commission you have requested.
             </p>
@@ -170,8 +167,7 @@ export default function ClientCommissionsPage() {
                     </h3>
                     <div className="mt-3 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                       <span className="flex items-center gap-1">
-                        <Wallet className="h-3.5 w-3.5" />
-                        ${c.budgetUsdc.toFixed(2)} USDC
+                        <Wallet className="h-3.5 w-3.5" />${c.budgetUsdc.toFixed(2)} USDC
                       </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3.5 w-3.5" />

@@ -72,9 +72,7 @@ export default function ConversationsListPage() {
     if (!debouncedSearch.trim()) return MOCK_CONVERSATIONS;
     const q = debouncedSearch.toLowerCase();
     return MOCK_CONVERSATIONS.filter(
-      (c) =>
-        c.participantName.toLowerCase().includes(q) ||
-        c.lastMessage.toLowerCase().includes(q),
+      (c) => c.participantName.toLowerCase().includes(q) || c.lastMessage.toLowerCase().includes(q)
     );
   }, [debouncedSearch]);
 

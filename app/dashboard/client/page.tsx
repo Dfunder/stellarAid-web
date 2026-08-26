@@ -66,9 +66,10 @@ export default function ClientDashboardPage() {
 
         const nextCommissions = normalizeCommissions(commissionsResponse);
         const activeStatusCount = nextCommissions.filter((item) => item.status === 'ACTIVE').length;
-        const artistCount = new Set(nextCommissions.map((item) => item.artistId || item.artistName)).size;
+        const artistCount = new Set(nextCommissions.map((item) => item.artistId || item.artistName))
+          .size;
         const reviewCount = nextCommissions.filter(
-          (item) => item.status === 'COMPLETED' && item.rating === undefined,
+          (item) => item.status === 'COMPLETED' && item.rating === undefined
         ).length;
 
         setCommissions(nextCommissions.sort(sortCommissionsByDate).slice(0, 5));
@@ -134,7 +135,9 @@ export default function ClientDashboardPage() {
           </div>
         </header>
 
-        {error ? <ErrorMessage message={error} className="border-blue-200 bg-blue-50 text-blue-800" /> : null}
+        {error ? (
+          <ErrorMessage message={error} className="border-blue-200 bg-blue-50 text-blue-800" />
+        ) : null}
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {[
@@ -164,7 +167,9 @@ export default function ClientDashboardPage() {
               className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
             >
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{card.label}</p>
-              <p className="mt-3 text-2xl font-semibold text-gray-900 dark:text-white">{card.value}</p>
+              <p className="mt-3 text-2xl font-semibold text-gray-900 dark:text-white">
+                {card.value}
+              </p>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{card.helper}</p>
             </div>
           ))}
@@ -173,7 +178,9 @@ export default function ClientDashboardPage() {
         <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent commissions</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Recent commissions
+              </h2>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Latest five commission requests from your account.
               </p>
@@ -210,7 +217,9 @@ export default function ClientDashboardPage() {
                   {recentCommissions.map((commission) => (
                     <tr key={commission.id} className="text-gray-700 dark:text-gray-300">
                       <td className="px-3 py-3">
-                        <div className="font-medium text-gray-900 dark:text-white">{commission.title}</div>
+                        <div className="font-medium text-gray-900 dark:text-white">
+                          {commission.title}
+                        </div>
                         {commission.createdAt ? (
                           <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                             {new Date(commission.createdAt).toLocaleDateString('en-US', {
@@ -223,7 +232,9 @@ export default function ClientDashboardPage() {
                       </td>
                       <td className="px-3 py-3">{commission.artistName}</td>
                       <td className="px-3 py-3">
-                        <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_BADGE[commission.status].className}`}>
+                        <span
+                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_BADGE[commission.status].className}`}
+                        >
                           {STATUS_BADGE[commission.status].label}
                         </span>
                       </td>

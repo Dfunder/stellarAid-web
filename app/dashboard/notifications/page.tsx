@@ -134,6 +134,7 @@ export default function NotificationsPage() {
     paginatedItems: paginatedNotifications,
     page: safePage,
     totalPages,
+    goToPage,
   } = usePagination({ items: filteredNotifications, pageSize: 6 });
 
   const unreadCount = notifications.filter((item) => item.unread).length;
@@ -215,7 +216,9 @@ export default function NotificationsPage() {
           </p>
         </div>
 
-        {error ? <ErrorMessage message={error} className="border-blue-200 bg-blue-50 text-blue-800" /> : null}
+        {error ? (
+          <ErrorMessage message={error} className="border-blue-200 bg-blue-50 text-blue-800" />
+        ) : null}
 
         {isLoading ? (
           <div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white p-8 dark:border-gray-700 dark:bg-gray-900">
@@ -268,7 +271,9 @@ export default function NotificationsPage() {
                           ) : null}
                         </div>
                         <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{item.body}</p>
-                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{item.timestamp}</p>
+                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                          {item.timestamp}
+                        </p>
                       </div>
                     </div>
                     <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
@@ -281,13 +286,10 @@ export default function NotificationsPage() {
 
             <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
               <p>
-                Showing {paginatedNotifications.length} of {filteredNotifications.length} notifications
+                Showing {paginatedNotifications.length} of {filteredNotifications.length}{' '}
+                notifications
               </p>
-              <Pagination
-                page={safePage}
-                totalPages={totalPages}
-                onPageChange={setPage}
-              />
+              <Pagination page={safePage} totalPages={totalPages} onPageChange={goToPage} />
             </div>
           </div>
         )}

@@ -8,14 +8,7 @@ import { usePagination } from '@/hooks/usePagination';
 import Pagination from '@/app/components/ui/Pagination';
 import { Skeleton } from '@/app/components/ui/Skeleton';
 
-const CATEGORIES = [
-  'Art',
-  'Music',
-  'Technology',
-  'Community',
-  'Film',
-  'Education',
-] as const;
+const CATEGORIES = ['Art', 'Music', 'Technology', 'Community', 'Film', 'Education'] as const;
 
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest' },
@@ -38,7 +31,7 @@ interface ServiceItem {
 }
 
 const MOCK_SERVICES: ServiceItem[] = Array.from({ length: 36 }, (_, i) => {
-  const cat = CATEGORIES[i % CATEGORIES.length];
+  const cat = CATEGORIES[i % CATEGORIES.length] ?? 'Art';
   return {
     id: `svc-${String(i + 1).padStart(3, '0')}`,
     title: `${cat} service #${i + 1}`,
@@ -47,7 +40,7 @@ const MOCK_SERVICES: ServiceItem[] = Array.from({ length: 36 }, (_, i) => {
     price: ((i % 8) + 1) * 25,
     deliveryDays: (i % 5) + 1,
     rating: 3.5 + (i % 15) / 10,
-    reviewCount: (i * 3) % 50 + 5,
+    reviewCount: ((i * 3) % 50) + 5,
     artist: { name: `Artist ${(i % 12) + 1}` },
     createdAt: new Date(Date.now() - i * 86400000).toISOString(),
   };
@@ -89,7 +82,9 @@ function ServiceCard({ service }: { service: ServiceItem }) {
         )}
       </div>
       <h3 className="text-base font-semibold text-gray-900 dark:text-white">{service.title}</h3>
-      <p className="mt-1 line-clamp-2 text-sm text-gray-500 dark:text-gray-400">{service.description}</p>
+      <p className="mt-1 line-clamp-2 text-sm text-gray-500 dark:text-gray-400">
+        {service.description}
+      </p>
       <div className="mt-auto flex items-center justify-between pt-4">
         <span className="text-lg font-bold text-gray-900 dark:text-white">${service.price}</span>
         <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
@@ -119,7 +114,7 @@ export default function MarketplaceClient() {
         (s) =>
           s.title.toLowerCase().includes(q) ||
           s.description.toLowerCase().includes(q) ||
-          s.artist?.name.toLowerCase().includes(q),
+          s.artist?.name.toLowerCase().includes(q)
       );
     }
 
@@ -152,13 +147,10 @@ export default function MarketplaceClient() {
     return result;
   }, [debouncedSearch, selectedCategory, sortBy, maxPrice]);
 
-  const {
-    paginatedItems,
-    page,
-    totalPages,
-    totalItems,
-    goToPage,
-  } = usePagination({ items: filteredServices, pageSize: 9 });
+  const { paginatedItems, page, totalPages, totalItems, goToPage } = usePagination({
+    items: filteredServices,
+    pageSize: 9,
+  });
 
   return (
     <main id="main-content" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">

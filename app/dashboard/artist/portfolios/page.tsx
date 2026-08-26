@@ -3,8 +3,15 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
-import { selectPortfolios, selectPortfoliosLoading } from '@/app/features/portfolios/portfoliosSelectors';
-import { fetchMyPortfolios, deletePortfolio, togglePortfolioStatus } from '@/app/features/portfolios/portfoliosThunks';
+import {
+  selectPortfolios,
+  selectPortfoliosLoading,
+} from '@/app/features/portfolios/portfoliosSelectors';
+import {
+  fetchMyPortfolios,
+  deletePortfolio,
+  togglePortfolioStatus,
+} from '@/app/features/portfolios/portfoliosThunks';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import Button from '@/app/components/ui/Button';
 import { Skeleton } from '@/app/components/ui/Skeleton';
@@ -22,7 +29,8 @@ export default function PortfolioManagementPage() {
   }, [dispatch]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this portfolio? This action cannot be undone.')) return;
+    if (!confirm('Are you sure you want to delete this portfolio? This action cannot be undone.'))
+      return;
     setDeletingId(id);
     await dispatch(deletePortfolio(id));
     setDeletingId(null);
@@ -180,7 +188,11 @@ export default function PortfolioManagementPage() {
                     {/* Actions */}
                     <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800">
                       <Link href={`/dashboard/artist/portfolios/${portfolio.id}/edit`}>
-                        <Button variant="ghost" size="sm" leftIcon={<Edit className="w-3.5 h-3.5" />}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          leftIcon={<Edit className="w-3.5 h-3.5" />}
+                        >
                           Edit
                         </Button>
                       </Link>

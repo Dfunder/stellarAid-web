@@ -1,5 +1,5 @@
-import { Metadata } from "next";
-import FallbackImage from "@/components/common/FallbackImage";
+import { Metadata } from 'next';
+import FallbackImage from '@/components/common/FallbackImage';
 
 type Props = {
   params: { id: string };
@@ -7,14 +7,14 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const id = params.id;
-  
+
   return {
     title: `Portfolio Detail #${id} | StellarAid`,
     description: `View details for portfolio item #${id} on StellarAid. Learn about this creative project and support the creator through transparent Stellar blockchain crowdfunding.`,
     openGraph: {
       title: `Portfolio Detail #${id} | StellarAid`,
       description: `View details for portfolio item #${id} on StellarAid. Learn about this creative project and support the creator through transparent Stellar blockchain crowdfunding.`,
-      images: ["/og-image.jpg"],
+      images: ['/og-image.jpg'],
     },
   };
 }

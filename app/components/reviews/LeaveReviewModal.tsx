@@ -61,7 +61,8 @@ export default function LeaveReviewModal({
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <p className="text-sm text-gray-600 dark:text-gray-300">
-            How was your experience working with <span className="font-semibold">{artistName}</span>?
+            How was your experience working with <span className="font-semibold">{artistName}</span>
+            ?
           </p>
 
           <div
@@ -118,9 +119,7 @@ export default function LeaveReviewModal({
             rows={4}
             className="mt-2 w-full resize-none rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
           />
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Minimum 5 characters.
-          </p>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Minimum 5 characters.</p>
         </div>
 
         <div className="flex items-center justify-end gap-2 pt-1">

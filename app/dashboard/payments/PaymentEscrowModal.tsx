@@ -5,20 +5,13 @@ import Modal from '@/app/components/common/Modal';
 import { Button } from '@/app/components/ui/Button';
 import { initiateEscrow, confirmPayment } from '@/lib/api/payments';
 
-declare global {
-  interface Window {
-    freighter?: {
-      signTransaction?: (xdr: string) => Promise<string>;
-    };
-  }
-}
-
 interface PaymentEscrowModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type PaymentStatus = 'idle' | 'initiating' | 'signing' | 'confirming' | 'success' | 'error' | 'rolling_back';
+type PaymentStatus =
+  'idle' | 'initiating' | 'signing' | 'confirming' | 'success' | 'error' | 'rolling_back';
 
 export default function PaymentEscrowModal({ isOpen, onClose }: PaymentEscrowModalProps) {
   const [status, setStatus] = useState<PaymentStatus>('idle');
@@ -63,7 +56,14 @@ export default function PaymentEscrowModal({ isOpen, onClose }: PaymentEscrowMod
       }
 
       setStatus('signing');
-      const signedXdr = await window.freighter?.signTransaction?.(escrowData.unsignedXdr);
+      const signResult = await window.freighter?.signTransaction?.(escrowData.unsignedXdr);
+      const signedXdr =
+        typeof signResult === 'string'
+          ? signResult
+          : signResult && typeof signResult === 'object'
+            ? signResult.signedTxXdr
+            : null;
+
       if (!signedXdr) {
         if (id) await rollbackPayment(id);
         throw new Error('Transaction signing was cancelled');

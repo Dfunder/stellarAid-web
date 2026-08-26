@@ -14,7 +14,12 @@ interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
  */
 const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+    'Accept-Encoding': 'gzip, deflate, br',
+  },
+  decompress: true,
   timeout: 30000,
 });
 
@@ -61,7 +66,7 @@ apiClient.interceptors.request.use(
     }
     return config;
   },
-  (error: AxiosError) => Promise.reject(error),
+  (error: AxiosError) => Promise.reject(error)
 );
 
 // ── Response interceptor ───────────────────────────────────────
@@ -98,7 +103,7 @@ apiClient.interceptors.response.use(
 
       const { data } = await axios.post(
         (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api') + '/auth/refresh',
-        { refreshToken },
+        { refreshToken }
       );
 
       const { accessToken, refreshToken: newRefreshToken } = data;
@@ -131,7 +136,7 @@ apiClient.interceptors.response.use(
     } finally {
       isRefreshing = false;
     }
-  },
+  }
 );
 
 export { apiClient };

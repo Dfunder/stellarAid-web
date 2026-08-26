@@ -18,14 +18,7 @@ export interface ExploreProject {
 
 const PAGE_SIZE = 12;
 
-const CATEGORIES = [
-  'Art',
-  'Music',
-  'Technology',
-  'Community',
-  'Film',
-  'Education',
-] as const;
+const CATEGORIES = ['Art', 'Music', 'Technology', 'Community', 'Film', 'Education'] as const;
 
 async function fetchProjectsPage({
   pageParam,
@@ -42,7 +35,7 @@ async function fetchProjectsPage({
 
   const items: ExploreProject[] = Array.from(
     { length: Math.min(PAGE_SIZE, totalItems - start) },
-    (_, i) => {
+    (_, i): ExploreProject | null => {
       const n = start + i + 1;
       const projectCategory = CATEGORIES[n % CATEGORIES.length] ?? 'Community';
       if (category && category !== 'all' && projectCategory !== category) {
@@ -60,7 +53,7 @@ async function fetchProjectsPage({
         goalXlm,
         backers: (n * 7) % 240,
       };
-    },
+    }
   ).filter((item): item is ExploreProject => item !== null);
 
   const nextPage = start + PAGE_SIZE < totalItems ? pageParam + 1 : null;
@@ -86,10 +79,7 @@ function ProjectCardSkeleton() {
 }
 
 function ProjectCard({ project }: { project: ExploreProject }) {
-  const pct = Math.min(
-    100,
-    Math.round((project.raisedXlm / project.goalXlm) * 100),
-  );
+  const pct = Math.min(100, Math.round((project.raisedXlm / project.goalXlm) * 100));
   return (
     <article className="flex flex-col rounded-2xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md dark:border-gray-800 dark:bg-gray-900">
       <div className="mb-3 flex items-center justify-between gap-2">
@@ -98,19 +88,14 @@ function ProjectCard({ project }: { project: ExploreProject }) {
         </span>
         <span className="text-xs text-gray-400">@{project.creator}</span>
       </div>
-      <h3 className="text-base font-semibold text-gray-900 dark:text-white">
-        {project.title}
-      </h3>
+      <h3 className="text-base font-semibold text-gray-900 dark:text-white">{project.title}</h3>
       <p className="mt-1 line-clamp-2 text-sm text-gray-500 dark:text-gray-400">
         {project.description}
       </p>
 
       <div className="mt-4">
         <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-800">
-          <div
-            className="h-full rounded-full bg-blue-600"
-            style={{ width: `${pct}%` }}
-          />
+          <div className="h-full rounded-full bg-blue-600" style={{ width: `${pct}%` }} />
         </div>
         <div className="mt-2 flex items-center justify-between text-sm">
           <span className="font-semibold text-gray-900 dark:text-white">
@@ -133,16 +118,13 @@ export default function ExploreProjects() {
   const initialCategory = searchParams.get('category') || 'all';
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
 
-  const {
-    data,
-    status,
-    error,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useInfiniteQuery({
+  const { data, status, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ['explore-projects', selectedCategory],
-    queryFn: ({ pageParam }) => fetchProjectsPage({ pageParam, category: selectedCategory === 'all' ? undefined : selectedCategory }),
+    queryFn: ({ pageParam }) =>
+      fetchProjectsPage({
+        pageParam,
+        category: selectedCategory === 'all' ? undefined : selectedCategory,
+      }),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => lastPage.nextPage,
   });
@@ -155,16 +137,19 @@ export default function ExploreProjects() {
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const handleCategoryChange = useCallback((category: string) => {
-    setSelectedCategory(category);
-    const params = new URLSearchParams(searchParams.toString());
-    if (category === 'all') {
-      params.delete('category');
-    } else {
-      params.set('category', category);
-    }
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [searchParams, router, pathname]);
+  const handleCategoryChange = useCallback(
+    (category: string) => {
+      setSelectedCategory(category);
+      const params = new URLSearchParams(searchParams.toString());
+      if (category === 'all') {
+        params.delete('category');
+      } else {
+        params.set('category', category);
+      }
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, router, pathname]
+  );
 
   if (status === 'pending') {
     return (
@@ -219,15 +204,11 @@ export default function ExploreProjects() {
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {data.pages.map((page) =>
-          page.items.map((project) => (
-            <ProjectCard key={project.id} project={project} />
-          )),
+          page.items.map((project) => <ProjectCard key={project.id} project={project} />)
         )}
       </div>
 
-      {hasNextPage && (
-        <div ref={sentinelRef} aria-hidden="true" className="h-px w-full" />
-      )}
+      {hasNextPage && <div ref={sentinelRef} aria-hidden="true" className="h-px w-full" />}
 
       {isFetchingNextPage && (
         <div aria-live="polite" aria-busy="true" className="mt-6 space-y-4">

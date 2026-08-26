@@ -9,7 +9,8 @@ export const ERROR_MESSAGES = {
     TRANSACTION_TIMEOUT: 'Transaction timed out. Please try again.',
   },
   WALLET: {
-    NOT_INSTALLED: 'Freighter wallet is not installed. Please install the Freighter browser extension.',
+    NOT_INSTALLED:
+      'Freighter wallet is not installed. Please install the Freighter browser extension.',
     CONNECTION_FAILED: 'Unable to connect to wallet. Please try again.',
     CONNECTION_TIMEOUT: 'Wallet connection timed out. Please try again.',
     ADDRESS_UNAVAILABLE: 'Unable to retrieve wallet address.',
