@@ -2,14 +2,11 @@
 
 import { Toaster } from 'react-hot-toast';
 
-/**
- * ToastProvider wraps the react-hot-toast Toaster with StellarAid theme configuration.
- * Add this to your root layout to enable toast notifications throughout the app.
- */
 export default function ToastProvider() {
   return (
     <Toaster
       position="top-right"
+      containerStyle={{ zIndex: 9999 }}
       toastOptions={{
         success: {
           style: {
@@ -19,6 +16,7 @@ export default function ToastProvider() {
             borderRadius: '8px',
             boxShadow:
               '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+            zIndex: 9999,
           },
         },
         error: {
@@ -29,6 +27,7 @@ export default function ToastProvider() {
             borderRadius: '8px',
             boxShadow:
               '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+            zIndex: 9999,
           },
         },
         loading: {
@@ -39,6 +38,7 @@ export default function ToastProvider() {
             borderRadius: '8px',
             boxShadow:
               '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+            zIndex: 9999,
           },
         },
         style: {
@@ -51,6 +51,7 @@ export default function ToastProvider() {
           padding: '12px 16px',
           fontSize: '14px',
           maxWidth: '400px',
+          zIndex: 9999,
         },
         duration: 4000,
       }}

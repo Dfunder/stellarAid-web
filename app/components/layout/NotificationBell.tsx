@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Bell, Check } from 'lucide-react';
 
@@ -12,18 +12,20 @@ interface Notification {
   unread: boolean;
 }
 
+const STORAGE_KEY = 'stellaraid-notifications-read';
+
 const MOCK_NOTIFICATIONS: Notification[] = [
   {
     id: 'n1',
     title: 'New message from Adaeze Okafor',
-    body: '“I just sent the revised agreement for review.”',
+    body: '"I just sent the revised agreement for review."',
     timestamp: 'Just now',
     unread: true,
   },
   {
     id: 'n2',
     title: 'Payment released',
-    body: 'Lola Design Co. released $240 for “Logo pack v3”.',
+    body: 'Lola Design Co. released $240 for "Logo pack v3".',
     timestamp: '2 hours ago',
     unread: true,
   },
@@ -37,23 +39,43 @@ const MOCK_NOTIFICATIONS: Notification[] = [
   {
     id: 'n4',
     title: 'New review on your portfolio',
-    body: 'Chinedu Arts Studio left a 5★ review.',
+    body: 'Chinedu Arts Studio left a 5\u2605 review.',
     timestamp: '2 days ago',
     unread: false,
   },
   {
     id: 'n5',
     title: 'Milestone approved',
-    body: 'Ifeoma Adeleke approved milestone “Sketches”.',
+    body: 'Ifeoma Adeleke approved milestone "Sketches".',
     timestamp: '3 days ago',
     unread: false,
   },
 ];
 
+function loadReadIds(): Set<string> {
+  if (typeof window === 'undefined') return new Set();
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return new Set(JSON.parse(raw));
+  } catch {}
+  return new Set();
+}
+
+function saveReadIds(ids: Set<string>) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...ids]));
+  } catch {}
+}
+
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
+  const [readIds, setReadIds] = useState<Set<string>>(() => loadReadIds());
   const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const notifications = MOCK_NOTIFICATIONS.map((n) => ({
+    ...n,
+    unread: n.unread && !readIds.has(n.id),
+  }));
 
   const unreadCount = notifications.filter((n) => n.unread).length;
 
@@ -65,6 +87,24 @@ export default function NotificationBell() {
         setOpen(false);
       }
     };
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [open]);
+
+  const markAllRead = useCallback(() => {
+    const allIds = new Set(readIds);
+    MOCK_NOTIFICATIONS.forEach((n) => allIds.add(n.id));
+    setReadIds(allIds);
+    saveReadIds(allIds);
+  }, [readIds]);
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setOpen(false);
     };
