@@ -14,14 +14,14 @@ The platform combines the power of blockchain transparency, decentralized paymen
 
 ## ✨ Core Features
 
-* 🎨 Portfolio Showcase — Build a professional creative portfolio
-* 💼 Client Marketplace — Connect with businesses and potential clients
-* 💸 Instant Payments — Receive payments through Stellar assets
-* 🔐 Decentralized & Secure — Wallet-based authentication and ownership
-* 📄 Commission Management — Custom work requests and project tracking
-* ⭐ Reputation System — Reviews, ratings, and verified work history
-* 📊 Transparent Transactions — Payment records verifiable on-chain
-* ⚙️ Open Source Ecosystem — Built for developers and community contributors
+- 🎨 Portfolio Showcase — Build a professional creative portfolio
+- 💼 Client Marketplace — Connect with businesses and potential clients
+- 💸 Instant Payments — Receive payments through Stellar assets
+- 🔐 Decentralized & Secure — Wallet-based authentication and ownership
+- 📄 Commission Management — Custom work requests and project tracking
+- ⭐ Reputation System — Reviews, ratings, and verified work history
+- 📊 Transparent Transactions — Payment records verifiable on-chain
+- ⚙️ Open Source Ecosystem — Built for developers and community contributors
 
 ---
 
@@ -33,23 +33,23 @@ Frontend Marketplace & Portfolio Platform
 
 ### Features
 
-* Artist portfolio management
-* Creative marketplace
-* Design discovery & search
-* Client dashboards
-* Commission request system
-* Wallet integration
-* Messaging system
-* Artist hiring workflow
+- Artist portfolio management
+- Creative marketplace
+- Design discovery & search
+- Client dashboards
+- Commission request system
+- Wallet integration
+- Messaging system
+- Artist hiring workflow
 
 ### Tech Stack
 
-* Next.js
-* TypeScript
-* TailwindCSS
-* React Query
-* Zustand
-* Stellar Wallet SDK
+- Next.js
+- TypeScript
+- TailwindCSS
+- React Query
+- Zustand
+- Stellar Wallet SDK
 
 ---
 
@@ -59,24 +59,24 @@ Backend APIs & Core Services
 
 ### Features
 
-* Authentication & authorization
-* User profile management
-* Portfolio management
-* Commission workflows
-* Marketplace services
-* Messaging services
-* Payment tracking
-* Notification system
-* Analytics & reporting
+- Authentication & authorization
+- User profile management
+- Portfolio management
+- Commission workflows
+- Marketplace services
+- Messaging services
+- Payment tracking
+- Notification system
+- Analytics & reporting
 
 ### Tech Stack
 
-* NestJS
-* PostgreSQL
-* Redis
-* Prisma ORM
-* BullMQ
-* Nodemailer
+- NestJS
+- PostgreSQL
+- Redis
+- Prisma ORM
+- BullMQ
+- Nodemailer
 
 ---
 
@@ -86,20 +86,20 @@ Soroban Smart Contracts
 
 ### Features
 
-* Escrow payments
-* Milestone-based releases
-* Artist payouts
-* Platform fee management
-* Commission agreements
-* Dispute handling
-* Multi-asset support
+- Escrow payments
+- Milestone-based releases
+- Artist payouts
+- Platform fee management
+- Commission agreements
+- Dispute handling
+- Multi-asset support
 
 ### Tech Stack
 
-* Rust
-* Soroban SDK
-* Soroban CLI
-* Stellar RPC
+- Rust
+- Soroban SDK
+- Soroban CLI
+- Stellar RPC
 
 ---
 
@@ -109,18 +109,18 @@ Mobile Application
 
 ### Features
 
-* Artist portfolio management
-* Client communication
-* Real-time notifications
-* Project tracking
-* Wallet integration
-* Secure payments
+- Artist portfolio management
+- Client communication
+- Real-time notifications
+- Project tracking
+- Wallet integration
+- Secure payments
 
 ### Tech Stack
 
-* React Native
-* Expo
-* Stellar SDK
+- React Native
+- Expo
+- Stellar SDK
 
 ---
 
@@ -130,11 +130,11 @@ Shared Design Components
 
 ### Features
 
-* UI components
-* Design tokens
-* Brand assets
-* Typography standards
-* Accessibility guidelines
+- UI components
+- Design tokens
+- Brand assets
+- Typography standards
+- Accessibility guidelines
 
 ---
 
@@ -191,19 +191,19 @@ Lumora leverages Stellar's fast, low-cost, and borderless payment infrastructure
 
 Supported assets include:
 
-* XLM
-* USDC
-* NGNT
-* EURC
-* Custom Stellar Assets
+- XLM
+- USDC
+- NGNT
+- EURC
+- Custom Stellar Assets
 
 ### Benefits
 
-* Near-instant settlements
-* Low transaction fees
-* Global accessibility
-* Transparent payment history
-* Secure wallet ownership
+- Near-instant settlements
+- Low transaction fees
+- Global accessibility
+- Transparent payment history
+- Secure wallet ownership
 
 ---
 
@@ -211,36 +211,36 @@ Supported assets include:
 
 ## 🌐 Frontend
 
-* Next.js
-* React
-* TypeScript
-* TailwindCSS
-* React Query
-* Zustand
-* Stellar Wallet SDK
+- Next.js
+- React
+- TypeScript
+- TailwindCSS
+- React Query
+- Zustand
+- Stellar Wallet SDK
 
 ## ⚙️ Backend
 
-* NestJS
-* PostgreSQL
-* Redis
-* Prisma ORM
-* BullMQ
-* Nodemailer
+- NestJS
+- PostgreSQL
+- Redis
+- Prisma ORM
+- BullMQ
+- Nodemailer
 
 ## 📝 Smart Contracts
 
-* Rust
-* Soroban SDK
-* Soroban CLI
-* Stellar RPC
+- Rust
+- Soroban SDK
+- Soroban CLI
+- Stellar RPC
 
 ## 🗄 Storage Layer
 
-* PostgreSQL
-* Redis
-* Object Storage (S3 Compatible)
-* Optional IPFS Support
+- PostgreSQL
+- Redis
+- Object Storage (S3 Compatible)
+- Optional IPFS Support
 
 ---
 
@@ -250,57 +250,57 @@ Supported assets include:
 
 ### Creator Platform
 
-* User registration
-* Wallet authentication
-* Artist profiles
-* Portfolio showcase
-* Artwork listings
-* Client discovery
+- User registration
+- Wallet authentication
+- Artist profiles
+- Portfolio showcase
+- Artwork listings
+- Client discovery
 
 ### Marketplace
 
-* Purchase digital artwork
-* Stellar payments
-* Basic commission requests
+- Purchase digital artwork
+- Stellar payments
+- Basic commission requests
 
 ### Smart Contracts
 
-* Escrow contracts
-* Artist payouts
-* Platform fees
+- Escrow contracts
+- Artist payouts
+- Platform fees
 
 ---
 
 ## Phase 2 — Professional Marketplace
 
-* Messaging system
-* Reviews & ratings
-* Milestone-based projects
-* Team collaboration
-* Advanced search & filtering
-* Artist verification badges
+- Messaging system
+- Reviews & ratings
+- Milestone-based projects
+- Team collaboration
+- Advanced search & filtering
+- Artist verification badges
 
 ---
 
 ## Phase 3 — Creative Economy
 
-* Talent recruitment portal
-* Creative agencies support
-* Subscription memberships
-* Community competitions
-* Creator grants
-* Portfolio analytics
+- Talent recruitment portal
+- Creative agencies support
+- Subscription memberships
+- Community competitions
+- Creator grants
+- Portfolio analytics
 
 ---
 
 ## Phase 4 — Ecosystem Expansion
 
-* NFT ownership certificates
-* Creative licensing marketplace
-* DAO governance
-* AI-powered talent matching
-* Cross-chain integrations
-* Ecosystem funding programs
+- NFT ownership certificates
+- Creative licensing marketplace
+- DAO governance
+- AI-powered talent matching
+- Cross-chain integrations
+- Ecosystem funding programs
 
 ---
 
@@ -308,15 +308,15 @@ Supported assets include:
 
 Lumora is fully open source and welcomes contributions from:
 
-* Stellar developers
-* Soroban smart contract engineers
-* Backend developers
-* Frontend developers
-* UI/UX designers
-* Product designers
-* Technical writers
-* Community moderators
-* Artists and creative professionals
+- Stellar developers
+- Soroban smart contract engineers
+- Backend developers
+- Frontend developers
+- UI/UX designers
+- Product designers
+- Technical writers
+- Community moderators
+- Artists and creative professionals
 
 Please see:
 

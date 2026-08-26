@@ -5,20 +5,14 @@ import Modal from '@/app/components/common/Modal';
 import { Button } from '@/app/components/ui/Button';
 import { initiateEscrow, confirmPayment } from '@/lib/api/payments';
 
-declare global {
-  interface Window {
-    freighter?: {
-      signTransaction?: (xdr: string) => Promise<string>;
-    };
-  }
-}
 
 interface PaymentEscrowModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type PaymentStatus = 'idle' | 'initiating' | 'signing' | 'confirming' | 'success' | 'error' | 'rolling_back';
+type PaymentStatus =
+  'idle' | 'initiating' | 'signing' | 'confirming' | 'success' | 'error' | 'rolling_back';
 
 export default function PaymentEscrowModal({ isOpen, onClose }: PaymentEscrowModalProps) {
   const [status, setStatus] = useState<PaymentStatus>('idle');

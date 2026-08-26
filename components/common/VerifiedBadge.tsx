@@ -1,6 +1,7 @@
 'use client';
 
 import { BadgeCheck } from 'lucide-react';
+import { cn } from '@/lib/cn';
 
 interface VerifiedBadgeProps {
   className?: string;
@@ -22,10 +23,16 @@ export default function VerifiedBadge({ className = '', size = 'sm' }: VerifiedB
 
   return (
     <span
-      className={`inline-flex items-center rounded-full bg-blue-100 font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 ${containerClasses[size]} ${className}`}
+      className={cn(
+        'inline-flex items-center rounded-full bg-blue-100 font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+        containerClasses[size],
+        className
+      )}
       title="Verified Artist"
     >
-      <BadgeCheck className={`${sizeClasses[size]} fill-blue-500 text-white dark:fill-blue-400`} />
+      <BadgeCheck
+        className={cn(sizeClasses[size], 'fill-blue-500 text-white dark:fill-blue-400')}
+      />
       <span className="hidden sm:inline">Verified</span>
     </span>
   );

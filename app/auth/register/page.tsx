@@ -36,13 +36,15 @@ const RegisterPage = () => {
       return;
     }
     setLocalError(null);
-    dispatch(registerUser({ fullName, email, password })).then((result: any) => {
-      if (registerUser.fulfilled.match(result)) {
-        router.push('/auth/check-email');
-      }
-    }).catch(() => {
-      // Handled by Redux authError state
-    });
+    dispatch(registerUser({ fullName, email, password }))
+      .then((result: any) => {
+        if (registerUser.fulfilled.match(result)) {
+          router.push('/auth/check-email');
+        }
+      })
+      .catch(() => {
+        // Handled by Redux authError state
+      });
   };
 
   return (

@@ -55,7 +55,9 @@ export default function NewCommissionPage({ searchParams }: NewCommissionPagePro
         <div className="mb-5 flex flex-wrap items-start justify-between gap-3 sm:mb-6">
           <div className="min-w-0">
             <p className="text-sm font-medium text-blue-600">Create Commission</p>
-            <h1 className="break-words text-lg font-semibold text-gray-900 dark:text-white sm:text-xl md:text-2xl">Request a custom project</h1>
+            <h1 className="break-words text-lg font-semibold text-gray-900 dark:text-white sm:text-xl md:text-2xl">
+              Request a custom project
+            </h1>
           </div>
           <Link
             href="/dashboard"
@@ -67,7 +69,9 @@ export default function NewCommissionPage({ searchParams }: NewCommissionPagePro
 
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Artist</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Artist
+            </label>
             <input
               value={artist}
               onChange={(event) => setArtist(event.target.value)}
@@ -78,7 +82,9 @@ export default function NewCommissionPage({ searchParams }: NewCommissionPagePro
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Title
+            </label>
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
@@ -89,7 +95,9 @@ export default function NewCommissionPage({ searchParams }: NewCommissionPagePro
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Description
+            </label>
             <textarea
               value={description}
               onChange={(event) => setDescription(event.target.value)}
@@ -102,7 +110,9 @@ export default function NewCommissionPage({ searchParams }: NewCommissionPagePro
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Budget (USDC)</label>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Budget (USDC)
+              </label>
               <input
                 type="number"
                 value={budget}
@@ -116,7 +126,9 @@ export default function NewCommissionPage({ searchParams }: NewCommissionPagePro
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Deadline</label>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Deadline
+              </label>
               <input
                 type="date"
                 value={deadline}
@@ -128,7 +140,9 @@ export default function NewCommissionPage({ searchParams }: NewCommissionPagePro
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Attachments</label>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Attachments
+            </label>
             <input
               type="file"
               multiple
@@ -144,15 +158,25 @@ export default function NewCommissionPage({ searchParams }: NewCommissionPagePro
                 {files.map((file) => (
                   <li key={file.name} className="flex items-center justify-between">
                     <span className="truncate mr-2">{file.name}</span>
-                    <span className="shrink-0 text-xs text-gray-500">{(file.size / 1024).toFixed(1)} KB</span>
+                    <span className="shrink-0 text-xs text-gray-500">
+                      {(file.size / 1024).toFixed(1)} KB
+                    </span>
                   </li>
                 ))}
               </ul>
             </div>
           )}
 
-          {mutation.isSuccess && <p className="text-sm text-green-600 dark:text-green-400">Commission request sent successfully.</p>}
-          {mutation.isError && <p className="text-sm text-red-600 dark:text-red-400">{(mutation.error as Error).message}</p>}
+          {mutation.isSuccess && (
+            <p className="text-sm text-green-600 dark:text-green-400">
+              Commission request sent successfully.
+            </p>
+          )}
+          {mutation.isError && (
+            <p className="text-sm text-red-600 dark:text-red-400">
+              {(mutation.error as Error).message}
+            </p>
+          )}
 
           <div className="flex flex-col gap-3 pt-2 sm:flex-row">
             <button

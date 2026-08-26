@@ -75,25 +75,25 @@ export default function PaymentsPage() {
             Fund Escrow
           </button>
           <div className="flex flex-wrap gap-3">
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
-          >
-            <option value="all">All statuses</option>
-            <option value="completed">Completed</option>
-            <option value="pending">Pending</option>
-            <option value="failed">Failed</option>
-          </select>
-          <select
-            value={asset}
-            onChange={(e) => setAsset(e.target.value)}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
-          >
-            <option value="all">All assets</option>
-            <option value="usdc">USDC</option>
-            <option value="xlm">XLM</option>
-          </select>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+            >
+              <option value="all">All statuses</option>
+              <option value="completed">Completed</option>
+              <option value="pending">Pending</option>
+              <option value="failed">Failed</option>
+            </select>
+            <select
+              value={asset}
+              onChange={(e) => setAsset(e.target.value)}
+              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
+            >
+              <option value="all">All assets</option>
+              <option value="usdc">USDC</option>
+              <option value="xlm">XLM</option>
+            </select>
           </div>
         </div>
 

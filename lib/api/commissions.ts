@@ -26,11 +26,15 @@ export function createCommission(data: {
 
 export function getCommissions(params?: { status?: string; role?: string }) {
   if (params?.role === 'artist') {
-    return api.get('/commissions/artist', { params: { status: params.status } }).then((r) => r.data);
+    return api
+      .get('/commissions/artist', { params: { status: params.status } })
+      .then((r) => r.data);
   }
 
   if (params?.role === 'client') {
-    return api.get('/commissions/client', { params: { status: params.status } }).then((r) => r.data);
+    return api
+      .get('/commissions/client', { params: { status: params.status } })
+      .then((r) => r.data);
   }
 
   return api.get('/commissions', { params }).then((r) => r.data);
@@ -61,9 +65,7 @@ export function normalizeCommission(item: unknown, index: number): CommissionIte
   return {
     id: String(entry.id ?? `commission-${index + 1}`),
     title: String(entry.title ?? entry.name ?? 'Untitled commission'),
-    artistName: String(
-      artist.name ?? entry.artistName ?? entry.artist ?? 'Artist',
-    ),
+    artistName: String(artist.name ?? entry.artistName ?? entry.artist ?? 'Artist'),
     artistId: String(artist.id ?? entry.artistId ?? ''),
     status: normalizeStatus(entry.status),
     budgetUsdc: Number(entry.budgetUsdc ?? entry.budget ?? entry.amount ?? entry.price ?? 0),
@@ -85,10 +87,10 @@ export function normalizeCommissions(payload: unknown): CommissionItem[] {
   const commissions = Array.isArray(candidate.commissions)
     ? candidate.commissions
     : Array.isArray(candidate.data)
-    ? candidate.data
-    : Array.isArray(candidate.items)
-    ? candidate.items
-    : undefined;
+      ? candidate.data
+      : Array.isArray(candidate.items)
+        ? candidate.items
+        : undefined;
 
   if (Array.isArray(commissions)) {
     return commissions.map((item, index) => normalizeCommission(item, index));

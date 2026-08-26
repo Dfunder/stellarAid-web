@@ -12,7 +12,12 @@ interface Message {
 }
 
 const initialMessages: Message[] = [
-  { id: 1, sender: 'them', text: 'Hi! I can start on the draft this afternoon.', createdAt: '09:10' },
+  {
+    id: 1,
+    sender: 'them',
+    text: 'Hi! I can start on the draft this afternoon.',
+    createdAt: '09:10',
+  },
   { id: 2, sender: 'me', text: 'Perfect, I will review the details then.', createdAt: '09:12' },
 ];
 
@@ -88,13 +93,17 @@ export default function MessageThreadPage({ params }: { params: { id: string } }
       <div className="flex h-[75vh] flex-col rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
         <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-800">
           <div>
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Conversation #{params.id}</h1>
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Conversation #{params.id}
+            </h1>
             <p className="text-sm text-gray-500">
               {isConnected ? 'Connected — messages sync in real time.' : 'Reconnecting...'}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`inline-block h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-amber-500 animate-pulse'}`} />
+            <span
+              className={`inline-block h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-amber-500 animate-pulse'}`}
+            />
             <button className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300">
               Mark all read
             </button>

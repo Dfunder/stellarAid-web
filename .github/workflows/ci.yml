@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop, 'perf/**', 'feat/**', 'fix/**']
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  ci:
+    name: Type Check · Lint · Test · Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # ── Static Analysis ───────────────────────────────────────────────────
+      - name: Type check
+        run: npm run type-check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      # ── Unit Tests ────────────────────────────────────────────────────────
+      - name: Unit tests
+        run: npm run test
+
+      # ── Build ─────────────────────────────────────────────────────────────
+      # Validates that Tailwind purges correctly and no runtime CSS fallbacks
+      # are needed. A failed build here catches missing class issues early.
+      - name: Build
+        run: npm run build
+        env:
+          # Provide stub values so next build doesn't fail on missing env vars
+          NEXTAUTH_SECRET: ci-stub-secret
+          NEXTAUTH_URL: http://localhost:3000
+          NEXT_PUBLIC_API_BASE_URL: http://localhost:4000

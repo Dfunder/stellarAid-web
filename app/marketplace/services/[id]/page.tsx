@@ -4,7 +4,10 @@ import { useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
-import { selectCurrentService, selectServicesLoading } from '@/app/features/services/servicesSelectors';
+import {
+  selectCurrentService,
+  selectServicesLoading,
+} from '@/app/features/services/servicesSelectors';
 import { fetchServiceById } from '@/app/features/services/servicesThunks';
 import MainLayout from '@/app/components/layout/MainLayout';
 import Button from '@/app/components/ui/Button';
@@ -68,10 +71,7 @@ export default function ServiceDetailPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
           <Breadcrumb
-            items={[
-              { label: 'Marketplace', href: '/marketplace' },
-              { label: service.title },
-            ]}
+            items={[{ label: 'Marketplace', href: '/marketplace' }, { label: service.title }]}
           />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -96,11 +96,15 @@ export default function ServiceDetailPage() {
                 <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-500 dark:text-neutral-400">
                   <div className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
-                    <span>{service.deliveryDays} day{service.deliveryDays === 1 ? '' : 's'} delivery</span>
+                    <span>
+                      {service.deliveryDays} day{service.deliveryDays === 1 ? '' : 's'} delivery
+                    </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <RefreshCw className="w-4 h-4" />
-                    <span>{service.revisions} revision{service.revisions === 1 ? '' : 's'}</span>
+                    <span>
+                      {service.revisions} revision{service.revisions === 1 ? '' : 's'}
+                    </span>
                   </div>
                   {service.rating !== undefined && (
                     <div className="flex items-center gap-1 text-amber-500">
@@ -114,7 +118,9 @@ export default function ServiceDetailPage() {
 
               {/* Description */}
               <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-6">
-                <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">About This Service</h2>
+                <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
+                  About This Service
+                </h2>
                 <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed whitespace-pre-line">
                   {service.description}
                 </p>
@@ -122,7 +128,9 @@ export default function ServiceDetailPage() {
 
               {/* Features */}
               <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-6">
-                <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">What&apos;s Included</h2>
+                <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
+                  What&apos;s Included
+                </h2>
                 {service.features && service.features.length > 0 ? (
                   <ul className="space-y-3">
                     {service.features.map((feature, index) => (
@@ -175,13 +183,17 @@ export default function ServiceDetailPage() {
                               )}
                             </div>
                             <div>
-                              <p className="font-medium text-neutral-900 dark:text-white">{review.userName}</p>
+                              <p className="font-medium text-neutral-900 dark:text-white">
+                                {review.userName}
+                              </p>
                               <div className="flex items-center gap-1 text-amber-500">
                                 {[...Array(5)].map((_, i) => (
                                   <Star
                                     key={i}
                                     className={`w-3 h-3 ${
-                                      i < review.rating ? 'fill-current' : 'text-neutral-300 dark:text-neutral-600'
+                                      i < review.rating
+                                        ? 'fill-current'
+                                        : 'text-neutral-300 dark:text-neutral-600'
                                     }`}
                                   />
                                 ))}
@@ -197,7 +209,9 @@ export default function ServiceDetailPage() {
                             })}
                           </span>
                         </div>
-                        <p className="text-neutral-600 dark:text-neutral-400 text-sm">{review.comment}</p>
+                        <p className="text-neutral-600 dark:text-neutral-400 text-sm">
+                          {review.comment}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -229,7 +243,9 @@ export default function ServiceDetailPage() {
                       <span className="flex items-center gap-2">
                         <RefreshCw className="w-4 h-4" /> Revisions
                       </span>
-                      <span className="font-medium text-neutral-900 dark:text-white">{service.revisions}</span>
+                      <span className="font-medium text-neutral-900 dark:text-white">
+                        {service.revisions}
+                      </span>
                     </div>
                   </div>
                   <Button variant="primary" size="lg" className="w-full">
@@ -243,11 +259,10 @@ export default function ServiceDetailPage() {
                 {/* Artist Card */}
                 {artist && (
                   <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-6">
-                    <h3 className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-4">About the Artist</h3>
-                    <Link
-                      href={`/artists/${artist.id}`}
-                      className="flex items-center gap-3 group"
-                    >
+                    <h3 className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-4">
+                      About the Artist
+                    </h3>
+                    <Link href={`/artists/${artist.id}`} className="flex items-center gap-3 group">
                       <div className="w-14 h-14 rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden flex-shrink-0">
                         {artist.avatar ? (
                           <img
@@ -272,7 +287,9 @@ export default function ServiceDetailPage() {
                           <div className="flex items-center gap-1 text-amber-500 text-sm">
                             <Star className="w-3.5 h-3.5 fill-current" />
                             <span className="font-medium">{artist.rating.toFixed(1)}</span>
-                            <span className="text-neutral-400">({artist.reviewCount || 0} reviews)</span>
+                            <span className="text-neutral-400">
+                              ({artist.reviewCount || 0} reviews)
+                            </span>
                           </div>
                         )}
                       </div>

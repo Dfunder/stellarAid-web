@@ -104,7 +104,10 @@ export default function ReviewsList({ reviews, pageSize = 5 }: ReviewsListProps)
           const count = summary.distribution[star - 1] ?? 0;
           const percent = summary.total === 0 ? 0 : Math.round((count / summary.total) * 100);
           return (
-            <div key={star} className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-300">
+            <div
+              key={star}
+              className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-300"
+            >
               <span className="w-6 shrink-0 text-right">{star}</span>
               <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden="true" />
               <div
@@ -116,7 +119,10 @@ export default function ReviewsList({ reviews, pageSize = 5 }: ReviewsListProps)
                   style={{ width: `${percent}%` }}
                 />
               </div>
-              <span aria-label={`${count} reviews`} className="w-10 text-right text-gray-500 dark:text-gray-400">
+              <span
+                aria-label={`${count} reviews`}
+                className="w-10 text-right text-gray-500 dark:text-gray-400"
+              >
                 {count}
               </span>
             </div>

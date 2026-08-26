@@ -4,11 +4,25 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
 import { selectServices, selectServicesLoading } from '@/app/features/services/servicesSelectors';
-import { fetchMyServices, deleteService, toggleServiceStatus } from '@/app/features/services/servicesThunks';
+import {
+  fetchMyServices,
+  deleteService,
+  toggleServiceStatus,
+} from '@/app/features/services/servicesThunks';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import Button from '@/app/components/ui/Button';
 import { Skeleton } from '@/app/components/ui/Skeleton';
-import { Plus, Edit, Trash2, Eye, EyeOff, Briefcase, Clock, RefreshCw, DollarSign } from 'lucide-react';
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  EyeOff,
+  Briefcase,
+  Clock,
+  RefreshCw,
+  DollarSign,
+} from 'lucide-react';
 
 export default function ServiceManagementPage() {
   const dispatch = useAppDispatch();
@@ -22,13 +36,17 @@ export default function ServiceManagementPage() {
   }, [dispatch]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this service? This action cannot be undone.')) return;
+    if (!confirm('Are you sure you want to delete this service? This action cannot be undone.'))
+      return;
     setDeletingId(id);
     await dispatch(deleteService(id));
     setDeletingId(null);
   };
 
-  const handleToggleStatus = async (id: string, currentStatus: 'draft' | 'published' | 'inactive') => {
+  const handleToggleStatus = async (
+    id: string,
+    currentStatus: 'draft' | 'published' | 'inactive'
+  ) => {
     if (currentStatus === 'draft') {
       // Publish draft directly
       setTogglingId(id);
@@ -204,7 +222,11 @@ export default function ServiceManagementPage() {
                     {/* Actions */}
                     <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800">
                       <Link href={`/dashboard/artist/services/${service.id}/edit`}>
-                        <Button variant="ghost" size="sm" leftIcon={<Edit className="w-3.5 h-3.5" />}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          leftIcon={<Edit className="w-3.5 h-3.5" />}
+                        >
                           Edit
                         </Button>
                       </Link>

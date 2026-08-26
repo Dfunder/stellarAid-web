@@ -37,7 +37,11 @@ export function useCommissionStatus(options: UseCommissionStatusOptions = {}) {
     const socket = getSocket();
     if (!socket) return;
 
-    const handleStatusUpdate = (payload: { commissionId: string; status: CommissionStatus; updatedAt: string }) => {
+    const handleStatusUpdate = (payload: {
+      commissionId: string;
+      status: CommissionStatus;
+      updatedAt: string;
+    }) => {
       setCommissions((prev) =>
         prev.map((commission) =>
           commission.id === payload.commissionId

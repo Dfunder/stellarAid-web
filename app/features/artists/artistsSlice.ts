@@ -53,11 +53,7 @@ const artistsSlice = createSlice({
   },
 });
 
-export const {
-  setCurrentArtist,
-  clearCurrentArtist,
-  setArtistsLoading,
-  setArtistsError,
-} = artistsSlice.actions;
+export const { setCurrentArtist, clearCurrentArtist, setArtistsLoading, setArtistsError } =
+  artistsSlice.actions;
 
 export default artistsSlice.reducer;

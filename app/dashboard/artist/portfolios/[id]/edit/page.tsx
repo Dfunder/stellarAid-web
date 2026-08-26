@@ -4,7 +4,10 @@ import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
-import { selectCurrentPortfolio, selectPortfoliosLoading } from '@/app/features/portfolios/portfoliosSelectors';
+import {
+  selectCurrentPortfolio,
+  selectPortfoliosLoading,
+} from '@/app/features/portfolios/portfoliosSelectors';
 import { fetchPortfolioById, updatePortfolio } from '@/app/features/portfolios/portfoliosThunks';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import Button from '@/app/components/ui/Button';
@@ -213,7 +216,13 @@ export default function EditPortfolioPage() {
             </label>
             {coverImage ? (
               <div className="relative rounded-xl overflow-hidden h-48 bg-neutral-100 dark:bg-neutral-800">
-                <Image src={coverImage} alt="Cover" fill className="object-cover" sizes="(max-width: 768px) 100vw, 600px" />
+                <Image
+                  src={coverImage}
+                  alt="Cover"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 600px"
+                />
                 <button
                   type="button"
                   onClick={handleRemoveImage}
@@ -241,8 +250,10 @@ export default function EditPortfolioPage() {
                 />
                 <Upload className="w-10 h-10 text-neutral-400 mx-auto mb-3" />
                 <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                  <span className="font-medium text-primary-600 dark:text-primary-400">Click to upload</span> or drag
-                  and drop
+                  <span className="font-medium text-primary-600 dark:text-primary-400">
+                    Click to upload
+                  </span>{' '}
+                  or drag and drop
                 </p>
                 <p className="text-xs text-neutral-400 mt-1">SVG, PNG, JPG or GIF (max. 5MB)</p>
               </div>

@@ -8,6 +8,7 @@ import { selectIsAuthenticated, selectUser } from '@/app/features/auth/authSelec
 import { logoutUser } from '@/app/features/auth/authThunks';
 import { useRole } from '@/app/hooks/useRole';
 import NotificationBell from '@/app/components/layout/NotificationBell';
+import { cn } from '@/lib/cn';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -44,12 +45,12 @@ export default function Header() {
 
   return (
     <header
-      className={
-        'sticky top-0 z-40 w-full transition-all duration-300 ' +
-        (scrolled
+      className={cn(
+        'sticky top-0 z-40 w-full transition-all duration-300',
+        scrolled
           ? 'bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm shadow-md'
-          : 'bg-transparent')
-      }
+          : 'bg-transparent'
+      )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
@@ -77,74 +78,74 @@ export default function Header() {
               <>
                 <NotificationBell />
                 <div className="relative">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setUserMenuOpen(!userMenuOpen);
-                  }}
-                  className="flex items-center space-x-2 p-1 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                  aria-label="User menu"
-                >
-                  {user?.avatar ? (
-                    <Image
-                      src={user.avatar}
-                      alt={user.name}
-                      width={32}
-                      height={32}
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-primary-700 flex items-center justify-center text-white font-medium">
-                      {user?.name?.charAt(0).toUpperCase() || 'U'}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setUserMenuOpen(!userMenuOpen);
+                    }}
+                    className="flex items-center space-x-2 p-1 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                    aria-label="User menu"
+                  >
+                    {user?.avatar ? (
+                      <Image
+                        src={user.avatar}
+                        alt={user.name}
+                        width={32}
+                        height={32}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-primary-700 flex items-center justify-center text-white font-medium">
+                        {user?.name?.charAt(0).toUpperCase() || 'U'}
+                      </div>
+                    )}
+                  </button>
+
+                  {userMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-neutral-800 rounded-xl shadow-lg py-2 border border-neutral-200 dark:border-neutral-700">
+                      <div className="px-4 py-2 border-b border-neutral-200 dark:border-neutral-700">
+                        <p className="text-sm font-medium text-neutral-900 dark:text-white">
+                          {user?.name}
+                        </p>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
+                          {user?.email}
+                        </p>
+                      </div>
+                      <Link
+                        href="/dashboard"
+                        className="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                      >
+                        Dashboard
+                      </Link>
+                      {isAdmin ? (
+                        <Link
+                          href="/admin"
+                          className="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                        >
+                          Admin Panel
+                        </Link>
+                      ) : (
+                        <Link
+                          href="/my-campaigns"
+                          className="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                        >
+                          My Campaigns
+                        </Link>
+                      )}
+                      <Link
+                        href="/settings"
+                        className="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                      >
+                        Settings
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                      >
+                        Log Out
+                      </button>
                     </div>
                   )}
-                </button>
-
-                {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-neutral-800 rounded-xl shadow-lg py-2 border border-neutral-200 dark:border-neutral-700">
-                    <div className="px-4 py-2 border-b border-neutral-200 dark:border-neutral-700">
-                      <p className="text-sm font-medium text-neutral-900 dark:text-white">
-                        {user?.name}
-                      </p>
-                      <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
-                        {user?.email}
-                      </p>
-                    </div>
-                    <Link
-                      href="/dashboard"
-                      className="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                    >
-                      Dashboard
-                    </Link>
-                    {isAdmin ? (
-                      <Link
-                        href="/admin"
-                        className="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                      >
-                        Admin Panel
-                      </Link>
-                    ) : (
-                      <Link
-                        href="/my-campaigns"
-                        className="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                      >
-                        My Campaigns
-                      </Link>
-                    )}
-                    <Link
-                      href="/settings"
-                      className="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                    >
-                      Settings
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                    >
-                      Log Out
-                    </button>
-                  </div>
-                )}
                 </div>
               </>
             ) : (

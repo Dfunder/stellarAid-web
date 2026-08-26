@@ -3,7 +3,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { clsx } from 'clsx';
+import { cn } from '@/lib/cn';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export interface LightboxItem {
@@ -254,7 +254,7 @@ export default function Lightbox({ isOpen, onClose, items, initialIndex = 0 }: L
                 <img
                   src={currentItem?.src}
                   alt={currentItem?.alt || currentItem?.title || 'Portfolio image'}
-                  className={clsx(
+                  className={cn(
                     'max-h-[75vh] max-w-full rounded-lg object-contain shadow-2xl transition-opacity duration-300 select-none',
                     imageLoaded && !imageError ? 'opacity-100' : 'opacity-0'
                   )}

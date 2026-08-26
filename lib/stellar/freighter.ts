@@ -1,7 +1,8 @@
 import {
-  getPublicKey as freighterGetPublicKey,
+  getAddress as freighterGetAddress,
   signTransaction as freighterSignTransaction,
-  isAllowed,
+  isAllowed as freighterIsAllowed,
+  isConnected as freighterIsConnected,
 } from '@stellar/freighter-api';
 
 export function isFreighterInstalled(): boolean {
@@ -12,22 +13,35 @@ export async function connectWallet(): Promise<string> {
   if (!isFreighterInstalled()) {
     throw new Error('Freighter is not installed. Please install the Freighter browser extension.');
   }
-  const publicKey = await freighterGetPublicKey();
-  return publicKey;
+  const res = await freighterGetAddress();
+  if (res.error) {
+    throw new Error(typeof res.error === 'string' ? res.error : 'Failed to connect wallet');
+  }
+  return res.address;
 }
 
 export async function getPublicKey(): Promise<string> {
-  return freighterGetPublicKey();
+  const res = await freighterGetAddress();
+  if (res.error) {
+    throw new Error(typeof res.error === 'string' ? res.error : 'Failed to get public key');
+  }
+  return res.address;
 }
 
 export async function signTransaction(xdr: string): Promise<string> {
-  const signed = await freighterSignTransaction(xdr);
-  return signed;
+  const res = await freighterSignTransaction(xdr);
+  if (res.error) {
+    throw new Error(typeof res.error === 'string' ? res.error : 'Failed to sign transaction');
+  }
+  return res.signedTxXdr;
 }
 
 export async function signAndSubmitTransaction(xdr: string): Promise<string> {
-  const allowed = await isAllowed();
-  if (!allowed) throw new Error('Freighter connection not authorized.');
-  const signed = await freighterSignTransaction(xdr);
-  return signed;
+  const allowedRes = await freighterIsAllowed();
+  if (!allowedRes.isAllowed) throw new Error('Freighter connection not authorized.');
+  const res = await freighterSignTransaction(xdr);
+  if (res.error) {
+    throw new Error(typeof res.error === 'string' ? res.error : 'Failed to sign transaction');
+  }
+  return res.signedTxXdr;
 }

@@ -3,7 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppDispatch } from '@/app/store/hooks';
-import { createService, updateService, ServiceFormData } from '@/app/features/services/servicesThunks';
+import {
+  createService,
+  updateService,
+  ServiceFormData,
+} from '@/app/features/services/servicesThunks';
 import { Service } from '@/app/features/services/servicesSlice';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import Button from '@/app/components/ui/Button';
@@ -73,8 +77,10 @@ export default function ServiceForm({ mode, initialService }: ServiceFormProps) 
     if (!category) newErrors.category = 'Category is required';
     if (!description.trim()) newErrors.description = 'Description is required';
     if (!price || Number(price) <= 0) newErrors.price = 'Price must be greater than 0';
-    if (!deliveryDays || Number(deliveryDays) < 1) newErrors.deliveryDays = 'Delivery days must be at least 1';
-    if (revisions === '' || Number(revisions) < 0) newErrors.revisions = 'Revisions cannot be negative';
+    if (!deliveryDays || Number(deliveryDays) < 1)
+      newErrors.deliveryDays = 'Delivery days must be at least 1';
+    if (revisions === '' || Number(revisions) < 0)
+      newErrors.revisions = 'Revisions cannot be negative';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -279,7 +285,9 @@ export default function ServiceForm({ mode, initialService }: ServiceFormProps) 
 
           {/* Preview Card */}
           <div className="lg:sticky lg:top-24">
-            <h3 className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-3">Preview</h3>
+            <h3 className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-3">
+              Preview
+            </h3>
             <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
               <div className="h-40 bg-gradient-to-br from-primary-100 to-secondary-100 dark:from-primary-900/30 dark:to-secondary-900/30 flex items-center justify-center">
                 <Briefcase className="w-12 h-12 text-primary-600 dark:text-primary-400" />
@@ -297,7 +305,10 @@ export default function ServiceForm({ mode, initialService }: ServiceFormProps) 
 
                 <div className="space-y-2 mb-4">
                   {previewService.features?.map((feature, index) => (
-                    <div key={index} className="flex items-start gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+                    <div
+                      key={index}
+                      className="flex items-start gap-2 text-sm text-neutral-600 dark:text-neutral-400"
+                    >
                       <div className="w-4 h-4 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
                         <div className="w-1.5 h-1.5 rounded-full bg-green-600 dark:bg-green-400" />
                       </div>

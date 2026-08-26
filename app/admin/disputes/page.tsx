@@ -58,7 +58,9 @@ function normalizeDispute(item: unknown, index?: number): DisputedCommission {
       email: String(artist.email ?? entry.artistEmail ?? ''),
     },
     amount: Number(entry.amount ?? entry.totalAmount ?? entry.budgetUsdc ?? 0),
-    disputeReason: String(entry.disputeReason ?? entry.reason ?? entry.description ?? 'No reason provided'),
+    disputeReason: String(
+      entry.disputeReason ?? entry.reason ?? entry.description ?? 'No reason provided'
+    ),
     createdAt: String(entry.createdAt ?? entry.created_at ?? ''),
   };
 }
@@ -120,8 +122,8 @@ export default function AdminDisputesPage() {
         resolution: resolutionType,
         ...(resolutionType === 'partial' && {
           clientPercentage: splitPercentage,
-          artistPercentage: 100 - splitPercentage
-        })
+          artistPercentage: 100 - splitPercentage,
+        }),
       };
 
       const response = await fetch(`/admin/commissions/${selectedDispute.id}/resolve-dispute`, {
@@ -134,7 +136,7 @@ export default function AdminDisputesPage() {
 
       if (response.ok) {
         // Remove the resolved dispute from the list
-        setDisputes(disputes.filter(d => d.id !== selectedDispute.id));
+        setDisputes(disputes.filter((d) => d.id !== selectedDispute.id));
         closeModal();
       }
     } catch (error) {
@@ -151,7 +153,7 @@ export default function AdminDisputesPage() {
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-8"></div>
             <div className="space-y-4">
-              {[1, 2, 3].map(i => (
+              {[1, 2, 3].map((i) => (
                 <div key={i} className="h-32 bg-white dark:bg-gray-800 rounded-xl"></div>
               ))}
             </div>
@@ -166,7 +168,9 @@ export default function AdminDisputesPage() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dispute Management</h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">Manage and resolve disputed commissions</p>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            Manage and resolve disputed commissions
+          </p>
         </div>
 
         {error && (
@@ -191,33 +195,54 @@ export default function AdminDisputesPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            {disputes.map(dispute => (
-              <div key={dispute.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            {disputes.map((dispute) => (
+              <div
+                key={dispute.id}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6"
+              >
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                   {/* Commission Title */}
                   <div className="lg:col-span-1">
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Commission</h3>
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      Commission
+                    </h3>
                     <p className="font-semibold text-gray-900 dark:text-white">{dispute.title}</p>
                   </div>
 
                   {/* Client */}
                   <div>
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Client</h3>
-                    <p className="font-medium text-gray-900 dark:text-white">{dispute.client.name}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{dispute.client.email}</p>
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      Client
+                    </h3>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      {dispute.client.name}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {dispute.client.email}
+                    </p>
                   </div>
 
                   {/* Artist */}
                   <div>
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Artist</h3>
-                    <p className="font-medium text-gray-900 dark:text-white">{dispute.artist.name}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{dispute.artist.email}</p>
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      Artist
+                    </h3>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      {dispute.artist.name}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {dispute.artist.email}
+                    </p>
                   </div>
 
                   {/* Amount */}
                   <div>
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Amount</h3>
-                    <p className="text-xl font-bold text-gray-900 dark:text-white">${dispute.amount.toFixed(2)}</p>
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      Amount
+                    </h3>
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">
+                      ${dispute.amount.toFixed(2)}
+                    </p>
                   </div>
 
                   {/* Resolve Button */}
@@ -233,7 +258,9 @@ export default function AdminDisputesPage() {
 
                 {/* Dispute Reason */}
                 <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Dispute Reason</h3>
+                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                    Dispute Reason
+                  </h3>
                   <p className="text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg">
                     {dispute.disputeReason}
                   </p>
@@ -260,7 +287,9 @@ export default function AdminDisputesPage() {
               {selectedDispute && (
                 <>
                   <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg">
-                    <p className="font-medium text-gray-900 dark:text-white">{selectedDispute.title}</p>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      {selectedDispute.title}
+                    </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                       Amount: ${selectedDispute.amount.toFixed(2)}
                     </p>
@@ -268,7 +297,9 @@ export default function AdminDisputesPage() {
 
                   {/* Resolution Type Selection */}
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Resolution Type</h3>
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
+                      Resolution Type
+                    </h3>
                     <div className="grid grid-cols-3 gap-3">
                       <button
                         onClick={() => setResolutionType('refund')}
@@ -279,7 +310,9 @@ export default function AdminDisputesPage() {
                         }`}
                       >
                         <p className="font-medium text-gray-900 dark:text-white">Refund</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">100% to client</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          100% to client
+                        </p>
                       </button>
                       <button
                         onClick={() => setResolutionType('release')}
@@ -290,7 +323,9 @@ export default function AdminDisputesPage() {
                         }`}
                       >
                         <p className="font-medium text-gray-900 dark:text-white">Release</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">100% to artist</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          100% to artist
+                        </p>
                       </button>
                       <button
                         onClick={() => setResolutionType('partial')}
@@ -301,7 +336,9 @@ export default function AdminDisputesPage() {
                         }`}
                       >
                         <p className="font-medium text-gray-900 dark:text-white">Partial</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Split payment</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Split payment
+                        </p>
                       </button>
                     </div>
                   </div>
@@ -309,11 +346,17 @@ export default function AdminDisputesPage() {
                   {/* Partial Split Slider */}
                   {resolutionType === 'partial' && (
                     <div className="space-y-4">
-                      <h3 className="text-sm font-medium text-gray-900 dark:text-white">Payment Split</h3>
+                      <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+                        Payment Split
+                      </h3>
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600 dark:text-gray-400">Client: {splitPercentage}%</span>
-                          <span className="text-gray-600 dark:text-gray-400">Artist: {100 - splitPercentage}%</span>
+                          <span className="text-gray-600 dark:text-gray-400">
+                            Client: {splitPercentage}%
+                          </span>
+                          <span className="text-gray-600 dark:text-gray-400">
+                            Artist: {100 - splitPercentage}%
+                          </span>
                         </div>
                         <input
                           type="range"
@@ -330,10 +373,12 @@ export default function AdminDisputesPage() {
                       </div>
                       <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
                         <p className="text-sm text-blue-800 dark:text-blue-300">
-                          Client will receive: ${(selectedDispute.amount * splitPercentage / 100).toFixed(2)}
+                          Client will receive: $
+                          {((selectedDispute.amount * splitPercentage) / 100).toFixed(2)}
                         </p>
                         <p className="text-sm text-blue-800 dark:text-blue-300 mt-1">
-                          Artist will receive: ${(selectedDispute.amount * (100 - splitPercentage) / 100).toFixed(2)}
+                          Artist will receive: $
+                          {((selectedDispute.amount * (100 - splitPercentage)) / 100).toFixed(2)}
                         </p>
                       </div>
                     </div>
