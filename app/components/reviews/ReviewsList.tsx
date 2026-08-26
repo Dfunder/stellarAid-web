@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
 
 export interface Review {
@@ -39,6 +39,10 @@ function StarRow({ value }: { value: number }) {
 
 export default function ReviewsList({ reviews, pageSize = 5 }: ReviewsListProps) {
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    setPage(1);
+  }, [reviews]);
 
   const summary = useMemo(() => {
     if (reviews.length === 0) {

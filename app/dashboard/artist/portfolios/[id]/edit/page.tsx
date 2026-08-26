@@ -211,7 +211,7 @@ export default function EditPortfolioPage() {
               Cover Image
             </label>
             {coverImage ? (
-              <div className="relative rounded-xl overflow-hidden h-48 bg-neutral-100 dark:bg-neutral-800">
+              <div className="relative rounded-xl overflow-hidden aspect-[3/1] bg-neutral-100 dark:bg-neutral-800">
                 <img src={coverImage} alt="Cover" className="w-full h-full object-cover" />
                 <button
                   type="button"
