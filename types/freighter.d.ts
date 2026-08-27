@@ -5,7 +5,6 @@ interface Window {
     signTransaction?: (
       xdr: string
     ) => Promise<{ signedTxXdr: string; signerAddress: string; error?: string } | string>;
-    signTransaction?: (xdr: string) => Promise<string>;
     isAllowed?: () => Promise<boolean>;
     isConnected?: () => Promise<boolean>;
     connect?: () => Promise<string | { publicKey?: string }>;

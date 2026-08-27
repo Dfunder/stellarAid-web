@@ -44,6 +44,12 @@ export default function ArtistProfilePage() {
     );
   }
 
+  const getErrorMessage = (err: unknown): string => {
+    if (err instanceof Error) return err.message;
+    if (typeof err === 'string') return err;
+    return "We couldn't find the artist you're looking for.";
+  };
+
   if (error || !artist) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950">
@@ -54,13 +60,7 @@ export default function ArtistProfilePage() {
           <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">
             Artist Not Found
           </h1>
-          <p className="text-neutral-500 dark:text-neutral-400">
-            {error instanceof Error
-              ? error.message
-              : typeof error === 'string'
-                ? error
-                : "We couldn't find the artist you're looking for."}
-          </p>
+          <p className="text-neutral-500 dark:text-neutral-400">{getErrorMessage(error)}</p>
         </div>
       </div>
     );
@@ -76,12 +76,16 @@ export default function ArtistProfilePage() {
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
       {/* Cover Image */}
       <div className="relative h-56 sm:h-72 bg-gradient-to-r from-primary-600 via-primary-700 to-secondary-600">
-        {artist.coverImage && (
-          <img
+        {artist.coverImage ? (
+          <NextImage
             src={artist.coverImage}
             alt={`${artist.name} cover`}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
+            sizes="100vw"
           />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-r from-primary-600 to-secondary-600" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
       </div>
@@ -93,7 +97,6 @@ export default function ArtistProfilePage() {
           <div className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full border-4 border-white dark:border-neutral-900 overflow-hidden bg-neutral-200 dark:bg-neutral-700 shadow-lg flex-shrink-0">
             {artist.avatar ? (
               <NextImage
-              <Image
                 src={artist.avatar}
                 alt={artist.name}
                 fill
@@ -186,6 +189,7 @@ export default function ArtistProfilePage() {
             {tabs.map((tab) => (
               <button
                 key={tab.key}
+                type="button"
                 role="tab"
                 aria-selected={activeTab === tab.key}
                 onClick={() => setActiveTab(tab.key)}
