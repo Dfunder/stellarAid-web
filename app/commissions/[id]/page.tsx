@@ -114,6 +114,41 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
   const [role, setRole] = useState<Role>('client');
   const [tab, setTab] = useState<Tab>('overview');
   const [milestones, setMilestones] = useState<Milestone[]>(MOCK_MILESTONES);
+  
+  // Escrow modal state
+  const [isEscrowModalOpen, setIsEscrowModalOpen] = useState(false);
+  const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(null);
+  const [isReleasePayment, setIsReleasePayment] = useState(false);
+  
+  // Functions to handle escrow interactions
+  const openFundEscrowModal = (milestone: Milestone) => {
+    setSelectedMilestone(milestone);
+    setIsReleasePayment(false);
+    setIsEscrowModalOpen(true);
+  };
+  
+  const openReleasePaymentModal = (milestone: Milestone) => {
+    setSelectedMilestone(milestone);
+    setIsReleasePayment(true);
+    setIsEscrowModalOpen(true);
+  };
+  
+  const closeEscrowModal = () => {
+    if (selectedMilestone) {
+      // Update milestone payment status after successful transaction
+      setMilestones(prev => prev.map(m => {
+        if (m.id === selectedMilestone.id) {
+          return {
+            ...m,
+            paymentStatus: isReleasePayment ? 'released' : 'escrowed'
+          };
+        }
+        return m;
+      }));
+    }
+    setIsEscrowModalOpen(false);
+    setSelectedMilestone(null);
+  };
 
   const [draft, setDraft] = useState({
     title: '',
