@@ -4,12 +4,15 @@ import { useState } from 'react';
 import NextImage from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { useArtist } from '@/hooks/useArtist';
+import api from '@/app/services/api';
 import PortfolioTab from './components/PortfolioTab';
 import ServicesTab from './components/ServicesTab';
 import ReviewsTab from './components/ReviewsTab';
 import Button from '@/app/components/ui/Button';
 import { Skeleton } from '@/app/components/ui/Skeleton';
+import VerifiedBadge from '@/components/common/VerifiedBadge';
 import {
   MapPin,
   Star,
@@ -18,7 +21,9 @@ import {
   MessageSquare,
   Image as ImageIcon,
   Mail,
+  Sparkles,
 } from 'lucide-react';
+import type { Artist } from '@/app/features/artists/artistsSlice';
 
 type TabKey = 'portfolio' | 'services' | 'reviews';
 
@@ -27,6 +32,30 @@ export default function ArtistProfilePage() {
   const artistId = params.id as string;
   const { data: artist, isLoading: loading, error } = useArtist(artistId);
   const [activeTab, setActiveTab] = useState<TabKey>('portfolio');
+
+  // Fetch all artists to find similar ones based on matching skills
+  const { data: allArtists, isLoading: similarArtistsLoading } = useQuery<Artist[]>({
+    queryKey: ['allArtists'],
+    queryFn: async () => {
+      const { data } = await api.get('/artists');
+      return data;
+    },
+    enabled: !!artist, // Only fetch when we have the current artist's data
+  });
+
+  // Filter similar artists - exclude current artist and sort by number of matching skills
+  const similarArtists = allArtists
+    ?.filter(a => a.id !== artistId) // Exclude current artist
+    .map(otherArtist => {
+      // Calculate how many skills match with current artist
+      const matchingSkills = otherArtist.skills.filter(skill => 
+        artist?.skills?.includes(skill)
+      ).length;
+      return { ...otherArtist, matchingSkills };
+    })
+    .filter(a => a.matchingSkills > 0) // Only include artists with at least one matching skill
+    .sort((a, b) => b.matchingSkills - a.matchingSkills) // Sort by most matching skills
+    .slice(0, 4) as (Artist & { matchingSkills: number })[]; // Show top 4 similar artists
 
   if (loading && !artist) {
     return (
@@ -208,6 +237,79 @@ export default function ArtistProfilePage() {
           {activeTab === 'services' && <ServicesTab artistId={artistId} />}
           {activeTab === 'reviews' && <ReviewsTab artistId={artistId} />}
         </div>
+
+        {/* You might also like - Similar Artists Section */}
+        {similarArtists && similarArtists.length > 0 && (
+          <div className="mt-12 pb-16">
+            <div className="flex items-center gap-2 mb-8">
+              <Sparkles className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+              <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">You might also like</h2>
+            </div>
+            
+            {similarArtistsLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[...Array(4)].map((_, i) => (
+                  <Skeleton key={i} className="h-64 rounded-xl" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {similarArtists.map(similarArtist => (
+                  <Link
+                    key={similarArtist.id}
+                    href={`/artists/${similarArtist.id}`}
+                    className="group bg-white dark:bg-neutral-900 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-neutral-200 dark:border-neutral-800"
+                  >
+                    <div className="relative h-40 bg-gradient-to-r from-primary-600/20 to-secondary-600/20">
+                      {similarArtist.coverImage && (
+                        <img
+                          src={similarArtist.coverImage}
+                          alt={`${similarArtist.name} cover`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      )}
+                    </div>
+                    <div className="p-4 -mt-10 relative">
+                      <div className="relative w-16 h-16 rounded-full border-4 border-white dark:border-neutral-900 overflow-hidden bg-neutral-200 dark:bg-neutral-700 mb-3">
+                        {similarArtist.avatar ? (
+                          <NextImage
+                            src={similarArtist.avatar}
+                            alt={similarArtist.name}
+                            fill
+                            className="object-cover"
+                            sizes="64px"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-neutral-400">
+                            <ImageIcon className="w-6 h-6" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <h3 className="font-semibold text-neutral-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                          {similarArtist.name}
+                        </h3>
+                        {similarArtist.verified && <VerifiedBadge size="sm" />}
+                      </div>
+                      <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-2 line-clamp-1">
+                        {similarArtist.tagline || similarArtist.skills?.[0] || 'Digital Creator'}
+                      </p>
+                      <div className="flex items-center gap-1 text-amber-500">
+                        <Star className="w-3.5 h-3.5 fill-current" />
+                        <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                          {similarArtist.rating?.toFixed(1) || '—'}
+                        </span>
+                        <span className="text-xs text-neutral-400">
+                          ({similarArtist.reviewCount || 0})
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
