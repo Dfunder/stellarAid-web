@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Calendar, Check, Clock, FileText, PlusCircle, Star, X } from 'lucide-react';
+import { Calendar, Check, Clock, FileText, PlusCircle, Star, X, Lock, Unlock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { generatePdf } from '@/lib/pdfExport';
+import PaymentEscrowModal from '@/app/dashboard/payments/PaymentEscrowModal';
 
 type CommissionStatus = 'PENDING' | 'IN_PROGRESS' | 'SUBMITTED' | 'COMPLETED' | 'CANCELLED';
 type Role = 'artist' | 'client';
