@@ -20,7 +20,7 @@ export default function FallbackImage({
   placeholder = 'blur',
   blurDataURL = SHIMMER_SVG,
   ...props
-}: FallbackImageProps) {
+}: Readonly<FallbackImageProps>) {
   const [imgSrc, setImgSrc] = useState(src);
   const [retryCount, setRetryCount] = useState(0);
   const [hasError, setHasError] = useState(false);
@@ -51,9 +51,8 @@ export default function FallbackImage({
     );
   }
 
-  return <Image {...props} src={imgSrc} alt={alt} onError={handleError} />;
   return (
-    <div className="relative overflow-hidden">
+    <div className={`relative overflow-hidden ${props.className || ''}`}>
       {shimmer && !hasError && (
         <div
           className="absolute inset-0 animate-pulse bg-gray-200 dark:bg-gray-700"
