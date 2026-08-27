@@ -177,22 +177,34 @@ export default function PaymentEscrowModal({
     onClose();
   };
 
+  const modalTitle = isReleasePayment 
+    ? `Release Milestone Payment` 
+    : `Fund ${milestoneId ? 'Milestone ' : ''}Escrow`;
+  
+  const serviceFee = amount * 0.05; // 5% service fee
+  const platformFee = amount * 0.02; // 2% platform fee
+  const total = amount + serviceFee + platformFee;
+
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Fund Escrow" size="md">
+    <Modal isOpen={isOpen} onClose={handleClose} title={modalTitle} size="md">
       <div className="space-y-4">
         <div className="rounded-xl bg-gray-50 p-4 dark:bg-gray-800">
           <p className="text-sm text-gray-500">Amount breakdown</p>
           <div className="mt-2 flex items-center justify-between text-sm">
-            <span>Service fee</span>
-            <span>120.00 XLM</span>
+            <span>Milestone amount</span>
+            <span>{amount.toFixed(2)} {asset}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span>Platform fee</span>
-            <span>20.00 XLM</span>
+            <span>Service fee (5%)</span>
+            <span>{serviceFee.toFixed(2)} {asset}</span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span>Platform fee (2%)</span>
+            <span>{platformFee.toFixed(2)} {asset}</span>
           </div>
           <div className="mt-2 flex items-center justify-between border-t border-gray-200 pt-2 font-semibold dark:border-gray-700">
             <span>Total</span>
-            <span>140.00 XLM</span>
+            <span>{total.toFixed(2)} {asset}</span>
           </div>
         </div>
 
@@ -204,15 +216,15 @@ export default function PaymentEscrowModal({
 
         {status !== 'success' && status !== 'rolling_back' && (
           <Button
-            onClick={handlePay}
+            onClick={handleAction}
             className="w-full"
             isLoading={status === 'initiating' || status === 'signing' || status === 'confirming'}
             disabled={status === 'initiating' || status === 'signing' || status === 'confirming'}
           >
-            {status === 'initiating' && 'Initializing escrow...'}
+            {status === 'initiating' && (isReleasePayment ? 'Initializing release...' : 'Initializing escrow...')}
             {status === 'signing' && 'Waiting for Freighter signature...'}
-            {status === 'confirming' && 'Confirming payment...'}
-            {status === 'idle' && 'Pay with Freighter'}
+            {status === 'confirming' && (isReleasePayment ? 'Confirming release...' : 'Confirming payment...')}
+            {status === 'idle' && (isReleasePayment ? 'Release Payment' : 'Pay with Freighter')}
             {status === 'error' && 'Try Again'}
           </Button>
         )}
@@ -220,7 +232,7 @@ export default function PaymentEscrowModal({
         {status === 'success' && (
           <div className="space-y-3">
             <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
-              Escrow funded successfully.
+              {isReleasePayment ? 'Milestone payment released successfully.' : 'Escrow funded successfully.'}
             </div>
             <Button onClick={handleClose} className="w-full" variant="secondary">
               Close
