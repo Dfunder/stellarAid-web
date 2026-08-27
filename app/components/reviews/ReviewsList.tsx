@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Star, CheckCircle, Filter, ThumbsUp } from 'lucide-react';
 
 export interface Review {
   id: string;
@@ -41,10 +41,54 @@ function StarRow({ value }: { value: number }) {
 
 export default function ReviewsList({ reviews, pageSize = 5 }: ReviewsListProps) {
   const [page, setPage] = useState(1);
+  const [minRating, setMinRating] = useState<number>(0);
+  const [dateFilter, setDateFilter] = useState<string>('all');
+  const [verifiedOnly, setVerifiedOnly] = useState<boolean>(false);
+  const [sortBy, setSortBy] = useState<string>('helpful'); // 'helpful', 'newest', 'oldest'
+  const [showFilters, setShowFilters] = useState<boolean>(false);
 
   useEffect(() => {
     setPage(1);
-  }, [reviews]);
+  }, [reviews, minRating, dateFilter, verifiedOnly, sortBy]);
+
+  // Filter and sort reviews
+  const processedReviews = useMemo(() => {
+    let filtered = [...reviews];
+
+    // Filter by minimum rating
+    if (minRating > 0) {
+      filtered = filtered.filter(review => review.stars >= minRating);
+    }
+
+    // Filter by verified purchase only
+    if (verifiedOnly) {
+      filtered = filtered.filter(review => review.verified);
+    }
+
+    // Filter by date
+    const now = new Date();
+    if (dateFilter === 'week') {
+      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      filtered = filtered.filter(review => new Date(review.postedAt) >= oneWeekAgo);
+    } else if (dateFilter === 'month') {
+      const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      filtered = filtered.filter(review => new Date(review.postedAt) >= oneMonthAgo);
+    } else if (dateFilter === 'year') {
+      const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+      filtered = filtered.filter(review => new Date(review.postedAt) >= oneYearAgo);
+    }
+
+    // Sort reviews
+    if (sortBy === 'helpful') {
+      filtered.sort((a, b) => b.helpfulCount - a.helpfulCount);
+    } else if (sortBy === 'newest') {
+      filtered.sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime());
+    } else if (sortBy === 'oldest') {
+      filtered.sort((a, b) => new Date(a.postedAt).getTime() - new Date(b.postedAt).getTime());
+    }
+
+    return filtered;
+  }, [reviews, minRating, dateFilter, verifiedOnly, sortBy]);
 
   const summary = useMemo(() => {
     if (reviews.length === 0) {
