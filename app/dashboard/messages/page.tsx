@@ -88,14 +88,43 @@ const MOCK_CONVERSATIONS: Conversation[] = [
 export default function ConversationsListPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 300);
+  const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set(['commission-001', 'commission-002', 'commission-003', 'ungrouped']));
 
   const filteredConversations = useMemo(() => {
     if (!debouncedSearch.trim()) return MOCK_CONVERSATIONS;
     const q = debouncedSearch.toLowerCase();
     return MOCK_CONVERSATIONS.filter(
-      (c) => c.participantName.toLowerCase().includes(q) || c.lastMessage.toLowerCase().includes(q)
+      (c) => c.participantName.toLowerCase().includes(q) || 
+             c.lastMessage.toLowerCase().includes(q) ||
+             c.projectTitle?.toLowerCase().includes(q)
     );
   }, [debouncedSearch]);
+
+  const groupedConversations = useMemo(() => {
+    const groups: { [key: string]: Conversation[] } = {};
+    
+    filteredConversations.forEach(conversation => {
+      const groupKey = conversation.projectId || 'ungrouped';
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+      groups[groupKey].push(conversation);
+    });
+    
+    return groups;
+  }, [filteredConversations]);
+
+  const toggleProject = (projectId: string) => {
+    setExpandedProjects(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(projectId)) {
+        newSet.delete(projectId);
+      } else {
+        newSet.add(projectId);
+      }
+      return newSet;
+    });
+  };
 
   return (
     <DashboardLayout>
