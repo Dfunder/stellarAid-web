@@ -46,12 +46,12 @@ export default function ArtistProfilePage() {
   // Filter similar artists - exclude current artist and sort by number of matching skills
   const similarArtists = allArtists
     ?.filter(a => a.id !== artistId) // Exclude current artist
-    .map(artist => {
+    .map(otherArtist => {
       // Calculate how many skills match with current artist
-      const matchingSkills = artist.skills.filter(skill => 
+      const matchingSkills = otherArtist.skills.filter(skill => 
         artist?.skills?.includes(skill)
       ).length;
-      return { ...artist, matchingSkills };
+      return { ...otherArtist, matchingSkills };
     })
     .filter(a => a.matchingSkills > 0) // Only include artists with at least one matching skill
     .sort((a, b) => b.matchingSkills - a.matchingSkills) // Sort by most matching skills
