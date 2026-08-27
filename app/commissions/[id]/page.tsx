@@ -202,6 +202,7 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
         amountUsdc: amount,
         dueDate: draft.dueDate,
         approved: false,
+        paymentStatus: 'pending' as MilestonePaymentStatus,
       },
     ]);
     setDraft({ title: '', description: '', amountUsdc: '', dueDate: '' });
@@ -662,6 +663,20 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
           </div>
         </div>
       </div>
+      
+      {/* Payment Escrow Modal for milestones */}
+      {selectedMilestone && (
+        <PaymentEscrowModal
+          isOpen={isEscrowModalOpen}
+          onClose={closeEscrowModal}
+          commissionId={commission.id}
+          milestoneId={selectedMilestone.id}
+          amount={selectedMilestone.amountUsdc}
+          asset="USDC"
+          destination={commission.artist.name}
+          isReleasePayment={isReleasePayment}
+        />
+      )}
     </main>
   );
 }
