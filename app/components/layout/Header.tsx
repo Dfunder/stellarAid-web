@@ -27,7 +27,7 @@ export default function Header() {
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -79,6 +79,7 @@ export default function Header() {
                 <NotificationBell />
                 <div className="relative">
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       setUserMenuOpen(!userMenuOpen);
@@ -139,6 +140,7 @@ export default function Header() {
                         Settings
                       </Link>
                       <button
+                        type="button"
                         onClick={handleLogout}
                         className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-neutral-100 dark:hover:bg-neutral-700"
                       >
@@ -167,6 +169,7 @@ export default function Header() {
           </div>
 
           <button
+            type="button"
             className="md:hidden p-2 rounded-xl text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
@@ -239,6 +242,7 @@ export default function Header() {
                     </Link>
                   )}
                   <button
+                    type="button"
                     onClick={handleLogout}
                     className="w-full text-left py-2 text-red-600 font-medium"
                   >

@@ -9,8 +9,13 @@ import { Header, Footer } from './components/layout';
 import './globals.css';
 
 const ToastProvider = dynamic(() => import('@/app/components/ui/ToastProvider'), { ssr: false });
-// Font configuration
-const inter = Inter({ subsets: ['latin'] });
+// Optimized Font configuration for Core Web Vitals (zero CLS, instant text render)
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  preload: true,
+  variable: '--font-inter',
+});
 // Viewport configuration for responsive design and theme color
 export const viewport: Viewport = {
   width: 'device-width',
@@ -63,9 +68,17 @@ export const metadata: Metadata = {
   },
 };
 // Root layout component that wraps the entire application with global providers and layout components
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+      </head>
       <body className={inter.className}>
         <ThemeProvider>
           <a href="#main-content" className="skip-to-content">

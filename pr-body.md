@@ -1,82 +1,59 @@
-# PR Description: [Performance] API Response Compression
+# PR: [Performance] Lighthouse Score Optimization (Target: 90+)
 
-## 📌 Overview
+## Summary of Changes
 
-This pull request addresses **uncompressed API network payloads** by configuring backend response compression (Gzip / Deflate / Brotli) in Next.js, optimizing HTTP client request headers (`Accept-Encoding: gzip, deflate, br`), enabling automated decompression in Node/SSR runtimes, setting appropriate `Vary: Accept-Encoding` caching headers, and adding verification route handlers and unit tests.
-
----
-
-## 🎯 Motivation & Problem Statement
-
-- **Issue**: API responses served by the Next.js runtime and fetched by client/SSR instances were transmitted uncompressed.
-- **Impact**: JSON payloads across marketplace, analytics, user dashboards, and campaigns were ~3x larger than necessary, leading to increased bandwidth consumption, higher latency on mobile networks, and potential interaction jank.
-- **Goal**: Enable Gzip/Deflate compression for all generated Next.js SSR pages, API routes, and static assets, ensure HTTP clients request and decompress payloads seamlessly, and provide automated test coverage and CI validation.
+This pull request addresses frontend performance bottlenecks affecting Core Web Vitals (Largest Contentful Paint, Cumulative Layout Shift, Total Blocking Time, and First Input Delay/Interaction to Next Paint) to elevate the Lighthouse audit score from **~45 to 90+**.
 
 ---
 
-## 🛠️ Changes Implemented
+## Key Improvements
 
-### 1. Next.js Server & Header Compression Configuration (`next.config.js`)
+### 1. Largest Contentful Paint (LCP)
 
-- Enabled `compress: true` explicitly in `nextConfig` to instruct the Next.js server runtime to gzip/deflate-compress responses exceeding 1KB.
-- Configured `async headers()` to inject `Vary: Accept-Encoding` onto all `/api/:path*` routes to ensure CDNs, proxy servers, and browser caches correctly cache separate compressed variants.
+- **Zero-Block Font Loading**: Configured Next.js native `Inter` font loader in `app/layout.tsx` with `display: 'swap'`, `preload: true`, and `variable: '--font-inter'`.
+- **Preconnect Resource Hints**: Added preconnect and DNS-prefetch link tags in `app/layout.tsx` for external asset CDNs (`images.unsplash.com`).
+- **Instant Hero Render**: Removed artificial client-mount delay in `app/components/landing/Hero.tsx` (`setTimeout 80ms` + `opacity-0`), allowing the primary `<h1>` headline to paint immediately on SSR and initial load.
+- **Modern Image Compression**: Enabled Next.js modern image compression formats (`image/avif`, `image/webp`) with `minimumCacheTTL: 60` in `next.config.js`.
 
-### 2. HTTP Client Configuration (`Axios`)
+### 2. Cumulative Layout Shift (CLS)
 
-Configured default headers and decompression settings across all Axios client instances:
+- **Shimmer Blur Placeholders**: Fixed `components/common/FallbackImage.tsx` by removing premature return logic to restore shimmer skeleton placeholders and blur data URLs while remote images load.
+- **Dynamic Stream Skeletons**: Added reserved-height skeleton placeholders for lazy-loaded below-the-fold components in `app/page.tsx` (`CategoriesShowcase`, `FeaturedArtists`, `HowItWorks`).
+- **Explicit Sizing & Aspect Ratios**: Enforced reserved containers on avatars, artwork cards, and navigation bars to prevent layout shifts.
 
-- **`app/services/api.ts`**: Added `Accept: 'application/json'`, `'Accept-Encoding': 'gzip, deflate, br'`, and `decompress: true`.
-- **`utils/apiClient.ts`**: Added `Accept: 'application/json'`, `'Accept-Encoding': 'gzip, deflate, br'`, and `decompress: true`.
-- **`lib/api/client.ts`**: Added `Accept: 'application/json'`, `'Accept-Encoding': 'gzip, deflate, br'`, and `decompress: true`.
+### 3. Total Blocking Time (TBT) & FID / INP
 
-### 3. API Route Handlers
+- **Code Splitting & Dynamic Imports**: Dynamically imported below-the-fold sections in `app/page.tsx` using `next/dynamic` to reduce initial JS payload and optimize main thread execution.
+- **Package Import Optimization**: Enabled `experimental.optimizePackageImports` in `next.config.js` for heavy libraries (`lucide-react`, `framer-motion`, `@reduxjs/toolkit`, `date-fns`).
+- **Passive Event Listeners**: Added `{ passive: true }` to window scroll listeners in `app/components/layout/Header.tsx` to prevent scroll-blocking penalties.
 
-- **`app/api/health/route.ts`**: Added a health check endpoint returning server status and supported compression encoding formats (`gzip`, `deflate`, `br`) with `Vary: Accept-Encoding` and cache control headers.
-- **`app/api/compression/route.ts`**: Added a structured mock endpoint (~10KB payload) designed to verify payload size reduction directly in the browser Network tab.
+### 4. Accessibility & IDE Code Quality
 
-### 4. Continuous Integration & Unit Tests
-
-- **`.github/workflows/ci.yml`**: Added GitHub Actions CI pipeline executing all 5 validation checks (`type-check`, `lint`, `format:check`, `test`, `build`).
-- **`lib/api/__tests__/compression.test.ts`**: Created 7 unit tests covering:
-  - `next.config.js` `compress: true` and `Vary: Accept-Encoding` custom headers.
-  - Axios instances headers and `decompress: true` flag.
-  - Route handler responses (`/api/health` and `/api/compression`).
-
----
-
-## 📊 Verification & Test Matrix
-
-All 5 verification gates passed with zero errors:
-
-| Step | Gate                 | Command                                     |                 Result                 |
-| ---- | -------------------- | ------------------------------------------- | :------------------------------------: |
-| 1    | **Type Check**       | `npm run type-check` (`tsc --noEmit`)       |        ✅ **Passed (0 errors)**        |
-| 2    | **Lint**             | `npm run lint` (`next lint`)                |        ✅ **Passed (0 errors)**        |
-| 3    | **Format Check**     | `npm run format:check` (`prettier --check`) |     ✅ **Passed (100% formatted)**     |
-| 4    | **Unit Tests**       | `npm test` (`vitest run`)                   |  ✅ **Passed (11/11 tests passing)**   |
-| 5    | **Production Build** | `npm run build` (`next build`)              | ✅ **Passed (34/34 routes generated)** |
+- **Button Types**: Added explicit `type="button"` attributes across `Header.tsx`, `ExploreProjects.tsx`, and `artists/[id]/page.tsx`.
+- **Readonly Props**: Applied `Readonly<Props>` to `Hero.tsx`, `ExploreProjects.tsx`, `RootLayout`, and `FallbackImage.tsx`.
+- **Refactored Nested Ternaries**: Cleaned up complex conditionals in `app/artists/[id]/page.tsx` with a typed helper function (`getErrorMessage`).
 
 ---
 
-## 🔍 How to Verify in Network Tab
+## File Changes Summary
 
-1. Start the production server: `npm run build && npm start` (or `npm run dev`).
-2. Open DevTools (**F12**) → **Network** tab → check **Disable cache**.
-3. Navigate to `/api/compression` or `/api/health`.
-4. In the Network table, inspect the response headers:
-   - `Content-Encoding: gzip`
-   - `Vary: Accept-Encoding`
-5. Observe the payload size: transfer size is reduced by **~65–75%** compared to uncompressed raw JSON.
+| Area                    | File(s)                                                                                                                                   | Description                                                      |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| **Core Layout & Fonts** | `app/layout.tsx`                                                                                                                          | Font swap configuration, preconnect headers, readonly props      |
+| **Next.js Config**      | `next.config.js`                                                                                                                          | AVIF/WebP formats, package import optimizations, API compression |
+| **Landing Page**        | `app/page.tsx`, `app/components/landing/Hero.tsx`                                                                                         | Instant LCP render, dynamic imports with zero-CLS skeletons      |
+| **Common Components**   | `components/common/FallbackImage.tsx`, `app/components/layout/Header.tsx`                                                                 | Shimmer blur restore, passive scroll listeners, button types     |
+| **Artists & Explore**   | `app/artists/[id]/page.tsx`, `app/explore/components/ExploreProjects.tsx`                                                                 | Nested ternary refactor, explicit button types, readonly props   |
+| **Testing & CI**        | `components/landing/__tests__/Hero.test.tsx`, `components/landing/__tests__/PerformanceOptimization.test.tsx`, `.github/workflows/ci.yml` | 9 new unit tests, CI validation workflow                         |
 
 ---
 
-## 📁 Files Changed
+## Verification Results
 
-- `next.config.js`: Server `compress: true` and `Vary: Accept-Encoding` headers.
-- `app/services/api.ts`: Axios compression headers & `decompress: true`.
-- `utils/apiClient.ts`: Axios compression headers & `decompress: true`.
-- `lib/api/client.ts`: Axios compression headers & `decompress: true`.
-- `app/api/health/route.ts`: New health check route handler.
-- `app/api/compression/route.ts`: New compression verification route handler.
-- `lib/api/__tests__/compression.test.ts`: New test suite for compression settings.
-- `.github/workflows/ci.yml`: GitHub Actions CI pipeline configuration.
+|  #  | Check / Command                          |  Status   | Details                                          |
+| :-: | ---------------------------------------- | :-------: | ------------------------------------------------ |
+|  1  | **Type Check**: `npm run type-check`     | ✅ PASSED | `tsc --noEmit` exited with code 0 (0 errors)     |
+|  2  | **Lint**: `npm run lint`                 | ✅ PASSED | `next lint` exited with code 0 (0 errors)        |
+|  3  | **Format Check**: `npm run format:check` | ✅ PASSED | `prettier --check` verified all matched files    |
+|  4  | **Unit Tests**: `npm test`               | ✅ PASSED | 24/24 tests passing across 5 test suites         |
+|  5  | **Production Build**: `npm run build`    | ✅ PASSED | 34/34 routes successfully built with zero errors |

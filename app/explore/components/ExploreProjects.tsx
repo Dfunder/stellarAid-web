@@ -54,7 +54,6 @@ async function fetchProjectsPage({
         goalXlm,
         backers: (n * 7) % 240,
       };
-      } as ExploreProject;
     }
   ).filter((item): item is ExploreProject => item !== null);
 
@@ -80,7 +79,7 @@ function ProjectCardSkeleton() {
   );
 }
 
-function ProjectCard({ project }: { project: ExploreProject }) {
+function ProjectCard({ project }: Readonly<{ project: ExploreProject }>) {
   const pct = Math.min(100, Math.round((project.raisedXlm / project.goalXlm) * 100));
   return (
     <article className="flex flex-col rounded-2xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md dark:border-gray-800 dark:bg-gray-900">
@@ -180,6 +179,7 @@ export default function ExploreProjects() {
       {/* Category Filter */}
       <div className="mb-6 flex flex-wrap gap-2">
         <button
+          type="button"
           onClick={() => handleCategoryChange('all')}
           className={cn(
             'rounded-full px-4 py-2 text-sm font-medium transition-colors',
@@ -193,6 +193,7 @@ export default function ExploreProjects() {
         {CATEGORIES.map((category) => (
           <button
             key={category}
+            type="button"
             onClick={() => handleCategoryChange(category)}
             className={cn(
               'rounded-full px-4 py-2 text-sm font-medium transition-colors',

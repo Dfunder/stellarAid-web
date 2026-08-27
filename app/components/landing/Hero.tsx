@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
 /* ─── Floating orb (purely decorative) ─── */
-function Orb({ className, delay = 0 }: { className: string; delay?: number }) {
+function Orb({ className, delay = 0 }: Readonly<{ className: string; delay?: number }>) {
   return (
     <span
       aria-hidden="true"
@@ -16,7 +16,7 @@ function Orb({ className, delay = 0 }: { className: string; delay?: number }) {
 }
 
 /* ─── Animated stat for social proof ─── */
-function AnimatedStat({ value, label }: { value: string; label: string }) {
+function AnimatedStat({ value, label }: Readonly<{ value: string; label: string }>) {
   const [visible, setVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -47,13 +47,6 @@ function AnimatedStat({ value, label }: { value: string; label: string }) {
 
 /* ─── Main Hero component ─── */
 export default function Hero() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const t = setTimeout(() => setMounted(true), 80);
-    return () => clearTimeout(t);
-  }, []);
-
   return (
     <section
       id="hero"
@@ -77,21 +70,13 @@ export default function Hero() {
       {/* ── Content wrapper ── */}
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 sm:px-6 lg:px-8 pt-24 pb-16 sm:pt-28 sm:pb-20">
         {/* Badge */}
-        <div
-          className={`mb-6 inline-flex items-center gap-2 rounded-full border border-primary-700/40 bg-primary-900/30 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-primary-300 backdrop-blur-sm transition-all duration-700 ${
-            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
-          }`}
-        >
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary-700/40 bg-primary-900/30 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-primary-300 backdrop-blur-sm">
           <span className="inline-block w-2 h-2 rounded-full bg-primary-400 animate-pulse" />
-          Powered by the Stellar Network
+          <span>Powered by the Stellar Network</span>
         </div>
 
         {/* Headline */}
-        <h1
-          className={`max-w-4xl text-center text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.1] tracking-tight text-white transition-all duration-700 delay-100 ${
-            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-          }`}
-        >
+        <h1 className="max-w-4xl text-center text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.1] tracking-tight text-white">
           Where{' '}
           <span className="relative inline-block">
             <span className="bg-gradient-to-r from-primary-400 via-accent-400 to-secondary-400 bg-clip-text text-transparent">
@@ -107,21 +92,13 @@ export default function Hero() {
         </h1>
 
         {/* Sub-headline */}
-        <p
-          className={`mt-6 max-w-2xl text-center text-lg sm:text-xl text-neutral-300 leading-relaxed transition-all duration-700 delay-200 ${
-            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-          }`}
-        >
+        <p className="mt-6 max-w-2xl text-center text-lg sm:text-xl text-neutral-300 leading-relaxed">
           Discover, fund, and collaborate with the world&apos;s most talented creatives — artists,
           musicians, designers, and more — all on a transparent blockchain-powered platform.
         </p>
 
         {/* CTA buttons */}
-        <div
-          className={`mt-10 flex flex-col sm:flex-row items-center gap-4 transition-all duration-700 delay-300 ${
-            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-          }`}
-        >
+        <div className="mt-10 flex flex-col sm:flex-row items-center gap-4">
           <Link
             href="/explore"
             id="hero-cta-explore"
@@ -169,11 +146,7 @@ export default function Hero() {
         </div>
 
         {/* Social proof stats */}
-        <div
-          className={`mt-16 flex flex-wrap justify-center gap-8 sm:gap-16 transition-all duration-700 delay-500 ${
-            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-          }`}
-        >
+        <div className="mt-16 flex flex-wrap justify-center gap-8 sm:gap-16">
           <AnimatedStat value="12K+" label="Creative Profiles" />
           <AnimatedStat value="$4.2M" label="Funds Raised" />
           <AnimatedStat value="98" label="Countries Reached" />
@@ -181,11 +154,7 @@ export default function Hero() {
       </div>
 
       {/* ── Artwork imagery panel ── */}
-      <div
-        className={`relative z-10 w-full px-4 sm:px-6 lg:px-8 pb-16 sm:pb-20 transition-all duration-1000 delay-500 ${
-          mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}
-      >
+      <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 pb-16 sm:pb-20">
         <div className="mx-auto max-w-5xl">
           {/* Glow behind image */}
           <div
