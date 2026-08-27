@@ -4,12 +4,15 @@ import { useState } from 'react';
 import NextImage from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { useArtist } from '@/hooks/useArtist';
+import api from '@/app/services/api';
 import PortfolioTab from './components/PortfolioTab';
 import ServicesTab from './components/ServicesTab';
 import ReviewsTab from './components/ReviewsTab';
 import Button from '@/app/components/ui/Button';
 import { Skeleton } from '@/app/components/ui/Skeleton';
+import VerifiedBadge from '@/components/common/VerifiedBadge';
 import {
   MapPin,
   Star,
@@ -18,7 +21,9 @@ import {
   MessageSquare,
   Image as ImageIcon,
   Mail,
+  Sparkles,
 } from 'lucide-react';
+import type { Artist } from '@/app/features/artists/artistsSlice';
 
 type TabKey = 'portfolio' | 'services' | 'reviews';
 
@@ -27,6 +32,30 @@ export default function ArtistProfilePage() {
   const artistId = params.id as string;
   const { data: artist, isLoading: loading, error } = useArtist(artistId);
   const [activeTab, setActiveTab] = useState<TabKey>('portfolio');
+
+  // Fetch all artists to find similar ones based on matching skills
+  const { data: allArtists, isLoading: similarArtistsLoading } = useQuery<Artist[]>({
+    queryKey: ['allArtists'],
+    queryFn: async () => {
+      const { data } = await api.get('/artists');
+      return data;
+    },
+    enabled: !!artist, // Only fetch when we have the current artist's data
+  });
+
+  // Filter similar artists - exclude current artist and sort by number of matching skills
+  const similarArtists = allArtists
+    ?.filter(a => a.id !== artistId) // Exclude current artist
+    .map(artist => {
+      // Calculate how many skills match with current artist
+      const matchingSkills = artist.skills.filter(skill => 
+        artist?.skills?.includes(skill)
+      ).length;
+      return { ...artist, matchingSkills };
+    })
+    .filter(a => a.matchingSkills > 0) // Only include artists with at least one matching skill
+    .sort((a, b) => b.matchingSkills - a.matchingSkills) // Sort by most matching skills
+    .slice(0, 4); // Show top 4 similar artists
 
   if (loading && !artist) {
     return (
