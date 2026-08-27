@@ -7,10 +7,18 @@ import { selectUser } from '@/app/features/auth/authSelectors';
 import { useRole } from '@/app/hooks/useRole';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import AvatarUpload from '@/app/components/dashboard/AvatarUpload';
+import { Plus, X } from 'lucide-react';
+
+interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
 
 export default function ProfileSettingsPage() {
   const user = useAppSelector(selectUser);
-  const { isUser, role } = useRole();
+  const { isUser, role, isAgency } = useRole();
   const isArtist = role === 'artist';
 
   const [name, setName] = useState('');
@@ -29,6 +37,15 @@ export default function ProfileSettingsPage() {
   const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
+  // Agency-specific fields
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [newTeamMember, setNewTeamMember] = useState<TeamMember>({
+    id: '',
+    name: '',
+    email: '',
+    role: ''
+  });
+
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -46,8 +63,15 @@ export default function ProfileSettingsPage() {
         setSkills(user.skills || []);
         setCoverPhotoUrl(user.coverPhoto || '');
       }
+
+      if (isAgency) {
+        setBio(user.bio || '');
+        setTagline(user.tagline || '');
+        setCoverPhotoUrl(user.coverPhoto || '');
+        setTeamMembers(user.teamMembers || []);
+      }
     }
-  }, [user, isArtist]);
+  }, [user, isArtist, isAgency]);
 
   useEffect(() => {
     setEmailChanged(email !== originalEmail && email !== '');
@@ -86,6 +110,18 @@ export default function ProfileSettingsPage() {
 
   const removeSkill = (skillToRemove: string) => {
     setSkills(skills.filter((skill) => skill !== skillToRemove));
+  };
+
+  // Team member management functions for agencies
+  const addTeamMember = () => {
+    if (newTeamMember.name.trim() && newTeamMember.email.trim() && newTeamMember.role.trim()) {
+      setTeamMembers([...teamMembers, { ...newTeamMember, id: Date.now().toString() }]);
+      setNewTeamMember({ id: '', name: '', email: '', role: '' });
+    }
+  };
+
+  const removeTeamMember = (memberId: string) => {
+    setTeamMembers(teamMembers.filter((member) => member.id !== memberId));
   };
 
   const handleCoverPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,9 +174,14 @@ export default function ProfileSettingsPage() {
         tagline,
         skills,
       }),
+      ...(isAgency && {
+        bio,
+        tagline,
+        teamMembers,
+      }),
     };
 
-    const endpoint = isArtist ? '/api/artists/me' : '/api/users/me';
+    const endpoint = isArtist ? '/api/artists/me' : isAgency ? '/api/agencies/me' : '/api/users/me';
 
     try {
       const response = await fetch(endpoint, {
@@ -355,6 +396,105 @@ export default function ProfileSettingsPage() {
                   >
                     Add
                   </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Agency-specific Fields */}
+          {isAgency && (
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 space-y-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                Agency Information
+              </h2>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Tagline
+                </label>
+                <input
+                  type="text"
+                  value={tagline}
+                  onChange={(e) => setTagline(e.target.value)}
+                  placeholder="A short tagline that describes your agency"
+                  className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Bio
+                </label>
+                <textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="Tell us about your agency..."
+                  rows={5}
+                  className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Team Members
+                  </label>
+                </div>
+
+                {/* Current Team Members */}
+                <div className="space-y-3 mb-6">
+                  {teamMembers.map((member) => (
+                    <div key={member.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <span className="text-sm text-gray-900 dark:text-white">{member.name}</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">{member.email}</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">{member.role}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeTeamMember(member.id)}
+                        className="text-red-500 hover:text-red-600 transition-colors"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Add New Team Member */}
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Add New Team Member</p>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      type="text"
+                      value={newTeamMember.name}
+                      onChange={(e) => setNewTeamMember({ ...newTeamMember, name: e.target.value })}
+                      placeholder="Name"
+                      className="flex-1 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="email"
+                      value={newTeamMember.email}
+                      onChange={(e) => setNewTeamMember({ ...newTeamMember, email: e.target.value })}
+                      placeholder="Email"
+                      className="flex-1 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="text"
+                      value={newTeamMember.role}
+                      onChange={(e) => setNewTeamMember({ ...newTeamMember, role: e.target.value })}
+                      placeholder="Role"
+                      className="flex-1 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={addTeamMember}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
