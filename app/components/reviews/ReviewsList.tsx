@@ -176,9 +176,101 @@ export default function ReviewsList({ reviews, pageSize = 5 }: ReviewsListProps)
         })}
       </div>
 
+      {/* Filters and Sorting */}
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+        >
+          <Filter className="h-4 w-4" />
+          Filters
+        </button>
+
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-violet-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+        >
+          <option value="helpful">Most Helpful</option>
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+        </select>
+
+        <label className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={verifiedOnly}
+            onChange={(e) => setVerifiedOnly(e.target.checked)}
+            className="rounded text-violet-600 focus:ring-violet-500"
+          />
+          <CheckCircle className="h-4 w-4" />
+          Verified only
+        </label>
+      </div>
+
+      {showFilters && (
+        <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Minimum Rating
+            </label>
+            <select
+              value={minRating}
+              onChange={(e) => setMinRating(Number(e.target.value))}
+              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-violet-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            >
+              <option value={0}>All Ratings</option>
+              <option value={5}>5 Stars Only</option>
+              <option value={4}>4+ Stars</option>
+              <option value={3}>3+ Stars</option>
+              <option value={2}>2+ Stars</option>
+              <option value={1}>1+ Stars</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Date Range
+            </label>
+            <select
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-violet-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            >
+              <option value="all">All Time</option>
+              <option value="week">Past Week</option>
+              <option value="month">Past Month</option>
+              <option value="year">Past Year</option>
+            </select>
+          </div>
+
+          <div className="sm:col-span-2 flex justify-end">
+            <button
+              onClick={() => {
+                setMinRating(0);
+                setDateFilter('all');
+                setVerifiedOnly(false);
+                setSortBy('helpful');
+              }}
+              className="text-sm text-violet-600 hover:text-violet-700"
+            >
+              Reset all filters
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Click outside to close filters */}
+      {showFilters && (
+        <div
+          className="fixed inset-0 z-0"
+          onClick={() => setShowFilters(false)}
+        />
+      )}
+
       {visible.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-gray-200 bg-white px-4 py-8 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
-          No reviews yet.
+        <p className="rounded-2xl border border-dashed border-gray-200 bg-white px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-700 dark:bg-gray-900 dark:text-gray-400">
+          No reviews match your filters.
         </p>
       ) : (
         <ul className="space-y-3" aria-label={`Page ${currentPage} of reviews`}>
@@ -196,12 +288,24 @@ export default function ReviewsList({ reviews, pageSize = 5 }: ReviewsListProps)
                     <p className="text-sm font-semibold text-gray-900 dark:text-white">
                       {review.authorName}
                     </p>
+                    {review.verified && (
+                      <span className="inline-flex items-center gap-1 text-xs text-green-700 bg-green-50 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full">
+                        <CheckCircle className="h-3 w-3" />
+                        Verified Purchase
+                      </span>
+                    )}
                     <StarRow value={review.stars} />
                   </div>
                   <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-200">
                     {review.comment}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{review.postedAt}</p>
+                  <div className="flex items-center gap-4">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{review.postedAt}</p>
+                    <span className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                      <ThumbsUp className="h-3 w-3" />
+                      {review.helpfulCount} found helpful
+                    </span>
+                  </div>
                 </div>
               </div>
             </li>
