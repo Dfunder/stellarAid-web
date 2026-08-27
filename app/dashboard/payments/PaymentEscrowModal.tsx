@@ -3,17 +3,37 @@
 import { useState } from 'react';
 import Modal from '@/app/components/common/Modal';
 import { Button } from '@/app/components/ui/Button';
-import { initiateEscrow, confirmPayment } from '@/lib/api/payments';
+import { 
+  initiateEscrow, 
+  confirmPayment, 
+  initiateMilestoneEscrow,
+  releaseMilestoneFunds
+} from '@/lib/api/payments';
 
 interface PaymentEscrowModalProps {
   isOpen: boolean;
   onClose: () => void;
+  commissionId: string;
+  milestoneId?: string; // Optional - if provided, this is for a specific milestone
+  amount: number;
+  asset: string;
+  destination: string;
+  isReleasePayment?: boolean; // Whether this modal is for releasing funds (after milestone completion)
 }
 
 type PaymentStatus =
   'idle' | 'initiating' | 'signing' | 'confirming' | 'success' | 'error' | 'rolling_back';
 
-export default function PaymentEscrowModal({ isOpen, onClose }: PaymentEscrowModalProps) {
+export default function PaymentEscrowModal({ 
+  isOpen, 
+  onClose, 
+  commissionId,
+  milestoneId,
+  amount,
+  asset,
+  destination,
+  isReleasePayment = false
+}: PaymentEscrowModalProps) {
   const [status, setStatus] = useState<PaymentStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [paymentId, setPaymentId] = useState<string | null>(null);
@@ -36,17 +56,30 @@ export default function PaymentEscrowModal({ isOpen, onClose }: PaymentEscrowMod
     }
   };
 
-  const handlePay = async () => {
+  const handleFundEscrow = async () => {
     setStatus('initiating');
     setErrorMessage(null);
 
     try {
-      const escrowData = await initiateEscrow({
-        commissionId: '1',
-        amount: 140,
-        asset: 'XLM',
-        destination: '',
-      });
+      let escrowData;
+      
+      // Use milestone-specific escrow if we have a milestoneId
+      if (milestoneId) {
+        escrowData = await initiateMilestoneEscrow({
+          commissionId,
+          milestoneId,
+          amount,
+          asset,
+          destination,
+        });
+      } else {
+        escrowData = await initiateEscrow({
+          commissionId,
+          amount,
+          asset,
+          destination,
+        });
+      }
 
       const id = escrowData?.id || escrowData?.paymentId;
       if (id) setPaymentId(id);
@@ -82,6 +115,60 @@ export default function PaymentEscrowModal({ isOpen, onClose }: PaymentEscrowMod
       const message = error instanceof Error ? error.message : 'Unexpected error occurred';
       setErrorMessage(message);
       setStatus('error');
+    }
+  };
+
+  const handleReleaseFunds = async () => {
+    if (!milestoneId) {
+      setErrorMessage('Milestone ID is required to release funds');
+      setStatus('error');
+      return;
+    }
+
+    setStatus('initiating');
+    setErrorMessage(null);
+
+    try {
+      const releaseData = await releaseMilestoneFunds(milestoneId);
+      
+      if (!releaseData?.unsignedXdr) {
+        throw new Error('Failed to initialize milestone payment release');
+      }
+
+      setStatus('signing');
+      const signResult = await window.freighter?.signTransaction?.(releaseData.unsignedXdr);
+      const signedXdr =
+        typeof signResult === 'string'
+          ? signResult
+          : signResult && typeof signResult === 'object'
+            ? signResult.signedTxXdr
+            : null;
+
+      if (!signedXdr) {
+        throw new Error('Transaction signing was cancelled');
+      }
+
+      setStatus('confirming');
+      // Here we would call confirmMilestoneRelease, but using confirmPayment for now
+      const confirmData = await confirmPayment(releaseData.id || '', signedXdr);
+
+      if (!confirmData) {
+        throw new Error('Payment release confirmation failed');
+      }
+
+      setStatus('success');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unexpected error occurred';
+      setErrorMessage(message);
+      setStatus('error');
+    }
+  };
+
+  const handleAction = async () => {
+    if (isReleasePayment) {
+      await handleReleaseFunds();
+    } else {
+      await handleFundEscrow();
     }
   };
 
