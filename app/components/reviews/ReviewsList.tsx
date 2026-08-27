@@ -10,6 +10,8 @@ export interface Review {
   stars: number;
   comment: string;
   postedAt: string;
+  verified: boolean;
+  helpfulCount: number;
 }
 
 interface ReviewsListProps {
