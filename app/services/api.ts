@@ -25,7 +25,10 @@ const api = axios.create({
   baseURL: env.apiBaseUrl,
   headers: {
     'Content-Type': 'application/json',
+    Accept: 'application/json',
+    'Accept-Encoding': 'gzip, deflate, br',
   },
+  decompress: true, // Enable automatic response decompression in Node/SSR
   timeout: 30000, // 30 second timeout
 });
 

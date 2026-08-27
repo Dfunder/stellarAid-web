@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
+import NextImage from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useArtist } from '@/hooks/useArtist';
@@ -92,6 +92,7 @@ export default function ArtistProfilePage() {
           {/* Avatar */}
           <div className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full border-4 border-white dark:border-neutral-900 overflow-hidden bg-neutral-200 dark:bg-neutral-700 shadow-lg flex-shrink-0">
             {artist.avatar ? (
+              <NextImage
               <Image
                 src={artist.avatar}
                 alt={artist.name}

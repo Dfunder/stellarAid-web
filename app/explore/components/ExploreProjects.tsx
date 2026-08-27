@@ -36,7 +36,7 @@ async function fetchProjectsPage({
 
   const items: ExploreProject[] = Array.from(
     { length: Math.min(PAGE_SIZE, totalItems - start) },
-    (_, i) => {
+    (_, i): ExploreProject | null => {
       const n = start + i + 1;
       const projectCategory = CATEGORIES[n % CATEGORIES.length] ?? 'Community';
       if (category && category !== 'all' && projectCategory !== category) {
@@ -53,6 +53,7 @@ async function fetchProjectsPage({
         raisedXlm: Math.round(goalXlm * (((n % 9) + 1) / 10)),
         goalXlm,
         backers: (n * 7) % 240,
+      };
       } as ExploreProject;
     }
   ).filter((item): item is ExploreProject => item !== null);

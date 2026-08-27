@@ -56,7 +56,14 @@ export default function PaymentEscrowModal({ isOpen, onClose }: PaymentEscrowMod
       }
 
       setStatus('signing');
-      const signedXdr = await window.freighter?.signTransaction?.(escrowData.unsignedXdr);
+      const signResult = await window.freighter?.signTransaction?.(escrowData.unsignedXdr);
+      const signedXdr =
+        typeof signResult === 'string'
+          ? signResult
+          : signResult && typeof signResult === 'object'
+            ? signResult.signedTxXdr
+            : null;
+
       if (!signedXdr) {
         if (id) await rollbackPayment(id);
         throw new Error('Transaction signing was cancelled');

@@ -14,7 +14,12 @@ interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
  */
 const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+    'Accept-Encoding': 'gzip, deflate, br',
+  },
+  decompress: true,
   timeout: 30000,
 });
 
