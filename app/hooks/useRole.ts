@@ -8,6 +8,8 @@ export function useRole() {
   return {
     isAdmin: role === 'admin',
     isUser: role === 'user',
+    isArtist: role === 'artist',
+    isAgency: role === 'agency',
     role,
   };
 }
