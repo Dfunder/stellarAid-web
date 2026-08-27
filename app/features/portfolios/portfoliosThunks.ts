@@ -35,7 +35,8 @@ export const fetchMyPortfolios = createAsyncThunk(
       dispatch(setPortfoliosError(null));
       return response.data;
     } catch (error: any) {
-      const message = error?.response?.data?.message || error.message || 'Failed to fetch portfolios';
+      const message =
+        error?.response?.data?.message || error.message || 'Failed to fetch portfolios';
       dispatch(setPortfoliosError(message));
       throw error;
     } finally {
@@ -55,7 +56,8 @@ export const fetchArtistPortfolios = createAsyncThunk(
       dispatch(setPortfoliosError(null));
       return response.data;
     } catch (error: any) {
-      const message = error?.response?.data?.message || error.message || 'Failed to fetch portfolios';
+      const message =
+        error?.response?.data?.message || error.message || 'Failed to fetch portfolios';
       dispatch(setPortfoliosError(message));
       throw error;
     } finally {
@@ -75,7 +77,8 @@ export const fetchPortfolioById = createAsyncThunk(
       dispatch(setPortfoliosError(null));
       return response.data;
     } catch (error: any) {
-      const message = error?.response?.data?.message || error.message || 'Failed to fetch portfolio';
+      const message =
+        error?.response?.data?.message || error.message || 'Failed to fetch portfolio';
       dispatch(setPortfoliosError(message));
       throw error;
     } finally {
@@ -96,7 +99,8 @@ export const createPortfolio = createAsyncThunk(
       toastSuccess('Portfolio created successfully!');
       return response.data;
     } catch (error: any) {
-      const message = error?.response?.data?.message || error.message || 'Failed to create portfolio';
+      const message =
+        error?.response?.data?.message || error.message || 'Failed to create portfolio';
       dispatch(setPortfoliosError(message));
       toastError(message);
       throw error;
@@ -119,7 +123,8 @@ export const updatePortfolio = createAsyncThunk(
       toastSuccess('Portfolio updated successfully!');
       return response.data;
     } catch (error: any) {
-      const message = error?.response?.data?.message || error.message || 'Failed to update portfolio';
+      const message =
+        error?.response?.data?.message || error.message || 'Failed to update portfolio';
       dispatch(setPortfoliosError(message));
       toastError(message);
       throw error;
@@ -140,7 +145,8 @@ export const deletePortfolio = createAsyncThunk(
       dispatch(setPortfoliosError(null));
       toastSuccess('Portfolio deleted successfully!');
     } catch (error: any) {
-      const message = error?.response?.data?.message || error.message || 'Failed to delete portfolio';
+      const message =
+        error?.response?.data?.message || error.message || 'Failed to delete portfolio';
       dispatch(setPortfoliosError(message));
       toastError(message);
       throw error;
@@ -153,7 +159,10 @@ export const deletePortfolio = createAsyncThunk(
 // Toggle portfolio publish status
 export const togglePortfolioStatus = createAsyncThunk(
   'portfolios/togglePortfolioStatus',
-  async ({ id, currentStatus }: { id: string; currentStatus: 'draft' | 'published' }, { dispatch }) => {
+  async (
+    { id, currentStatus }: { id: string; currentStatus: 'draft' | 'published' },
+    { dispatch }
+  ) => {
     try {
       const newStatus = currentStatus === 'published' ? 'draft' : 'published';
       const response = await api.patch(`/portfolios/${id}`, { status: newStatus });
@@ -161,7 +170,8 @@ export const togglePortfolioStatus = createAsyncThunk(
       toastSuccess(`Portfolio ${newStatus === 'published' ? 'published' : 'unpublished'}!`);
       return response.data;
     } catch (error: any) {
-      const message = error?.response?.data?.message || error.message || 'Failed to update portfolio status';
+      const message =
+        error?.response?.data?.message || error.message || 'Failed to update portfolio status';
       toastError(message);
       throw error;
     }

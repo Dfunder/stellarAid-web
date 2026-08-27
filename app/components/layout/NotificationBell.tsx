@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Bell, Check } from 'lucide-react';
+import { cn } from '@/lib/cn';
 
 interface Notification {
   id: string;
@@ -63,7 +64,7 @@ function loadReadIds(): Set<string> {
 
 function saveReadIds(ids: Set<string>) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...ids]));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(ids)));
   } catch {}
 }
 
@@ -105,21 +106,6 @@ export default function NotificationBell() {
     setReadIds(allIds);
     saveReadIds(allIds);
   }, [readIds]);
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEscape);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [open]);
-
-  const markAllRead = () => {
-    setNotifications((current) => current.map((n) => ({ ...n, unread: false })));
-  };
 
   return (
     <div ref={containerRef} className="relative">
@@ -127,9 +113,7 @@ export default function NotificationBell() {
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-label={
-          unreadCount > 0
-            ? `Notifications, ${unreadCount} unread`
-            : 'Notifications, no unread'
+          unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications, no unread'
         }
         aria-expanded={open}
         aria-haspopup="true"
@@ -174,10 +158,10 @@ export default function NotificationBell() {
               notifications.map((notification) => (
                 <li
                   key={notification.id}
-                  className={
-                    'border-b border-neutral-100 px-4 py-3 last:border-b-0 dark:border-neutral-700 ' +
-                    (notification.unread ? 'bg-primary-50/60 dark:bg-primary-900/20' : '')
-                  }
+                  className={cn(
+                    'border-b border-neutral-100 px-4 py-3 last:border-b-0 dark:border-neutral-700',
+                    notification.unread && 'bg-primary-50/60 dark:bg-primary-900/20'
+                  )}
                 >
                   <div className="flex items-start gap-3">
                     {notification.unread && (

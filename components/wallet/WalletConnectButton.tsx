@@ -7,16 +7,6 @@ interface WalletConnectButtonProps {
   onConnected?: (address: string) => void;
 }
 
-declare global {
-  interface Window {
-    freighter?: {
-      isConnected?: () => Promise<boolean>;
-      connect?: () => Promise<string | { publicKey?: string }>;
-      getPublicKey?: () => Promise<string>;
-    };
-  }
-}
-
 const MAX_RETRIES = 3;
 const BASE_DELAY = 1000;
 
@@ -102,7 +92,9 @@ export default function WalletConnectButton({ onConnected }: WalletConnectButton
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Could not connect wallet.';
       if (message.includes('timeout') || message.includes('Timeout')) {
-        setError('Wallet connection timed out. Please check if Freighter is unlocked and try again.');
+        setError(
+          'Wallet connection timed out. Please check if Freighter is unlocked and try again.'
+        );
       } else {
         setError(message);
       }
@@ -136,7 +128,9 @@ export default function WalletConnectButton({ onConnected }: WalletConnectButton
         {loading ? 'Connecting...' : connectedAddress ? 'Wallet Connected' : 'Connect Wallet'}
       </button>
       {connectedAddress && (
-        <p className="text-xs text-gray-600 dark:text-gray-400">{connectedAddress.slice(0, 12)}...</p>
+        <p className="text-xs text-gray-600 dark:text-gray-400">
+          {connectedAddress.slice(0, 12)}...
+        </p>
       )}
       {error && <p className="text-sm text-red-600">{error}</p>}
     </div>

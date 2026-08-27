@@ -44,8 +44,8 @@ export default function Error({
           Something went wrong
         </h1>
         <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          An unexpected error occurred while loading this page. Your funds and
-          data are safe — please try again.
+          An unexpected error occurred while loading this page. Your funds and data are safe —
+          please try again.
         </p>
         {error.digest && (
           <p className="mt-2 font-mono text-xs text-gray-400 dark:text-gray-500">

@@ -1,4 +1,4 @@
-import { clsx } from 'clsx';
+import { cn } from '@/lib/cn';
 
 interface SkeletonProps {
   width?: string | number;
@@ -10,7 +10,7 @@ interface SkeletonProps {
 export function Skeleton({ width, height, rounded = 'rounded-lg', className }: SkeletonProps) {
   return (
     <div
-      className={clsx('animate-pulse bg-neutral-200 dark:bg-neutral-700', rounded, className)}
+      className={cn('animate-pulse bg-neutral-200 dark:bg-neutral-700', rounded, className)}
       style={{ width, height }}
       aria-hidden="true"
     />
@@ -20,7 +20,7 @@ export function Skeleton({ width, height, rounded = 'rounded-lg', className }: S
 export function SkeletonCard({ className }: { className?: string }) {
   return (
     <div
-      className={clsx(
+      className={cn(
         'space-y-3 p-4 rounded-xl border border-neutral-200 dark:border-neutral-700',
         className
       )}

@@ -1,15 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { getEarnings } from '@/lib/api/analytics';
 import ErrorMessage from '@/app/components/common/ErrorMessage';
 import Spinner from '@/app/components/common/Spinner';
@@ -110,7 +102,11 @@ function formatMoney(value: number): string {
   return `$${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} USDC`;
 }
 
-export default function EarningsChart({ title = 'Earnings', description = 'Monthly earnings for the last six months.', data }: EarningsChartProps) {
+export default function EarningsChart({
+  title = 'Earnings',
+  description = 'Monthly earnings for the last six months.',
+  data,
+}: EarningsChartProps) {
   const [earningsData, setEarningsData] = useState<unknown | null>(data ?? null);
   const [loading, setLoading] = useState(!Boolean(data));
   const [error, setError] = useState<string | null>(null);
@@ -160,11 +156,15 @@ export default function EarningsChart({ title = 'Earnings', description = 'Month
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">Total earnings</p>
-            <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">{formatMoney(totalEarnings)}</p>
+            <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
+              {formatMoney(totalEarnings)}
+            </p>
           </div>
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">Current month</p>
-            <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">{formatMoney(currentMonthEarnings)}</p>
+            <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
+              {formatMoney(currentMonthEarnings)}
+            </p>
           </div>
         </div>
       </div>
@@ -186,9 +186,22 @@ export default function EarningsChart({ title = 'Earnings', description = 'Month
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartPoints} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
-              <XAxis dataKey="label" tick={{ fill: '#6B7280', fontSize: 12 }} axisLine={false} tickLine={false} />
-              <YAxis tickFormatter={(value) => `$${value}`} tick={{ fill: '#6B7280', fontSize: 12 }} axisLine={false} tickLine={false} />
-              <Tooltip formatter={(value) => formatMoney(Number(value ?? 0))} cursor={{ fill: 'rgba(59, 130, 246, 0.08)' }} />
+              <XAxis
+                dataKey="label"
+                tick={{ fill: '#6B7280', fontSize: 12 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tickFormatter={(value) => `$${value}`}
+                tick={{ fill: '#6B7280', fontSize: 12 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip
+                formatter={(value) => formatMoney(Number(value ?? 0))}
+                cursor={{ fill: 'rgba(59, 130, 246, 0.08)' }}
+              />
               <Bar dataKey="amount" fill="#2563EB" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>

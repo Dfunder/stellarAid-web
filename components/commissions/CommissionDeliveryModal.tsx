@@ -73,16 +73,23 @@ export default function CommissionDeliveryModal({ isOpen, onClose }: CommissionD
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Submit Work</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Upload files and send a quick note to your client.</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Upload files and send a quick note to your client.
+            </p>
           </div>
-          <button onClick={onClose} className="rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+          <button
+            onClick={onClose}
+            className="rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Commission ID</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Commission ID
+            </label>
             <input
               value={commissionId}
               onChange={(event) => setCommissionId(event.target.value)}
@@ -93,7 +100,9 @@ export default function CommissionDeliveryModal({ isOpen, onClose }: CommissionD
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Message</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Message
+            </label>
             <textarea
               value={message}
               onChange={(event) => setMessage(event.target.value)}
@@ -104,14 +113,18 @@ export default function CommissionDeliveryModal({ isOpen, onClose }: CommissionD
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Attachments</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Attachments
+            </label>
             <input
               type="file"
               multiple
               onChange={handleFileChange}
               className="w-full rounded-lg border border-dashed border-gray-300 px-3 py-3 text-sm dark:border-gray-700"
             />
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Maximum file size: {MAX_FILE_SIZE_MB}MB per file</p>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Maximum file size: {MAX_FILE_SIZE_MB}MB per file
+            </p>
           </div>
 
           {fileError && (
@@ -123,7 +136,9 @@ export default function CommissionDeliveryModal({ isOpen, onClose }: CommissionD
 
           {files.length > 0 && (
             <div className="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
-              <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Uploaded files</p>
+              <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                Uploaded files
+              </p>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 {files.map((file) => (
                   <li key={file.name} className="flex items-center justify-between">
@@ -135,8 +150,16 @@ export default function CommissionDeliveryModal({ isOpen, onClose }: CommissionD
             </div>
           )}
 
-          {mutation.isSuccess && <p className="text-sm text-green-600 dark:text-green-400">Work submitted successfully.</p>}
-          {mutation.isError && <p className="text-sm text-red-600 dark:text-red-400">{(mutation.error as Error).message}</p>}
+          {mutation.isSuccess && (
+            <p className="text-sm text-green-600 dark:text-green-400">
+              Work submitted successfully.
+            </p>
+          )}
+          {mutation.isError && (
+            <p className="text-sm text-red-600 dark:text-red-400">
+              {(mutation.error as Error).message}
+            </p>
+          )}
 
           <div className="flex justify-end gap-2">
             <button

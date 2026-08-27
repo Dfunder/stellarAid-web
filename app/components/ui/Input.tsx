@@ -1,4 +1,4 @@
-import { clsx } from 'clsx';
+import { cn } from '@/lib/cn';
 import { forwardRef, InputHTMLAttributes, TextareaHTMLAttributes } from 'react';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -30,7 +30,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             id={inputId}
-            className={clsx(
+            className={cn(
               'w-full px-4 py-2.5 border rounded-xl bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all',
               leftIcon && 'pl-10',
               error ? 'border-red-500' : 'border-neutral-300 dark:border-neutral-600',
@@ -70,7 +70,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         <textarea
           ref={ref}
           id={textareaId}
-          className={clsx(
+          className={cn(
             'w-full px-4 py-2.5 border rounded-xl bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all resize-y min-h-[100px]',
             error ? 'border-red-500' : 'border-neutral-300 dark:border-neutral-600',
             className

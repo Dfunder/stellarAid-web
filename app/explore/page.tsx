@@ -1,11 +1,14 @@
-import { Metadata } from "next";
+import { Metadata } from 'next';
 import dynamic from 'next/dynamic';
 
-const ExploreProjects = dynamic(() => import("./components/ExploreProjects"), {
+const ExploreProjects = dynamic(() => import('./components/ExploreProjects'), {
   loading: () => (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 9 }).map((_, i) => (
-        <div key={i} className="space-y-4 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+        <div
+          key={i}
+          className="space-y-4 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900"
+        >
           <div className="flex gap-3">
             <div className="h-12 w-12 shrink-0 animate-pulse rounded-full bg-neutral-200 dark:bg-neutral-700" />
             <div className="flex-1 space-y-2 py-1">
@@ -23,12 +26,14 @@ const ExploreProjects = dynamic(() => import("./components/ExploreProjects"), {
 });
 
 export const metadata: Metadata = {
-  title: "Explore | StellarAid",
-  description: "Explore innovative crowdfunding projects on StellarAid. Discover creators, artists, and entrepreneurs building amazing things with blockchain-powered transparency.",
+  title: 'Explore | StellarAid',
+  description:
+    'Explore innovative crowdfunding projects on StellarAid. Discover creators, artists, and entrepreneurs building amazing things with blockchain-powered transparency.',
   openGraph: {
-    title: "Explore | StellarAid",
-    description: "Explore innovative crowdfunding projects on StellarAid. Discover creators, artists, and entrepreneurs building amazing things with blockchain-powered transparency.",
-    images: ["/og-image.jpg"],
+    title: 'Explore | StellarAid',
+    description:
+      'Explore innovative crowdfunding projects on StellarAid. Discover creators, artists, and entrepreneurs building amazing things with blockchain-powered transparency.',
+    images: ['/og-image.jpg'],
   },
 };
 

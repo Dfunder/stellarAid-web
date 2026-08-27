@@ -24,7 +24,10 @@ export default function PortfolioTab({ artistId }: PortfolioTabProps) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800">
+          <div
+            key={i}
+            className="bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800"
+          >
             <Skeleton className="h-48 w-full rounded-none" />
             <div className="p-4 space-y-3">
               <Skeleton className="h-5 w-3/4" />

@@ -51,7 +51,7 @@ export default function Pagination({ page, totalPages, onPageChange }: Paginatio
           >
             {p}
           </button>
-        ),
+        )
       )}
 
       <button

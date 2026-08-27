@@ -24,10 +24,11 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://stellaraid.com'),
   title: {
-    default: "StellarAid | Blockchain Crowdfunding on Stellar Network",
-    template: "%s | StellarAid"
+    default: 'StellarAid | Blockchain Crowdfunding on Stellar Network',
+    template: '%s | StellarAid',
   },
-  description: "Blockchain-based crowdfunding platform on the Stellar Network. Support creators, artists, and entrepreneurs with transparent, decentralized fundraising.",
+  description:
+    'Blockchain-based crowdfunding platform on the Stellar Network. Support creators, artists, and entrepreneurs with transparent, decentralized fundraising.',
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -38,14 +39,15 @@ export const metadata: Metadata = {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'StellarAid - Blockchain Crowdfunding on Stellar Network'
-      }
-    ]
+        alt: 'StellarAid - Blockchain Crowdfunding on Stellar Network',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: "StellarAid | Blockchain Crowdfunding on Stellar Network",
-    description: "Blockchain-based crowdfunding platform on the Stellar Network. Support creators, artists, and entrepreneurs with transparent, decentralized fundraising.",
+    title: 'StellarAid | Blockchain Crowdfunding on Stellar Network',
+    description:
+      'Blockchain-based crowdfunding platform on the Stellar Network. Support creators, artists, and entrepreneurs with transparent, decentralized fundraising.',
     images: ['/og-image.jpg'],
   },
   robots: {
@@ -66,20 +68,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider>
-          <a 
-            href="#main-content" 
-            className="skip-to-content"
-          >
+          <a href="#main-content" className="skip-to-content">
             Skip to main content
           </a>
           <ReduxProvider>
             <QueryProvider>
-            <ErrorBoundary>
-              <Header />
-              {children}
-              <Footer />
-              <ToastProvider />
-            </ErrorBoundary>
+              <ErrorBoundary>
+                <Header />
+                {children}
+                <Footer />
+                <ToastProvider />
+              </ErrorBoundary>
             </QueryProvider>
           </ReduxProvider>
         </ThemeProvider>

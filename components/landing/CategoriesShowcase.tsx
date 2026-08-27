@@ -14,6 +14,7 @@ import {
   Grid,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/cn';
 
 export interface CategoryItem {
   id: string;
@@ -145,7 +146,10 @@ export default function CategoriesShowcase({
   return (
     <section
       aria-labelledby="categories-showcase-heading"
-      className={`py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-gray-50/50 dark:bg-gray-950/50 transition-colors ${className}`}
+      className={cn(
+        'py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-gray-50/50 dark:bg-gray-950/50 transition-colors',
+        className
+      )}
     >
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
@@ -186,18 +190,28 @@ export default function CategoriesShowcase({
                 <Link
                   href={exploreUrl}
                   prefetch={true}
-                  className={`group relative flex flex-col justify-between h-full p-6 sm:p-7 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-800 shadow-sm hover:shadow-xl ${category.glowColor} transition-all duration-300 ease-out hover:-translate-y-1.5 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none`}
+                  className={cn(
+                    'group relative flex flex-col justify-between h-full p-6 sm:p-7 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-800 shadow-sm hover:shadow-xl transition-all duration-300 ease-out hover:-translate-y-1.5 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none',
+                    category.glowColor
+                  )}
                 >
                   {/* Top Row: Icon & Count Badge */}
                   <div>
                     <div className="flex items-start justify-between gap-4 mb-6">
                       <div
-                        className={`p-3.5 rounded-2xl bg-gradient-to-br ${category.gradient} text-white shadow-md group-hover:scale-110 group-hover:shadow-lg transition-all duration-300 ease-out`}
+                        className={cn(
+                          'p-3.5 rounded-2xl bg-gradient-to-br text-white shadow-md group-hover:scale-110 group-hover:shadow-lg transition-all duration-300 ease-out',
+                          category.gradient
+                        )}
                       >
                         <Icon className="w-6 h-6 stroke-[2.2]" />
                       </div>
                       <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-medium ${category.badgeBg} ${category.badgeText} border border-black/5 dark:border-white/10`}
+                        className={cn(
+                          'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-medium border border-black/5 dark:border-white/10',
+                          category.badgeBg,
+                          category.badgeText
+                        )}
                       >
                         {category.count}
                       </span>

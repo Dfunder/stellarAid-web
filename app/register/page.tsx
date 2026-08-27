@@ -1,12 +1,14 @@
-import { Metadata } from "next";
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Register | StellarAid",
-  description: "Create your StellarAid account today. Join a community of creators and supporters building the future of transparent crowdfunding on the Stellar blockchain.",
+  title: 'Register | StellarAid',
+  description:
+    'Create your StellarAid account today. Join a community of creators and supporters building the future of transparent crowdfunding on the Stellar blockchain.',
   openGraph: {
-    title: "Register | StellarAid",
-    description: "Create your StellarAid account today. Join a community of creators and supporters building the future of transparent crowdfunding on the Stellar blockchain.",
-    images: ["/og-image.jpg"],
+    title: 'Register | StellarAid',
+    description:
+      'Create your StellarAid account today. Join a community of creators and supporters building the future of transparent crowdfunding on the Stellar blockchain.',
+    images: ['/og-image.jpg'],
   },
 };
 

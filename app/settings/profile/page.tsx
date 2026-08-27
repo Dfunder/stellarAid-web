@@ -12,14 +12,14 @@ export default function ProfileSettingsPage() {
   const user = useAppSelector(selectUser);
   const { isUser, role } = useRole();
   const isArtist = role === 'artist';
-  
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [originalEmail, setOriginalEmail] = useState('');
   const [emailChanged, setEmailChanged] = useState(false);
   const [sendingVerification, setSendingVerification] = useState(false);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState('');
-  
+
   // Artist-specific fields
   const [bio, setBio] = useState('');
   const [tagline, setTagline] = useState('');
@@ -28,7 +28,7 @@ export default function ProfileSettingsPage() {
   const [coverPhotoUrl, setCoverPhotoUrl] = useState('');
   const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -39,7 +39,7 @@ export default function ProfileSettingsPage() {
       setEmail(user.email || '');
       setOriginalEmail(user.email || '');
       setProfilePhotoUrl(user.avatar || user.profilePhoto || '');
-      
+
       if (isArtist) {
         setBio(user.bio || '');
         setTagline(user.tagline || '');
@@ -57,14 +57,14 @@ export default function ProfileSettingsPage() {
     setSendingVerification(true);
     setError('');
     setSuccessMessage('');
-    
+
     try {
       const response = await fetch('/api/auth/resend-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email }),
       });
-      
+
       if (response.ok) {
         setSuccessMessage('Verification email sent! Please check your inbox.');
       } else {
@@ -85,7 +85,7 @@ export default function ProfileSettingsPage() {
   };
 
   const removeSkill = (skillToRemove: string) => {
-    setSkills(skills.filter(skill => skill !== skillToRemove));
+    setSkills(skills.filter((skill) => skill !== skillToRemove));
   };
 
   const handleCoverPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,7 +108,7 @@ export default function ProfileSettingsPage() {
 
   const uploadCoverPhoto = async () => {
     if (!coverInputRef.current?.files?.[0]) return;
-    
+
     const formData = new FormData();
     formData.append('coverPhoto', coverInputRef.current.files[0]);
 
@@ -136,17 +136,17 @@ export default function ProfileSettingsPage() {
       ...(isArtist && {
         bio,
         tagline,
-        skills
-      })
+        skills,
+      }),
     };
 
     const endpoint = isArtist ? '/api/artists/me' : '/api/users/me';
-    
+
     try {
       const response = await fetch(endpoint, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
@@ -176,12 +176,14 @@ export default function ProfileSettingsPage() {
     <DashboardLayout>
       <div className="max-w-3xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Profile Settings</h1>
-        
+
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Profile Photo Upload */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Profile Photo</h2>
-            <AvatarUpload 
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              Profile Photo
+            </h2>
+            <AvatarUpload
               currentAvatar={profilePhotoUrl}
               onUpload={(url) => setProfilePhotoUrl(url)}
             />
@@ -190,10 +192,12 @@ export default function ProfileSettingsPage() {
           {/* Cover Photo Upload - Only for artists */}
           {isArtist && (
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Cover Photo</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                Cover Photo
+              </h2>
               <div className="space-y-4">
                 <div className="relative w-full aspect-[3/1] rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
-                  {(coverPhotoPreview || coverPhotoUrl) ? (
+                  {coverPhotoPreview || coverPhotoUrl ? (
                     <Image
                       src={coverPhotoPreview || coverPhotoUrl}
                       alt="Cover"
@@ -233,8 +237,10 @@ export default function ProfileSettingsPage() {
 
           {/* Basic Information */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 space-y-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Basic Information</h2>
-            
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              Basic Information
+            </h2>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Full Name
@@ -282,8 +288,10 @@ export default function ProfileSettingsPage() {
           {/* Artist-specific Fields */}
           {isArtist && (
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Artist Information</h2>
-              
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                Artist Information
+              </h2>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Tagline
@@ -316,7 +324,7 @@ export default function ProfileSettingsPage() {
                 </label>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {skills.map((skill, index) => (
-                    <span 
+                    <span
                       key={index}
                       className="inline-flex items-center gap-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm"
                     >
@@ -358,7 +366,7 @@ export default function ProfileSettingsPage() {
               <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
             </div>
           )}
-          
+
           {successMessage && (
             <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
               <p className="text-sm text-green-600 dark:text-green-400">{successMessage}</p>

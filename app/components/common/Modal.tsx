@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useCallback, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { cn } from '@/lib/cn';
 
 interface ModalProps {
   isOpen: boolean;
@@ -145,7 +146,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
         )}
 
         {/* Modal content */}
-        <div className={`${title ? 'px-6 py-4' : 'p-6'}`}>{children}</div>
+        <div className={cn('px-6 py-4', !title && 'p-6')}>{children}</div>
       </div>
     </div>,
     document.body

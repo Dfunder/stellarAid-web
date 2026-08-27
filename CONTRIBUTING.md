@@ -29,27 +29,32 @@ Thank you for your interest in contributing to StellarAid! This guide will help 
 1. **Fork the repository** on GitHub.
 
 2. **Clone your fork:**
+
    ```bash
    git clone https://github.com/<your-username>/stellarAid-web.git
    cd stellarAid-web
    ```
 
 3. **Add upstream remote:**
+
    ```bash
    git remote add upstream https://github.com/Dfunder/stellarAid-web.git
    ```
 
 4. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 5. **Copy the environment file:**
+
    ```bash
    cp .env.example .env.local
    ```
 
 6. **Start the development server:**
+
    ```bash
    npm run dev
    ```
@@ -59,16 +64,16 @@ Thank you for your interest in contributing to StellarAid! This guide will help 
 
 ### Useful Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Production build |
-| `npm run lint` | Run ESLint |
-| `npm run type-check` | Run TypeScript type checking |
-| `npm run test` | Run unit tests with Vitest |
-| `npm run test:watch` | Run tests in watch mode |
-| `npm run format` | Format code with Prettier |
-| `npm run cypress:open` | Open Cypress E2E tests |
+| Command                | Description                  |
+| ---------------------- | ---------------------------- |
+| `npm run dev`          | Start development server     |
+| `npm run build`        | Production build             |
+| `npm run lint`         | Run ESLint                   |
+| `npm run type-check`   | Run TypeScript type checking |
+| `npm run test`         | Run unit tests with Vitest   |
+| `npm run test:watch`   | Run tests in watch mode      |
+| `npm run format`       | Format code with Prettier    |
+| `npm run cypress:open` | Open Cypress E2E tests       |
 
 ---
 
@@ -138,13 +143,13 @@ stellarAid-web/
 
 Use descriptive branch names with the following prefixes:
 
-| Prefix | Usage | Example |
-|--------|-------|---------|
-| `feat/` | New features | `feat/dark-mode-toggle` |
-| `fix/` | Bug fixes | `fix/wallet-balance-refresh` |
-| `chore/` | Maintenance tasks | `chore/update-dependencies` |
-| `docs/` | Documentation | `docs/api-reference` |
-| `refactor/` | Code refactoring | `refactor/commission-hooks` |
+| Prefix      | Usage             | Example                      |
+| ----------- | ----------------- | ---------------------------- |
+| `feat/`     | New features      | `feat/dark-mode-toggle`      |
+| `fix/`      | Bug fixes         | `fix/wallet-balance-refresh` |
+| `chore/`    | Maintenance tasks | `chore/update-dependencies`  |
+| `docs/`     | Documentation     | `docs/api-reference`         |
+| `refactor/` | Code refactoring  | `refactor/commission-hooks`  |
 
 ---
 
@@ -213,11 +218,7 @@ export default function MyComponent({ title, onSelect }: MyComponentProps) {
   // Effects
   // Handlers
   // Render
-  return (
-    <div className="...">
-      {/* Content */}
-    </div>
-  );
+  return <div className="...">{/* Content */}</div>;
 }
 ```
 
@@ -235,12 +236,14 @@ export default function MyComponent({ title, onSelect }: MyComponentProps) {
 ### Before Submitting
 
 1. **Sync with upstream:**
+
    ```bash
    git fetch upstream
    git rebase upstream/main
    ```
 
 2. **Run checks:**
+
    ```bash
    npm run lint
    npm run type-check
@@ -268,13 +271,16 @@ export default function MyComponent({ title, onSelect }: MyComponentProps) {
 
 ```markdown
 ## Summary
+
 Brief description of changes.
 
 ## Changes
+
 - Change 1
 - Change 2
 
 ## Testing
+
 How to test these changes.
 
 Closes #issue_number

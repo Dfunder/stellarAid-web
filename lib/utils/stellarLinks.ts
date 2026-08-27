@@ -5,7 +5,9 @@ const STELLAR_EXPERT_URLS = {
 
 function getNetworkBase(): string {
   const network = process.env.NEXT_PUBLIC_STELLAR_NETWORK || 'testnet';
-  return STELLAR_EXPERT_URLS[network as keyof typeof STELLAR_EXPERT_URLS] || STELLAR_EXPERT_URLS.testnet;
+  return (
+    STELLAR_EXPERT_URLS[network as keyof typeof STELLAR_EXPERT_URLS] || STELLAR_EXPERT_URLS.testnet
+  );
 }
 
 export function txLink(hash: string): string {

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/cn';
 
 export interface BreadcrumbItem {
   label: string;
@@ -15,7 +16,7 @@ interface BreadcrumbProps {
 
 export default function Breadcrumb({ items, className = '' }: BreadcrumbProps) {
   return (
-    <nav aria-label="Breadcrumb" className={`mb-6 ${className}`}>
+    <nav aria-label="Breadcrumb" className={cn('mb-6', className)}>
       <ol className="flex flex-wrap items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-400">
         {items.map((item, index) => {
           const isLast = index === items.length - 1;

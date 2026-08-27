@@ -7,6 +7,7 @@ import { useAppSelector, useAppDispatch } from '@/app/store/hooks';
 import { selectIsAuthenticated, selectUser } from '@/app/features/auth/authSelectors';
 import { logoutUser } from '@/app/features/auth/authThunks';
 import { useRole } from '@/app/hooks/useRole';
+import { cn } from '@/lib/cn';
 
 interface NavbarProps {
   isLoggedIn?: boolean;
@@ -50,10 +51,10 @@ export default function Navbar({ isLoggedIn = false, user: userProp }: NavbarPro
 
   return (
     <nav
-      className={
-        'sticky top-0 z-40 w-full transition-all duration-300 ' +
-        (scrolled ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-md' : 'bg-transparent')
-      }
+      className={cn(
+        'sticky top-0 z-40 w-full transition-all duration-300',
+        scrolled ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-md' : 'bg-transparent'
+      )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">

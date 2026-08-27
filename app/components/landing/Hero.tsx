@@ -61,16 +61,7 @@ export default function Hero() {
       className="relative isolate min-h-[100svh] flex flex-col overflow-hidden bg-neutral-950"
     >
       {/* ── Animated gradient mesh background ── */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-20"
-        style={{
-          background:
-            'radial-gradient(ellipse 80% 60% at 20% 40%, rgba(109,40,217,0.35) 0%, transparent 60%), ' +
-            'radial-gradient(ellipse 60% 50% at 80% 60%, rgba(249,115,22,0.25) 0%, transparent 55%), ' +
-            'radial-gradient(ellipse 100% 80% at 50% 0%, rgba(139,92,246,0.15) 0%, transparent 50%)',
-        }}
-      />
+      <div aria-hidden="true" className="absolute inset-0 -z-20 hero-mesh-gradient" />
 
       {/* ── Floating decorative orbs ── */}
       <Orb className="top-1/4 -left-32 w-96 h-96 bg-primary-700" delay={0} />
@@ -81,16 +72,7 @@ export default function Hero() {
       />
 
       {/* ── Grid noise texture overlay ── */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-10 opacity-[0.03]"
-        style={{
-          backgroundImage:
-            'repeating-linear-gradient(0deg, #fff 0, #fff 1px, transparent 0, transparent 50%), ' +
-            'repeating-linear-gradient(90deg, #fff 0, #fff 1px, transparent 0, transparent 50%)',
-          backgroundSize: '48px 48px',
-        }}
-      />
+      <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-[0.03] hero-grid-texture" />
 
       {/* ── Content wrapper ── */}
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 sm:px-6 lg:px-8 pt-24 pb-16 sm:pt-28 sm:pb-20">

@@ -135,7 +135,9 @@ export default function NewPortfolioPage() {
           Back to Portfolios
         </Link>
 
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Create New Portfolio</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          Create New Portfolio
+        </h1>
         <p className="text-gray-500 dark:text-gray-400 mb-8">
           Showcase your best work to attract clients and commissions.
         </p>
@@ -148,7 +150,13 @@ export default function NewPortfolioPage() {
             </label>
             {coverImage ? (
               <div className="relative rounded-xl overflow-hidden h-48 bg-neutral-100 dark:bg-neutral-800">
-                <Image src={coverImage} alt="Cover" fill className="object-cover" sizes="(max-width: 768px) 100vw, 600px" />
+                <Image
+                  src={coverImage}
+                  alt="Cover"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 600px"
+                />
                 <button
                   type="button"
                   onClick={handleRemoveImage}
@@ -176,8 +184,10 @@ export default function NewPortfolioPage() {
                 />
                 <Upload className="w-10 h-10 text-neutral-400 mx-auto mb-3" />
                 <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                  <span className="font-medium text-primary-600 dark:text-primary-400">Click to upload</span> or drag
-                  and drop
+                  <span className="font-medium text-primary-600 dark:text-primary-400">
+                    Click to upload
+                  </span>{' '}
+                  or drag and drop
                 </p>
                 <p className="text-xs text-neutral-400 mt-1">SVG, PNG, JPG or GIF (max. 5MB)</p>
               </div>
@@ -245,7 +255,11 @@ export default function NewPortfolioPage() {
                     className="inline-flex items-center gap-1 px-3 py-1 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 text-sm rounded-full"
                   >
                     {tag}
-                    <button type="button" onClick={() => handleRemoveTag(tag)} className="hover:text-red-500 transition-colors">
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(tag)}
+                      className="hover:text-red-500 transition-colors"
+                    >
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </span>

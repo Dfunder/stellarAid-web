@@ -1,12 +1,14 @@
-import { Metadata } from "next";
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Login | StellarAid",
-  description: "Login to your StellarAid account to manage your projects, track contributions, and connect with the creative community on the Stellar Network.",
+  title: 'Login | StellarAid',
+  description:
+    'Login to your StellarAid account to manage your projects, track contributions, and connect with the creative community on the Stellar Network.',
   openGraph: {
-    title: "Login | StellarAid",
-    description: "Login to your StellarAid account to manage your projects, track contributions, and connect with the creative community on the Stellar Network.",
-    images: ["/og-image.jpg"],
+    title: 'Login | StellarAid',
+    description:
+      'Login to your StellarAid account to manage your projects, track contributions, and connect with the creative community on the Stellar Network.',
+    images: ['/og-image.jpg'],
   },
 };
 
