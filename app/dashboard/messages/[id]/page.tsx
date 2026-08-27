@@ -74,6 +74,11 @@ export default function MessageThreadPage({ params }: { params: { id: string } }
   const [showTimestamp, setShowTimestamp] = useState<number | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  
+  const conversation = CONVERSATION_DETAILS[params.id] || {
+    id: params.id,
+    participantName: `Conversation #${params.id}`,
+  };
 
   const socket = useMemo(() => getSocket(), []);
 
@@ -138,23 +143,41 @@ export default function MessageThreadPage({ params }: { params: { id: string } }
   return (
     <DashboardLayout>
       <div className="flex h-[75vh] flex-col rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-800">
-          <div>
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Conversation #{params.id}
-            </h1>
-            <p className="text-sm text-gray-500">
-              {isConnected ? 'Connected — messages sync in real time.' : 'Reconnecting...'}
-            </p>
+        <div className="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {conversation.participantName}
+              </h1>
+              <p className="text-sm text-gray-500">
+                {isConnected ? 'Connected — messages sync in real time.' : 'Reconnecting...'}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className={`inline-block h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-amber-500 animate-pulse'}`}
+              />
+              <button className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300">
+                Mark all read
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span
-              className={`inline-block h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-amber-500 animate-pulse'}`}
-            />
-            <button className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300">
-              Mark all read
-            </button>
-          </div>
+          
+          {conversation.projectId && conversation.projectTitle && (
+            <div className="mt-3 flex items-center gap-2 rounded-lg bg-violet-50 px-3 py-2 dark:bg-violet-900/20">
+              <FolderOpen className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+              <span className="text-sm font-medium text-violet-700 dark:text-violet-300">
+                This conversation is part of:
+              </span>
+              <Link
+                href={`/commissions/${conversation.projectId}`}
+                className="inline-flex items-center gap-1 text-sm font-semibold text-violet-600 hover:underline dark:text-violet-400"
+              >
+                {conversation.projectTitle}
+                <ExternalLink className="h-3 w-3" />
+              </Link>
+            </div>
+          )}
         </div>
 
         <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
