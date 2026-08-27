@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { Search, SlidersHorizontal, Star, Clock, X } from 'lucide-react';
+import { Search, SlidersHorizontal, Star, Clock, X, Bookmark, BookmarkCheck, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useDebounce } from '@/hooks/useDebounce';
 import { usePagination } from '@/hooks/usePagination';
