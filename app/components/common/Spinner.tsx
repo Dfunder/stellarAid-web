@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { cn } from '@/lib/cn';
 
 type SpinnerSize = 'sm' | 'md' | 'lg';
 
@@ -23,7 +24,7 @@ const sizeClasses: Record<SpinnerSize, string> = {
 const Spinner: React.FC<SpinnerProps> = ({ size = 'md', className = '' }) => {
   return (
     <svg
-      className={`animate-spin text-current ${sizeClasses[size]} ${className}`}
+      className={cn('animate-spin text-current', sizeClasses[size], className)}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"

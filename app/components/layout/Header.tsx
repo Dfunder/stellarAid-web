@@ -8,6 +8,7 @@ import { selectIsAuthenticated, selectUser } from '@/app/features/auth/authSelec
 import { logoutUser } from '@/app/features/auth/authThunks';
 import { useRole } from '@/app/hooks/useRole';
 import NotificationBell from '@/app/components/layout/NotificationBell';
+import { cn } from '@/lib/cn';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -44,12 +45,12 @@ export default function Header() {
 
   return (
     <header
-      className={
-        'sticky top-0 z-40 w-full transition-all duration-300 ' +
-        (scrolled
+      className={cn(
+        'sticky top-0 z-40 w-full transition-all duration-300',
+        scrolled
           ? 'bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm shadow-md'
-          : 'bg-transparent')
-      }
+          : 'bg-transparent'
+      )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">

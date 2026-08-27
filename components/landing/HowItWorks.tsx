@@ -16,6 +16,7 @@ import {
   Briefcase,
   Sparkles,
 } from 'lucide-react';
+import { cn } from '@/lib/cn';
 
 export type TabType = 'clients' | 'artists';
 
@@ -145,7 +146,10 @@ export function HowItWorks({ className = '', defaultTab = 'clients' }: HowItWork
     <section
       id="how-it-works"
       aria-label="How It Works"
-      className={`py-16 sm:py-20 lg:py-28 bg-gradient-to-b from-neutral-50 via-white to-neutral-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950 transition-colors duration-300 ${className}`}
+      className={cn(
+        'py-16 sm:py-20 lg:py-28 bg-gradient-to-b from-neutral-50 via-white to-neutral-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950 transition-colors duration-300',
+        className
+      )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
@@ -179,11 +183,12 @@ export function HowItWorks({ className = '', defaultTab = 'clients' }: HowItWork
                 aria-selected={activeTab === 'clients'}
                 aria-controls="panel-clients"
                 onClick={() => handleTabChange('clients')}
-                className={`relative flex items-center gap-2.5 px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                className={cn(
+                  'relative flex items-center gap-2.5 px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
                   activeTab === 'clients'
                     ? 'text-primary-950 dark:text-white shadow-md'
                     : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'
-                }`}
+                )}
               >
                 {activeTab === 'clients' && (
                   <motion.div
@@ -203,11 +208,12 @@ export function HowItWorks({ className = '', defaultTab = 'clients' }: HowItWork
                 aria-selected={activeTab === 'artists'}
                 aria-controls="panel-artists"
                 onClick={() => handleTabChange('artists')}
-                className={`relative flex items-center gap-2.5 px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                className={cn(
+                  'relative flex items-center gap-2.5 px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
                   activeTab === 'artists'
                     ? 'text-primary-950 dark:text-white shadow-md'
                     : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200'
-                }`}
+                )}
               >
                 {activeTab === 'artists' && (
                   <motion.div
@@ -260,13 +266,14 @@ export function HowItWorks({ className = '', defaultTab = 'clients' }: HowItWork
                     >
                       {/* Step Circle Icon */}
                       <div
-                        className={`w-16 h-16 rounded-2xl flex items-center justify-center border-2 transition-all duration-300 shadow-md ${
+                        className={cn(
+                          'w-16 h-16 rounded-2xl flex items-center justify-center border-2 transition-all duration-300 shadow-md',
                           isActive
                             ? 'bg-primary-600 dark:bg-primary-600 text-white border-primary-500 ring-4 ring-primary-100 dark:ring-primary-950/80 scale-110'
                             : isCompleted
                               ? 'bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 border-neutral-900 dark:border-neutral-100'
                               : 'bg-white dark:bg-neutral-900 text-neutral-400 dark:text-neutral-600 border-neutral-300 dark:border-neutral-800 group-hover:border-primary-400 dark:group-hover:border-primary-600 group-hover:text-primary-600'
-                        }`}
+                        )}
                       >
                         <Icon className="w-7 h-7" />
                       </div>
@@ -274,20 +281,22 @@ export function HowItWorks({ className = '', defaultTab = 'clients' }: HowItWork
                       {/* Step Label */}
                       <div className="mt-4">
                         <span
-                          className={`text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                          className={cn(
+                            'text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full',
                             isActive
                               ? 'bg-primary-100 dark:bg-primary-900/80 text-primary-700 dark:text-primary-300'
                               : 'text-neutral-400 dark:text-neutral-500'
-                          }`}
+                          )}
                         >
                           Step {step.number}
                         </span>
                         <h3
-                          className={`mt-1.5 text-base font-bold transition-colors ${
+                          className={cn(
+                            'mt-1.5 text-base font-bold transition-colors',
                             isActive
                               ? 'text-neutral-900 dark:text-white'
                               : 'text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-neutral-200'
-                          }`}
+                          )}
                         >
                           {step.title}
                         </h3>
@@ -389,18 +398,20 @@ export function HowItWorks({ className = '', defaultTab = 'clients' }: HowItWork
                       <div
                         key={step.id}
                         onClick={() => setActiveStepId(step.id)}
-                        className={`group p-4 rounded-2xl border transition-all duration-200 cursor-pointer flex items-center gap-4 ${
+                        className={cn(
+                          'group p-4 rounded-2xl border transition-all duration-200 cursor-pointer flex items-center gap-4',
                           isActive
                             ? 'bg-white dark:bg-neutral-900 border-primary-500 dark:border-primary-500 shadow-md ring-2 ring-primary-500/20'
                             : 'bg-neutral-50/70 dark:bg-neutral-900/40 border-neutral-200/80 dark:border-neutral-800/80 hover:bg-white dark:hover:bg-neutral-900 hover:border-neutral-300 dark:hover:border-neutral-700'
-                        }`}
+                        )}
                       >
                         <div
-                          className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+                          className={cn(
+                            'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors',
                             isActive
                               ? 'bg-primary-600 text-white'
                               : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 group-hover:bg-primary-100 dark:group-hover:bg-primary-950 group-hover:text-primary-600'
-                          }`}
+                          )}
                         >
                           <Icon className="w-5 h-5" />
                         </div>
@@ -411,11 +422,12 @@ export function HowItWorks({ className = '', defaultTab = 'clients' }: HowItWork
                               {step.number}
                             </span>
                             <h4
-                              className={`text-sm font-bold truncate ${
+                              className={cn(
+                                'text-sm font-bold truncate',
                                 isActive
                                   ? 'text-neutral-900 dark:text-white'
                                   : 'text-neutral-700 dark:text-neutral-300'
-                              }`}
+                              )}
                             >
                               {step.title}
                             </h4>
@@ -426,11 +438,12 @@ export function HowItWorks({ className = '', defaultTab = 'clients' }: HowItWork
                         </div>
 
                         <ChevronRight
-                          className={`w-4 h-4 flex-shrink-0 transition-transform ${
+                          className={cn(
+                            'w-4 h-4 flex-shrink-0 transition-transform',
                             isActive
                               ? 'text-primary-600 dark:text-primary-400 translate-x-1'
                               : 'text-neutral-400 opacity-0 group-hover:opacity-100'
-                          }`}
+                          )}
                         />
                       </div>
                     );

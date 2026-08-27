@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useInView } from 'react-intersection-observer';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { cn } from '@/lib/cn';
 
 export interface ExploreProject {
   id: string;
@@ -53,6 +54,7 @@ async function fetchProjectsPage({
         goalXlm,
         backers: (n * 7) % 240,
       };
+      } as ExploreProject;
     }
   ).filter((item): item is ExploreProject => item !== null);
 
@@ -179,11 +181,12 @@ export default function ExploreProjects() {
       <div className="mb-6 flex flex-wrap gap-2">
         <button
           onClick={() => handleCategoryChange('all')}
-          className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+          className={cn(
+            'rounded-full px-4 py-2 text-sm font-medium transition-colors',
             selectedCategory === 'all'
               ? 'bg-violet-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-          }`}
+          )}
         >
           All
         </button>
@@ -191,11 +194,12 @@ export default function ExploreProjects() {
           <button
             key={category}
             onClick={() => handleCategoryChange(category)}
-            className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+            className={cn(
+              'rounded-full px-4 py-2 text-sm font-medium transition-colors',
               selectedCategory === category
                 ? 'bg-violet-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-            }`}
+            )}
           >
             {category}
           </button>

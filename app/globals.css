@@ -35,3 +35,19 @@
   background: #60a5fa;
   color: #0f172a;
 }
+
+/* ─── Hero section: static gradients pre-generated at build time ─── */
+/* These were previously inline style={{}} objects on every render.   */
+.hero-mesh-gradient {
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 40%, rgba(109, 40, 217, 0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 60%, rgba(249, 115, 22, 0.25) 0%, transparent 55%),
+    radial-gradient(ellipse 100% 80% at 50% 0%, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+}
+
+.hero-grid-texture {
+  background-image:
+    repeating-linear-gradient(0deg, #fff 0, #fff 1px, transparent 0, transparent 50%),
+    repeating-linear-gradient(90deg, #fff 0, #fff 1px, transparent 0, transparent 50%);
+  background-size: 48px 48px;
+}

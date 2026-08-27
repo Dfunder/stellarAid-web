@@ -3,6 +3,7 @@
 import React from 'react';
 import { useAppSelector } from '../../store/hooks';
 import { selectApiErrorByKey } from '../../features/errors/errorSelectors';
+import { cn } from '@/lib/cn';
 
 interface ErrorMessageProps {
   errorKey?: string;
@@ -18,7 +19,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({ errorKey, message, classNam
 
   return (
     <div
-      className={`flex items-start p-4 rounded-lg bg-red-50 border border-red-200 ${className}`}
+      className={cn('flex items-start p-4 rounded-lg bg-red-50 border border-red-200', className)}
       role="alert"
     >
       <div className="flex-shrink-0">

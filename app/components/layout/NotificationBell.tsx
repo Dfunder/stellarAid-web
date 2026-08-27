@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Bell, Check } from 'lucide-react';
+import { cn } from '@/lib/cn';
 
 interface Notification {
   id: string;
@@ -157,10 +158,10 @@ export default function NotificationBell() {
               notifications.map((notification) => (
                 <li
                   key={notification.id}
-                  className={
-                    'border-b border-neutral-100 px-4 py-3 last:border-b-0 dark:border-neutral-700 ' +
-                    (notification.unread ? 'bg-primary-50/60 dark:bg-primary-900/20' : '')
-                  }
+                  className={cn(
+                    'border-b border-neutral-100 px-4 py-3 last:border-b-0 dark:border-neutral-700',
+                    notification.unread && 'bg-primary-50/60 dark:bg-primary-900/20'
+                  )}
                 >
                   <div className="flex items-start gap-3">
                     {notification.unread && (

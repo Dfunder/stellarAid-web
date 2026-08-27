@@ -1,7 +1,9 @@
 import {
   getAddress,
+  getAddress as freighterGetAddress,
   signTransaction as freighterSignTransaction,
-  isAllowed,
+  isAllowed as freighterIsAllowed,
+  isConnected as freighterIsConnected,
 } from '@stellar/freighter-api';
 
 export function isFreighterInstalled(): boolean {
@@ -59,4 +61,35 @@ export async function signAndSubmitTransaction(xdr: string): Promise<string> {
     );
   }
   return typeof result === 'string' ? result : result.signedTxXdr;
+  const res = await freighterGetAddress();
+  if (res.error) {
+    throw new Error(typeof res.error === 'string' ? res.error : 'Failed to connect wallet');
+  }
+  return res.address;
+}
+
+export async function getPublicKey(): Promise<string> {
+  const res = await freighterGetAddress();
+  if (res.error) {
+    throw new Error(typeof res.error === 'string' ? res.error : 'Failed to get public key');
+  }
+  return res.address;
+}
+
+export async function signTransaction(xdr: string): Promise<string> {
+  const res = await freighterSignTransaction(xdr);
+  if (res.error) {
+    throw new Error(typeof res.error === 'string' ? res.error : 'Failed to sign transaction');
+  }
+  return res.signedTxXdr;
+}
+
+export async function signAndSubmitTransaction(xdr: string): Promise<string> {
+  const allowedRes = await freighterIsAllowed();
+  if (!allowedRes.isAllowed) throw new Error('Freighter connection not authorized.');
+  const res = await freighterSignTransaction(xdr);
+  if (res.error) {
+    throw new Error(typeof res.error === 'string' ? res.error : 'Failed to sign transaction');
+  }
+  return res.signedTxXdr;
 }

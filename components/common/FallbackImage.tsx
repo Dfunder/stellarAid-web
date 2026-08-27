@@ -51,6 +51,7 @@ export default function FallbackImage({
     );
   }
 
+  return <Image {...props} src={imgSrc} alt={alt} onError={handleError} />;
   return (
     <div className="relative overflow-hidden">
       {shimmer && !hasError && (

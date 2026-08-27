@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Spinner from './Spinner';
+import { cn } from '@/lib/cn';
 
 interface ButtonSpinnerProps {
   isLoading: boolean;
@@ -37,16 +38,13 @@ const ButtonSpinner: React.FC<ButtonSpinnerProps> = ({
       type={type}
       onClick={onClick}
       disabled={isLoading || disabled}
-      className={`
-        inline-flex items-center justify-center px-4 py-2 font-medium rounded-lg
-        transition-colors duration-200
-        ${
-          isLoading || disabled
-            ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-            : 'bg-blue-600 hover:bg-blue-700 text-white'
-        }
-        ${className}
-      `}
+      className={cn(
+        'inline-flex items-center justify-center px-4 py-2 font-medium rounded-lg transition-colors duration-200',
+        isLoading || disabled
+          ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+          : 'bg-blue-600 hover:bg-blue-700 text-white',
+        className
+      )}
       aria-busy={isLoading}
       aria-label={isLoading ? 'Loading' : undefined}
     >
