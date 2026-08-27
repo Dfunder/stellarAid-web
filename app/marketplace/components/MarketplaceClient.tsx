@@ -30,6 +30,16 @@ interface ServiceItem {
   createdAt: string;
 }
 
+interface SavedSearch {
+  id: string;
+  name: string;
+  searchQuery: string;
+  selectedCategory: string;
+  sortBy: string;
+  maxPrice: string;
+  createdAt: string;
+}
+
 const MOCK_SERVICES: ServiceItem[] = Array.from({ length: 36 }, (_, i) => {
   const cat = CATEGORIES[i % CATEGORIES.length] ?? 'Art';
   return {
