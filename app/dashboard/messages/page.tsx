@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Search } from 'lucide-react';
+import { Search, FolderOpen } from 'lucide-react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -14,6 +14,8 @@ interface Conversation {
   timestamp: string;
   unreadCount: number;
   online: boolean;
+  projectId?: string;
+  projectTitle?: string;
 }
 
 const MOCK_CONVERSATIONS: Conversation[] = [
@@ -25,6 +27,8 @@ const MOCK_CONVERSATIONS: Conversation[] = [
     timestamp: '9:42 AM',
     unreadCount: 2,
     online: true,
+    projectId: 'commission-001',
+    projectTitle: 'Website Redesign Project',
   },
   {
     id: '2',
@@ -34,6 +38,8 @@ const MOCK_CONVERSATIONS: Conversation[] = [
     timestamp: 'Yesterday',
     unreadCount: 0,
     online: false,
+    projectId: 'commission-001',
+    projectTitle: 'Website Redesign Project',
   },
   {
     id: '3',
@@ -43,6 +49,8 @@ const MOCK_CONVERSATIONS: Conversation[] = [
     timestamp: 'Yesterday',
     unreadCount: 1,
     online: true,
+    projectId: 'commission-002',
+    projectTitle: 'Mobile App UI Design',
   },
   {
     id: '4',
@@ -52,6 +60,8 @@ const MOCK_CONVERSATIONS: Conversation[] = [
     timestamp: 'Mon',
     unreadCount: 0,
     online: false,
+    projectId: 'commission-003',
+    projectTitle: 'Brand Identity Package',
   },
   {
     id: '5',
@@ -59,6 +69,17 @@ const MOCK_CONVERSATIONS: Conversation[] = [
     participantInitials: 'LD',
     lastMessage: 'Sketch preview ready for feedback whenever you can take a look.',
     timestamp: 'Sun',
+    unreadCount: 0,
+    online: false,
+    projectId: 'commission-002',
+    projectTitle: 'Mobile App UI Design',
+  },
+  {
+    id: '6',
+    participantName: 'General Chat',
+    participantInitials: 'GC',
+    lastMessage: 'Thanks for the quick response!',
+    timestamp: 'Sat',
     unreadCount: 0,
     online: false,
   },
