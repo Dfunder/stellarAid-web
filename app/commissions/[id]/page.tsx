@@ -476,54 +476,97 @@ export default function CommissionDetailPage({ params }: { params: { id: string 
                 </p>
               ) : (
                 <ul className="mt-4 space-y-3">
-                  {milestones.map((m) => (
-                    <li
-                      key={m.id}
-                      className="rounded-xl border border-gray-200 p-4 dark:border-gray-800"
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                            {m.title}
-                          </p>
-                          {m.description && (
-                            <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-                              {m.description}
+                  {milestones.map((m) => {
+                    const paymentStatusBadge = {
+                      pending: { label: 'Not funded', className: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300', icon: null },
+                      escrowed: { label: 'Funds locked', className: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300', icon: <Lock className="h-3 w-3" /> },
+                      released: { label: 'Paid', className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300', icon: <Unlock className="h-3 w-3" /> },
+                      funding: { label: 'Funding...', className: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300', icon: null },
+                      releasing: { label: 'Releasing...', className: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300', icon: null },
+                    }[m.paymentStatus];
+
+                    return (
+                      <li
+                        key={m.id}
+                        className="rounded-xl border border-gray-200 p-4 dark:border-gray-800"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                              {m.title}
                             </p>
-                          )}
-                          <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                            <span className="font-mono">${m.amountUsdc.toFixed(2)} USDC</span>
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {m.dueDate}
-                            </span>
+                            {m.description && (
+                              <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                                {m.description}
+                              </p>
+                            )}
+                            <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                              <span className="font-mono">${m.amountUsdc.toFixed(2)} USDC</span>
+                              <span className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                {m.dueDate}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex w-full flex-col items-end gap-2 sm:w-auto">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={
+                                  'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ' +
+                                  paymentStatusBadge.className
+                                }
+                              >
+                                {paymentStatusBadge.icon}
+                                {paymentStatusBadge.label}
+                              </span>
+                              <span
+                                className={
+                                  'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ' +
+                                  (m.approved
+                                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                                    : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300')
+                                }
+                              >
+                                {m.approved ? 'Approved' : 'Pending'}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {role === 'client' && m.paymentStatus === 'pending' && (
+                                <button
+                                  type="button"
+                                  onClick={() => openFundEscrowModal(m)}
+                                  className="inline-flex min-h-[32px] items-center justify-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+                                >
+                                  <Lock className="h-3.5 w-3.5" />
+                                  Fund Escrow
+                                </button>
+                              )}
+                              {role === 'client' && m.approved && m.paymentStatus === 'escrowed' && (
+                                <button
+                                  type="button"
+                                  onClick={() => openReleasePaymentModal(m)}
+                                  className="inline-flex min-h-[32px] items-center justify-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700"
+                                >
+                                  <Unlock className="h-3.5 w-3.5" />
+                                  Release Payment
+                                </button>
+                              )}
+                              {role === 'client' && !m.approved && (
+                                <button
+                                  type="button"
+                                  onClick={() => approveMilestone(m.id)}
+                                  className="inline-flex min-h-[40px] items-center justify-center gap-1 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-700 sm:min-h-[32px] sm:px-3 sm:py-1.5"
+                                >
+                                  <Check className="h-3.5 w-3.5" />
+                                  Approve
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
-                        <div className="flex w-full items-center justify-between gap-2 sm:w-auto">
-                          <span
-                            className={
-                              'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ' +
-                              (m.approved
-                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
-                                : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300')
-                            }
-                          >
-                            {m.approved ? 'Approved' : 'Pending'}
-                          </span>
-                          {role === 'client' && !m.approved && (
-                            <button
-                              type="button"
-                              onClick={() => approveMilestone(m.id)}
-                              className="inline-flex min-h-[40px] items-center justify-center gap-1 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-700 sm:min-h-[32px] sm:px-3 sm:py-1.5"
-                            >
-                              <Check className="h-3.5 w-3.5" />
-                              Approve
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </li>
-                  ))}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>
