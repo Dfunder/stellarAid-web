@@ -54,7 +54,6 @@ async function fetchProjectsPage({
         goalXlm,
         backers: (n * 7) % 240,
       };
-      } as ExploreProject;
     }
   ).filter((item): item is ExploreProject => item !== null);
 

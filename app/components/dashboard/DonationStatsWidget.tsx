@@ -1,5 +1,6 @@
 'use client';
 
+import React, { memo } from 'react';
 import { useAppSelector } from '@/app/store/hooks';
 import {
   selectDashboardStats,
@@ -11,16 +12,16 @@ interface StatCardProps {
   value: string | number;
 }
 
-function StatCard({ label, value }: StatCardProps) {
+const StatCard = memo(function StatCard({ label, value }: Readonly<StatCardProps>) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
       <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
       <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
     </div>
   );
-}
+});
 
-export default function DonationStatsWidget() {
+function DonationStatsWidget() {
   const stats = useAppSelector(selectDashboardStats);
   const loading = useAppSelector(selectDashboardLoading);
 
@@ -47,3 +48,5 @@ export default function DonationStatsWidget() {
     </div>
   );
 }
+
+export default memo(DonationStatsWidget);

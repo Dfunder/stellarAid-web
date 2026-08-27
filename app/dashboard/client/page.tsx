@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, memo } from 'react';
 import Link from 'next/link';
 import { ArrowRight, MessageSquare, Search, ShoppingBag } from 'lucide-react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
@@ -40,6 +40,65 @@ function sortCommissionsByDate(a: CommissionItem, b: CommissionItem) {
   return bDate - aDate;
 }
 
+interface ClientStatCardProps {
+  label: string;
+  value: string | number;
+  helper: string;
+}
+
+const ClientStatCard = memo(function ClientStatCard({
+  label,
+  value,
+  helper,
+}: Readonly<ClientStatCardProps>) {
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{label}</p>
+      <p className="mt-3 text-2xl font-semibold text-gray-900 dark:text-white">{value}</p>
+      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{helper}</p>
+    </div>
+  );
+});
+
+interface ClientCommissionRowProps {
+  commission: CommissionItem;
+}
+
+const ClientCommissionRow = memo(function ClientCommissionRow({
+  commission,
+}: Readonly<ClientCommissionRowProps>) {
+  const formattedDate = useMemo(() => {
+    if (!commission.createdAt) return null;
+    return new Date(commission.createdAt).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  }, [commission.createdAt]);
+
+  const statusInfo = STATUS_BADGE[commission.status];
+
+  return (
+    <tr className="text-gray-700 dark:text-gray-300">
+      <td className="px-3 py-3">
+        <div className="font-medium text-gray-900 dark:text-white">{commission.title}</div>
+        {formattedDate ? (
+          <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">{formattedDate}</div>
+        ) : null}
+      </td>
+      <td className="px-3 py-3">{commission.artistName}</td>
+      <td className="px-3 py-3">
+        <span
+          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusInfo.className}`}
+        >
+          {statusInfo.label}
+        </span>
+      </td>
+      <td className="px-3 py-3">{formatMoney(commission.budgetUsdc)}</td>
+    </tr>
+  );
+});
+
 export default function ClientDashboardPage() {
   const [commissions, setCommissions] = useState<CommissionItem[]>([]);
   const [totalSpent, setTotalSpent] = useState(0);
@@ -77,8 +136,10 @@ export default function ClientDashboardPage() {
         setActiveCommissions(activeStatusCount);
         setArtistsHired(artistCount);
         setPendingReviews(reviewCount);
-      } catch (cause) {
-        setError('Unable to load your client dashboard right now. Please try again later.');
+      } catch {
+        if (active) {
+          setError('Unable to load your client dashboard right now. Please try again later.');
+        }
       } finally {
         if (active) setIsLoading(false);
       }
@@ -92,6 +153,32 @@ export default function ClientDashboardPage() {
   }, []);
 
   const recentCommissions = useMemo(() => commissions.slice(0, 5), [commissions]);
+
+  const statCards = useMemo(
+    () => [
+      {
+        label: 'Active commissions',
+        value: isLoading ? '—' : activeCommissions,
+        helper: 'Requests currently in progress',
+      },
+      {
+        label: 'Total spent',
+        value: isLoading ? '—' : formatMoney(totalSpent),
+        helper: 'Amount spent in USDC',
+      },
+      {
+        label: 'Artists hired',
+        value: isLoading ? '—' : artistsHired,
+        helper: 'Unique artists you’ve worked with',
+      },
+      {
+        label: 'Pending reviews',
+        value: isLoading ? '—' : pendingReviews,
+        helper: 'Completed orders awaiting review',
+      },
+    ],
+    [activeCommissions, artistsHired, isLoading, pendingReviews, totalSpent]
+  );
 
   return (
     <DashboardLayout>
@@ -140,38 +227,13 @@ export default function ClientDashboardPage() {
         ) : null}
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {[
-            {
-              label: 'Active commissions',
-              value: isLoading ? '—' : activeCommissions,
-              helper: 'Requests currently in progress',
-            },
-            {
-              label: 'Total spent',
-              value: isLoading ? '—' : formatMoney(totalSpent),
-              helper: 'Amount spent in USDC',
-            },
-            {
-              label: 'Artists hired',
-              value: isLoading ? '—' : artistsHired,
-              helper: 'Unique artists you’ve worked with',
-            },
-            {
-              label: 'Pending reviews',
-              value: isLoading ? '—' : pendingReviews,
-              helper: 'Completed orders awaiting review',
-            },
-          ].map((card) => (
-            <div
+          {statCards.map((card) => (
+            <ClientStatCard
               key={card.label}
-              className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
-            >
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{card.label}</p>
-              <p className="mt-3 text-2xl font-semibold text-gray-900 dark:text-white">
-                {card.value}
-              </p>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{card.helper}</p>
-            </div>
+              label={card.label}
+              value={card.value}
+              helper={card.helper}
+            />
           ))}
         </section>
 
@@ -215,31 +277,7 @@ export default function ClientDashboardPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
                   {recentCommissions.map((commission) => (
-                    <tr key={commission.id} className="text-gray-700 dark:text-gray-300">
-                      <td className="px-3 py-3">
-                        <div className="font-medium text-gray-900 dark:text-white">
-                          {commission.title}
-                        </div>
-                        {commission.createdAt ? (
-                          <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            {new Date(commission.createdAt).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })}
-                          </div>
-                        ) : null}
-                      </td>
-                      <td className="px-3 py-3">{commission.artistName}</td>
-                      <td className="px-3 py-3">
-                        <span
-                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_BADGE[commission.status].className}`}
-                        >
-                          {STATUS_BADGE[commission.status].label}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3">{formatMoney(commission.budgetUsdc)}</td>
-                    </tr>
+                    <ClientCommissionRow key={commission.id} commission={commission} />
                   ))}
                 </tbody>
               </table>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bell, CheckCheck, Inbox } from 'lucide-react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
@@ -71,6 +71,55 @@ const FALLBACK_NOTIFICATIONS: NotificationItem[] = [
   },
 ];
 
+interface NotificationCardProps {
+  item: NotificationItem;
+  onClick: (item: NotificationItem) => void;
+}
+
+const NotificationCard = memo(function NotificationCard({
+  item,
+  onClick,
+}: Readonly<NotificationCardProps>) {
+  const handleClick = useCallback(() => {
+    onClick(item);
+  }, [item, onClick]);
+
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={handleClick}
+        className={`flex w-full items-start justify-between gap-4 rounded-2xl border px-4 py-4 text-left transition ${
+          item.unread
+            ? 'border-blue-200 bg-blue-50/70 hover:bg-blue-100/70 dark:border-blue-900/40 dark:bg-blue-900/20 dark:hover:bg-blue-900/30'
+            : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:hover:bg-gray-800'
+        }`}
+      >
+        <div className="flex min-w-0 items-start gap-3">
+          {item.unread ? (
+            <span className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-blue-600" />
+          ) : null}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                {item.title}
+              </p>
+              {item.unread ? (
+                <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                  New
+                </span>
+              ) : null}
+            </div>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{item.body}</p>
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{item.timestamp}</p>
+          </div>
+        </div>
+        <span className="text-sm font-medium text-blue-600 dark:text-blue-400">Open</span>
+      </button>
+    </li>
+  );
+});
+
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [filter, setFilter] = useState<FilterValue>('all');
@@ -101,7 +150,7 @@ export default function NotificationsPage() {
         if (active) {
           setNotifications(nextNotifications as NotificationItem[]);
         }
-      } catch (error) {
+      } catch {
         if (active) {
           setNotifications(FALLBACK_NOTIFICATIONS);
           setError(
@@ -137,27 +186,33 @@ export default function NotificationsPage() {
     goToPage,
   } = usePagination({ items: filteredNotifications, pageSize: 6 });
 
-  const unreadCount = notifications.filter((item) => item.unread).length;
+  const unreadCount = useMemo(
+    () => notifications.filter((item) => item.unread).length,
+    [notifications]
+  );
 
-  const markNotificationAsRead = (id: string) => {
+  const markNotificationAsRead = useCallback((id: string) => {
     setNotifications((current) =>
       current.map((item) => (item.id === id ? { ...item, unread: false } : item))
     );
-  };
+  }, []);
 
-  const handleNotificationClick = (item: NotificationItem) => {
-    if (item.unread) {
-      markNotificationAsRead(item.id);
-    }
+  const handleNotificationClick = useCallback(
+    (item: NotificationItem) => {
+      if (item.unread) {
+        markNotificationAsRead(item.id);
+      }
 
-    if (item.destination) {
-      router.push(item.destination);
-    }
-  };
+      if (item.destination) {
+        router.push(item.destination);
+      }
+    },
+    [markNotificationAsRead, router]
+  );
 
-  const markAllRead = () => {
+  const markAllRead = useCallback(() => {
     setNotifications((current) => current.map((item) => ({ ...item, unread: false })));
-  };
+  }, []);
 
   return (
     <DashboardLayout>
@@ -245,42 +300,7 @@ export default function NotificationsPage() {
           <div className="space-y-4">
             <ul className="space-y-3">
               {paginatedNotifications.map((item) => (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleNotificationClick(item)}
-                    className={`flex w-full items-start justify-between gap-4 rounded-2xl border px-4 py-4 text-left transition ${
-                      item.unread
-                        ? 'border-blue-200 bg-blue-50/70 hover:bg-blue-100/70 dark:border-blue-900/40 dark:bg-blue-900/20 dark:hover:bg-blue-900/30'
-                        : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:hover:bg-gray-800'
-                    }`}
-                  >
-                    <div className="flex min-w-0 items-start gap-3">
-                      {item.unread ? (
-                        <span className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-blue-600" />
-                      ) : null}
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-                            {item.title}
-                          </p>
-                          {item.unread ? (
-                            <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
-                              New
-                            </span>
-                          ) : null}
-                        </div>
-                        <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{item.body}</p>
-                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                          {item.timestamp}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                      Open
-                    </span>
-                  </button>
-                </li>
+                <NotificationCard key={item.id} item={item} onClick={handleNotificationClick} />
               ))}
             </ul>
 

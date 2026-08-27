@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback, memo } from 'react';
 import Image from 'next/image';
 
 interface AvatarUploadProps {
@@ -8,13 +8,13 @@ interface AvatarUploadProps {
   onUpload?: (url: string) => void;
 }
 
-export default function AvatarUpload({ currentAvatar, onUpload }: AvatarUploadProps) {
+function AvatarUpload({ currentAvatar, onUpload }: Readonly<AvatarUploadProps>) {
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     setError('');
     if (!file) return;
@@ -31,27 +31,36 @@ export default function AvatarUpload({ currentAvatar, onUpload }: AvatarUploadPr
     const reader = new FileReader();
     reader.onload = () => setPreview(reader.result as string);
     reader.readAsDataURL(file);
-  };
+  }, []);
 
-  const handleUpload = async () => {
+  const handleUpload = useCallback(async () => {
     if (!inputRef.current?.files?.[0]) return;
     setUploading(true);
     setError('');
 
-    const formData = new FormData();
-    formData.append('avatar', inputRef.current.files[0]);
+    try {
+      const formData = new FormData();
+      formData.append('avatar', inputRef.current.files[0]);
 
-    const response = await fetch('/api/users/me/avatar', { method: 'POST', body: formData });
-    setUploading(false);
+      const response = await fetch('/api/users/me/avatar', { method: 'POST', body: formData });
+      setUploading(false);
 
-    if (response.ok) {
-      const { url } = await response.json();
-      onUpload?.(url);
-      setPreview(null);
-    } else {
+      if (response.ok) {
+        const { url } = await response.json();
+        onUpload?.(url);
+        setPreview(null);
+      } else {
+        setError('Upload failed. Please try again.');
+      }
+    } catch {
+      setUploading(false);
       setError('Upload failed. Please try again.');
     }
-  };
+  }, [onUpload]);
+
+  const handleTriggerClick = useCallback(() => {
+    inputRef.current?.click();
+  }, []);
 
   const avatarSrc = preview || currentAvatar;
 
@@ -59,7 +68,7 @@ export default function AvatarUpload({ currentAvatar, onUpload }: AvatarUploadPr
     <div className="flex flex-col items-center gap-4">
       <button
         type="button"
-        onClick={() => inputRef.current?.click()}
+        onClick={handleTriggerClick}
         className="relative w-24 h-24 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 hover:opacity-80 transition-opacity"
       >
         {avatarSrc ? (
@@ -89,3 +98,5 @@ export default function AvatarUpload({ currentAvatar, onUpload }: AvatarUploadPr
     </div>
   );
 }
+
+export default memo(AvatarUpload);

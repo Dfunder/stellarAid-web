@@ -1,11 +1,22 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback, memo } from 'react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import PaymentEscrowModal from '@/app/dashboard/payments/PaymentEscrowModal';
 import { txLink } from '@/lib/utils/stellarLinks';
 
-const payments = [
+interface Payment {
+  id: number;
+  date: string;
+  title: string;
+  counterparty: string;
+  amount: string;
+  asset: string;
+  status: string;
+  txHash: string;
+}
+
+const payments: Payment[] = [
   {
     id: 1,
     date: '2026-07-28',
@@ -38,6 +49,39 @@ const payments = [
   },
 ];
 
+const PaymentRow = memo(function PaymentRow({ payment }: Readonly<{ payment: Payment }>) {
+  const statusClassName = useMemo(() => {
+    if (payment.status === 'Completed') return 'bg-emerald-100 text-emerald-700';
+    if (payment.status === 'Pending') return 'bg-amber-100 text-amber-700';
+    return 'bg-rose-100 text-rose-700';
+  }, [payment.status]);
+
+  return (
+    <tr className="border-t border-gray-100 dark:border-gray-800">
+      <td className="px-4 py-3">{payment.date}</td>
+      <td className="px-4 py-3">{payment.title}</td>
+      <td className="px-4 py-3">{payment.counterparty}</td>
+      <td className="px-4 py-3">{payment.amount}</td>
+      <td className="px-4 py-3">{payment.asset}</td>
+      <td className="px-4 py-3">
+        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClassName}`}>
+          {payment.status}
+        </span>
+      </td>
+      <td className="px-4 py-3">
+        <a
+          href={txLink(payment.txHash)}
+          target="_blank"
+          rel="noreferrer"
+          className="text-violet-600 hover:underline"
+        >
+          {payment.txHash}
+        </a>
+      </td>
+    </tr>
+  );
+});
+
 export default function PaymentsPage() {
   const [status, setStatus] = useState('all');
   const [asset, setAsset] = useState('all');
@@ -55,7 +99,33 @@ export default function PaymentsPage() {
   const pageSize = 5;
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const start = (page - 1) * pageSize;
-  const visible = filtered.slice(start, start + pageSize);
+  const visible = useMemo(() => filtered.slice(start, start + pageSize), [filtered, start]);
+
+  const handleOpenEscrow = useCallback(() => {
+    setIsEscrowOpen(true);
+  }, []);
+
+  const handleCloseEscrow = useCallback(() => {
+    setIsEscrowOpen(false);
+  }, []);
+
+  const handlePrevPage = useCallback(() => {
+    setPage((current) => Math.max(1, current - 1));
+  }, []);
+
+  const handleNextPage = useCallback(() => {
+    setPage((current) => Math.min(totalPages, current + 1));
+  }, [totalPages]);
+
+  const handleStatusChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setStatus(e.target.value);
+    setPage(1);
+  }, []);
+
+  const handleAssetChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setAsset(e.target.value);
+    setPage(1);
+  }, []);
 
   return (
     <DashboardLayout>
@@ -69,7 +139,8 @@ export default function PaymentsPage() {
 
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
           <button
-            onClick={() => setIsEscrowOpen(true)}
+            type="button"
+            onClick={handleOpenEscrow}
             className="rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white"
           >
             Fund Escrow
@@ -77,7 +148,7 @@ export default function PaymentsPage() {
           <div className="flex flex-wrap gap-3">
             <select
               value={status}
-              onChange={(e) => setStatus(e.target.value)}
+              onChange={handleStatusChange}
               className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
             >
               <option value="all">All statuses</option>
@@ -87,7 +158,7 @@ export default function PaymentsPage() {
             </select>
             <select
               value={asset}
-              onChange={(e) => setAsset(e.target.value)}
+              onChange={handleAssetChange}
               className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800"
             >
               <option value="all">All assets</option>
@@ -112,36 +183,7 @@ export default function PaymentsPage() {
             </thead>
             <tbody>
               {visible.map((payment) => (
-                <tr key={payment.id} className="border-t border-gray-100 dark:border-gray-800">
-                  <td className="px-4 py-3">{payment.date}</td>
-                  <td className="px-4 py-3">{payment.title}</td>
-                  <td className="px-4 py-3">{payment.counterparty}</td>
-                  <td className="px-4 py-3">{payment.amount}</td>
-                  <td className="px-4 py-3">{payment.asset}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                        payment.status === 'Completed'
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : payment.status === 'Pending'
-                            ? 'bg-amber-100 text-amber-700'
-                            : 'bg-rose-100 text-rose-700'
-                      }`}
-                    >
-                      {payment.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <a
-                      href={txLink(payment.txHash)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-violet-600 hover:underline"
-                    >
-                      {payment.txHash}
-                    </a>
-                  </td>
-                </tr>
+                <PaymentRow key={payment.id} payment={payment} />
               ))}
             </tbody>
           </table>
@@ -153,21 +195,25 @@ export default function PaymentsPage() {
           </p>
           <div className="flex gap-2">
             <button
-              onClick={() => setPage((current) => Math.max(1, current - 1))}
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700"
+              type="button"
+              onClick={handlePrevPage}
+              disabled={page <= 1}
+              className="rounded-lg border border-gray-200 px-3 py-2 text-sm disabled:opacity-50 dark:border-gray-700"
             >
               Previous
             </button>
             <button
-              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700"
+              type="button"
+              onClick={handleNextPage}
+              disabled={page >= totalPages}
+              className="rounded-lg border border-gray-200 px-3 py-2 text-sm disabled:opacity-50 dark:border-gray-700"
             >
               Next
             </button>
           </div>
         </div>
       </div>
-      <PaymentEscrowModal isOpen={isEscrowOpen} onClose={() => setIsEscrowOpen(false)} />
+      <PaymentEscrowModal isOpen={isEscrowOpen} onClose={handleCloseEscrow} />
     </DashboardLayout>
   );
 }

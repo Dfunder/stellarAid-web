@@ -1,5 +1,6 @@
 'use client';
 
+import React, { memo, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import WalletBalance from '@/components/wallet/WalletBalance';
@@ -20,33 +21,50 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
+const SidebarNavItem = memo(function SidebarNavItem({
+  name,
+  href,
+  isActive,
+}: Readonly<{
+  name: string;
+  href: string;
+  isActive: boolean;
+}>) {
+  return (
+    <Link
+      href={href}
+      className={
+        'block px-3 py-2 rounded-lg text-sm font-medium transition-colors ' +
+        (isActive
+          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600'
+          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800')
+      }
+    >
+      {name}
+    </Link>
+  );
+});
+
+function DashboardLayout({ children }: Readonly<DashboardLayoutProps>) {
   const pathname = usePathname();
+
+  const renderedLinks = useMemo(() => {
+    return sidebarLinks.map((link) => (
+      <SidebarNavItem
+        key={link.href}
+        name={link.name}
+        href={link.href}
+        isActive={pathname === link.href}
+      />
+    ));
+  }, [pathname]);
 
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
       <aside className="w-64 shrink-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
         <div className="p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Dashboard</h2>
-          <nav className="space-y-1">
-            {sidebarLinks.map((link) => {
-              const active = pathname === link.href;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={
-                    'block px-3 py-2 rounded-lg text-sm font-medium transition-colors ' +
-                    (active
-                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800')
-                  }
-                >
-                  {link.name}
-                </Link>
-              );
-            })}
-          </nav>
+          <nav className="space-y-1">{renderedLinks}</nav>
 
           <div className="mt-6">
             <WalletBalance />
@@ -57,3 +75,5 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     </div>
   );
 }
+
+export default memo(DashboardLayout);

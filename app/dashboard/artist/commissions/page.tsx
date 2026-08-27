@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useMemo, useCallback, memo } from 'react';
 import Link from 'next/link';
 import { Calendar, Wallet } from 'lucide-react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
@@ -78,11 +78,66 @@ const STATUS_BADGE: Record<Status, { label: string; className: string }> = {
   },
 };
 
+interface ArtistCommissionCardProps {
+  commission: Commission;
+}
+
+const ArtistCommissionCard = memo(function ArtistCommissionCard({
+  commission,
+}: Readonly<ArtistCommissionCardProps>) {
+  const badge = STATUS_BADGE[commission.status];
+
+  return (
+    <li>
+      <Link
+        href={`/commissions/${commission.id}`}
+        className="block rounded-2xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md dark:border-gray-800 dark:bg-gray-900"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-violet-100 text-sm font-semibold text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
+              {commission.client.name.charAt(0)}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                {commission.client.name}
+              </p>
+              <p className="truncate text-xs text-gray-500 dark:text-gray-400">Client</p>
+            </div>
+          </div>
+          <span
+            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${badge.className}`}
+          >
+            {badge.label}
+          </span>
+        </div>
+        <h3 className="mt-4 text-base font-semibold text-gray-900 dark:text-white">
+          {commission.title}
+        </h3>
+        <div className="mt-3 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+          <span className="flex items-center gap-1">
+            <Wallet className="h-3.5 w-3.5" />${commission.budgetUsdc.toFixed(2)} USDC
+          </span>
+          <span className="flex items-center gap-1">
+            <Calendar className="h-3.5 w-3.5" />
+            {commission.deadline}
+          </span>
+        </div>
+      </Link>
+    </li>
+  );
+});
+
 export default function ArtistCommissionsPage() {
   const [tab, setTab] = useState<Tab>('NEW_REQUEST');
 
-  const newRequestCount = MOCK.filter((c) => c.status === 'NEW_REQUEST').length;
-  const filtered = MOCK.filter((c) => c.status === tab);
+  const newRequestCount = useMemo(() => MOCK.filter((c) => c.status === 'NEW_REQUEST').length, []);
+
+  const filtered = useMemo(() => MOCK.filter((c) => c.status === tab), [tab]);
+
+  const handleTabClick = useCallback((selectedTab: Tab) => {
+    setTab(selectedTab);
+  }, []);
 
   return (
     <DashboardLayout>
@@ -104,7 +159,7 @@ export default function ArtistCommissionsPage() {
                 <button
                   key={t.key}
                   type="button"
-                  onClick={() => setTab(t.key)}
+                  onClick={() => handleTabClick(t.key)}
                   aria-current={isActive ? 'page' : undefined}
                   className={
                     'flex items-center gap-2 border-b-2 px-2 pb-3 text-sm font-medium transition-colors ' +
@@ -134,50 +189,9 @@ export default function ArtistCommissionsPage() {
           </p>
         ) : (
           <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {filtered.map((c) => {
-              const badge = STATUS_BADGE[c.status];
-              return (
-                <li key={c.id}>
-                  <Link
-                    href={`/commissions/${c.id}`}
-                    className="block rounded-2xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-md dark:border-gray-800 dark:bg-gray-900"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex min-w-0 items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-violet-100 text-sm font-semibold text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
-                          {c.client.name.charAt(0)}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-                            {c.client.name}
-                          </p>
-                          <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-                            Client
-                          </p>
-                        </div>
-                      </div>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${badge.className}`}
-                      >
-                        {badge.label}
-                      </span>
-                    </div>
-                    <h3 className="mt-4 text-base font-semibold text-gray-900 dark:text-white">
-                      {c.title}
-                    </h3>
-                    <div className="mt-3 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                      <span className="flex items-center gap-1">
-                        <Wallet className="h-3.5 w-3.5" />${c.budgetUsdc.toFixed(2)} USDC
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3.5 w-3.5" />
-                        {c.deadline}
-                      </span>
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
+            {filtered.map((c) => (
+              <ArtistCommissionCard key={c.id} commission={c} />
+            ))}
           </ul>
         )}
       </main>
