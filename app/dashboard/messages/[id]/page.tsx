@@ -1,8 +1,10 @@
 'use client';
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { getSocket } from '@/lib/socket';
+import { FolderOpen, ExternalLink } from 'lucide-react';
 
 interface Message {
   id: number;
@@ -10,6 +12,51 @@ interface Message {
   text: string;
   createdAt: string;
 }
+
+interface ConversationDetails {
+  id: string;
+  participantName: string;
+  projectId?: string;
+  projectTitle?: string;
+}
+
+// Mock conversation details lookup - in a real app this would be fetched from an API
+const CONVERSATION_DETAILS: { [key: string]: ConversationDetails } = {
+  '1': {
+    id: '1',
+    participantName: 'Adaeze Okafor',
+    projectId: 'commission-001',
+    projectTitle: 'Website Redesign Project',
+  },
+  '2': {
+    id: '2',
+    participantName: 'Tunde Bakare',
+    projectId: 'commission-001',
+    projectTitle: 'Website Redesign Project',
+  },
+  '3': {
+    id: '3',
+    participantName: 'Ifeoma Adeleke',
+    projectId: 'commission-002',
+    projectTitle: 'Mobile App UI Design',
+  },
+  '4': {
+    id: '4',
+    participantName: 'Chinedu Arts Studio',
+    projectId: 'commission-003',
+    projectTitle: 'Brand Identity Package',
+  },
+  '5': {
+    id: '5',
+    participantName: 'Lola Design Co.',
+    projectId: 'commission-002',
+    projectTitle: 'Mobile App UI Design',
+  },
+  '6': {
+    id: '6',
+    participantName: 'General Chat',
+  },
+};
 
 const initialMessages: Message[] = [
   {
