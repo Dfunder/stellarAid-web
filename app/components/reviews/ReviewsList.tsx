@@ -114,10 +114,10 @@ export default function ReviewsList({ reviews, pageSize = 5 }: ReviewsListProps)
     };
   }, [reviews]);
 
-  const totalPages = Math.max(1, Math.ceil(reviews.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(processedReviews.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const startIndex = (currentPage - 1) * pageSize;
-  const visible = reviews.slice(startIndex, startIndex + pageSize);
+  const visible = processedReviews.slice(startIndex, startIndex + pageSize);
 
   const goPrev = () => setPage((p) => Math.max(1, p - 1));
   const goNext = () => setPage((p) => Math.min(totalPages, p + 1));
