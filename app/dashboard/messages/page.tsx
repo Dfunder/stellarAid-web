@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Search } from 'lucide-react';
+import { Search, FolderOpen } from 'lucide-react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -14,6 +14,8 @@ interface Conversation {
   timestamp: string;
   unreadCount: number;
   online: boolean;
+  projectId?: string;
+  projectTitle?: string;
 }
 
 const MOCK_CONVERSATIONS: Conversation[] = [
@@ -25,6 +27,8 @@ const MOCK_CONVERSATIONS: Conversation[] = [
     timestamp: '9:42 AM',
     unreadCount: 2,
     online: true,
+    projectId: 'commission-001',
+    projectTitle: 'Website Redesign Project',
   },
   {
     id: '2',
@@ -34,6 +38,8 @@ const MOCK_CONVERSATIONS: Conversation[] = [
     timestamp: 'Yesterday',
     unreadCount: 0,
     online: false,
+    projectId: 'commission-001',
+    projectTitle: 'Website Redesign Project',
   },
   {
     id: '3',
@@ -43,6 +49,8 @@ const MOCK_CONVERSATIONS: Conversation[] = [
     timestamp: 'Yesterday',
     unreadCount: 1,
     online: true,
+    projectId: 'commission-002',
+    projectTitle: 'Mobile App UI Design',
   },
   {
     id: '4',
@@ -52,6 +60,8 @@ const MOCK_CONVERSATIONS: Conversation[] = [
     timestamp: 'Mon',
     unreadCount: 0,
     online: false,
+    projectId: 'commission-003',
+    projectTitle: 'Brand Identity Package',
   },
   {
     id: '5',
@@ -61,20 +71,60 @@ const MOCK_CONVERSATIONS: Conversation[] = [
     timestamp: 'Sun',
     unreadCount: 0,
     online: false,
+    projectId: 'commission-002',
+    projectTitle: 'Mobile App UI Design',
+  },
+  {
+    id: '6',
+    participantName: 'General Chat',
+    participantInitials: 'GC',
+    lastMessage: 'Thanks for the quick response!',
+    timestamp: 'Sat',
+    unreadCount: 0,
+    online: false,
   },
 ];
 
 export default function ConversationsListPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 300);
+  const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set(['commission-001', 'commission-002', 'commission-003', 'ungrouped']));
 
   const filteredConversations = useMemo(() => {
     if (!debouncedSearch.trim()) return MOCK_CONVERSATIONS;
     const q = debouncedSearch.toLowerCase();
     return MOCK_CONVERSATIONS.filter(
-      (c) => c.participantName.toLowerCase().includes(q) || c.lastMessage.toLowerCase().includes(q)
+      (c) => c.participantName.toLowerCase().includes(q) || 
+             c.lastMessage.toLowerCase().includes(q) ||
+             c.projectTitle?.toLowerCase().includes(q)
     );
   }, [debouncedSearch]);
+
+  const groupedConversations = useMemo(() => {
+    const groups: { [key: string]: Conversation[] } = {};
+    
+    filteredConversations.forEach(conversation => {
+      const groupKey = conversation.projectId || 'ungrouped';
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+      groups[groupKey].push(conversation);
+    });
+    
+    return groups;
+  }, [filteredConversations]);
+
+  const toggleProject = (projectId: string) => {
+    setExpandedProjects(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(projectId)) {
+        newSet.delete(projectId);
+      } else {
+        newSet.add(projectId);
+      }
+      return newSet;
+    });
+  };
 
   return (
     <DashboardLayout>
@@ -101,60 +151,104 @@ export default function ConversationsListPage() {
           />
         </div>
 
-        {filteredConversations.length === 0 ? (
+        {Object.keys(groupedConversations).length === 0 ? (
           <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-8">
             No conversations match your search.
           </p>
         ) : (
-          <ul
-            className="divide-y divide-gray-200 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:divide-gray-800 dark:border-gray-800 dark:bg-gray-900"
-            aria-label="Conversations"
-          >
-            {filteredConversations.map((conversation) => (
-              <li key={conversation.id}>
-                <Link
-                  href={`/dashboard/messages/${conversation.id}`}
-                  className="flex items-center gap-4 px-4 py-3 transition-colors hover:bg-gray-50 focus-visible:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 dark:hover:bg-gray-800/60 dark:focus-visible:bg-gray-800/60"
+          <div className="space-y-4">
+            {Object.entries(groupedConversations).map(([projectId, conversations]) => {
+              const projectTitle = projectId === 'ungrouped' 
+                ? 'General Conversations' 
+                : conversations[0].projectTitle || 'Unnamed Project';
+              const isExpanded = expandedProjects.has(projectId);
+              const totalUnread = conversations.reduce((sum, c) => sum + c.unreadCount, 0);
+              
+              return (
+                <div 
+                  key={projectId}
+                  className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
                 >
-                  <div className="relative shrink-0">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-violet-100 text-sm font-semibold text-violet-700 dark:bg-violet-900/40 dark:text-violet-200">
-                      {conversation.participantInitials}
-                    </div>
-                    {conversation.online && (
-                      <span
-                        aria-hidden="true"
-                        className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 dark:border-gray-900"
-                      />
-                    )}
-                  </div>
-
-                  <div className="flex min-w-0 flex-1 flex-col">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-                        {conversation.participantName}
-                      </p>
-                      <span className="shrink-0 text-xs text-gray-500 dark:text-gray-400">
-                        {conversation.timestamp}
+                  <button
+                    onClick={() => toggleProject(projectId)}
+                    className="flex w-full items-center justify-between px-4 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/60"
+                  >
+                    <div className="flex items-center gap-3">
+                      <FolderOpen className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                        {projectTitle}
+                      </h3>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        ({conversations.length} {conversations.length === 1 ? 'conversation' : 'conversations'})
                       </span>
-                    </div>
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="truncate text-sm text-gray-600 dark:text-gray-300">
-                        {conversation.lastMessage}
-                      </p>
-                      {conversation.unreadCount > 0 && (
-                        <span
-                          aria-label={`${conversation.unreadCount} unread messages`}
-                          className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-violet-600 px-1.5 text-[11px] font-semibold text-white"
-                        >
-                          {conversation.unreadCount}
+                      {totalUnread > 0 && (
+                        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-violet-600 px-1.5 text-[11px] font-semibold text-white">
+                          {totalUnread}
                         </span>
                       )}
                     </div>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+                    <svg
+                      className={`h-4 w-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                  
+                  {isExpanded && (
+                    <ul className="divide-y divide-gray-200 dark:divide-gray-800">
+                      {conversations.map((conversation) => (
+                        <li key={conversation.id}>
+                          <Link
+                            href={`/dashboard/messages/${conversation.id}`}
+                            className="flex items-center gap-4 px-4 py-3 pl-12 transition-colors hover:bg-gray-50 focus-visible:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 dark:hover:bg-gray-800/60 dark:focus-visible:bg-gray-800/60"
+                          >
+                            <div className="relative shrink-0">
+                              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-violet-100 text-sm font-semibold text-violet-700 dark:bg-violet-900/40 dark:text-violet-200">
+                                {conversation.participantInitials}
+                              </div>
+                              {conversation.online && (
+                                <span
+                                  aria-hidden="true"
+                                  className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 dark:border-gray-900"
+                                />
+                              )}
+                            </div>
+
+                            <div className="flex min-w-0 flex-1 flex-col">
+                              <div className="flex items-baseline justify-between gap-3">
+                                <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                                  {conversation.participantName}
+                                </p>
+                                <span className="shrink-0 text-xs text-gray-500 dark:text-gray-400">
+                                  {conversation.timestamp}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between gap-3">
+                                <p className="truncate text-sm text-gray-600 dark:text-gray-300">
+                                  {conversation.lastMessage}
+                                </p>
+                                {conversation.unreadCount > 0 && (
+                                  <span
+                                    aria-label={`${conversation.unreadCount} unread messages`}
+                                    className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-violet-600 px-1.5 text-[11px] font-semibold text-white"
+                                  >
+                                    {conversation.unreadCount}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
     </DashboardLayout>
