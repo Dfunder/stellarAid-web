@@ -112,6 +112,72 @@ export default function MarketplaceClient() {
   const [sortBy, setSortBy] = useState<string>('newest');
   const [maxPrice, setMaxPrice] = useState<string>('');
   const [isLoading] = useState(false);
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [newSearchName, setNewSearchName] = useState('');
+  const [showSavedSearches, setShowSavedSearches] = useState(false);
+
+  // Load saved searches from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('marketplace-saved-searches');
+    if (stored) {
+      try {
+        setSavedSearches(JSON.parse(stored));
+      } catch (e) {
+        console.error('Failed to parse saved searches');
+      }
+    }
+  }, []);
+
+  // Save to localStorage whenever savedSearches changes
+  useEffect(() => {
+    localStorage.setItem('marketplace-saved-searches', JSON.stringify(savedSearches));
+  }, [savedSearches]);
+
+  // Check if current search is already saved
+  const isCurrentSearchSaved = useMemo(() => {
+    return savedSearches.some(
+      (s) =>
+        s.searchQuery === searchQuery &&
+        s.selectedCategory === selectedCategory &&
+        s.sortBy === sortBy &&
+        s.maxPrice === maxPrice
+    );
+  }, [savedSearches, searchQuery, selectedCategory, sortBy, maxPrice]);
+
+  // Function to save current search
+  const saveCurrentSearch = () => {
+    if (!newSearchName.trim()) return;
+    
+    const newSearch: SavedSearch = {
+      id: `search-${Date.now()}`,
+      name: newSearchName.trim(),
+      searchQuery,
+      selectedCategory,
+      sortBy,
+      maxPrice,
+      createdAt: new Date().toISOString(),
+    };
+    
+    setSavedSearches((prev) => [...prev, newSearch]);
+    setNewSearchName('');
+    setShowSaveModal(false);
+  };
+
+  // Function to run a saved search
+  const runSavedSearch = (search: SavedSearch) => {
+    setSearchQuery(search.searchQuery);
+    setSelectedCategory(search.selectedCategory);
+    setSortBy(search.sortBy);
+    setMaxPrice(search.maxPrice);
+    setShowSavedSearches(false);
+  };
+
+  // Function to delete a saved search
+  const deleteSavedSearch = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSavedSearches((prev) => prev.filter((s) => s.id !== id));
+  };
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
@@ -179,11 +245,61 @@ export default function MarketplaceClient() {
             placeholder="Search services..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm outline-none placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+            className="w-full rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-12 text-sm outline-none placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
           />
+          <button
+            onClick={() => setShowSaveModal(true)}
+            disabled={isCurrentSearchSaved}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-violet-600 disabled:text-violet-600"
+            title={isCurrentSearchSaved ? "Search already saved" : "Save this search"}
+          >
+            {isCurrentSearchSaved ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
+          </button>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          {savedSearches.length > 0 && (
+            <div className="relative">
+              <button
+                onClick={() => setShowSavedSearches(!showSavedSearches)}
+                className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-violet-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white flex items-center gap-2"
+              >
+                <Bookmark className="h-4 w-4" />
+                Saved Searches ({savedSearches.length})
+              </button>
+              {showSavedSearches && (
+                <div className="absolute right-0 top-full mt-2 w-72 rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900 z-10">
+                  <div className="p-2 border-b border-gray-100 dark:border-gray-800">
+                    <h3 className="font-medium text-sm text-gray-900 dark:text-white">Your saved searches</h3>
+                  </div>
+                  <ul className="max-h-64 overflow-y-auto">
+                    {savedSearches.map((search) => (
+                      <li
+                        key={search.id}
+                        className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer group"
+                        onClick={() => runSavedSearch(search)}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{search.name}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {search.searchQuery || 'All services'}{search.selectedCategory !== 'all' && ` • ${search.selectedCategory}`}
+                          </p>
+                        </div>
+                        <button
+                          onClick={(e) => deleteSavedSearch(search.id, e)}
+                          className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 p-1"
+                          title="Delete search"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+          
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
@@ -209,6 +325,52 @@ export default function MarketplaceClient() {
           </div>
         </div>
       </div>
+
+      {/* Save Search Modal */}
+      {showSaveModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 w-full max-w-md shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Save this search</h3>
+            <input
+              type="text"
+              placeholder="Give your search a name..."
+              value={newSearchName}
+              onChange={(e) => setNewSearchName(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 bg-white py-2 px-3 text-sm outline-none placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white mb-4"
+              autoFocus
+            />
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+              <p>Search details: {searchQuery || 'All services'}{selectedCategory !== 'all' && ` • ${selectedCategory}`}{maxPrice && ` • Max $${maxPrice}`}</p>
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowSaveModal(false);
+                  setNewSearchName('');
+                }}
+                className="px-4 py-2 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveCurrentSearch}
+                disabled={!newSearchName.trim()}
+                className="px-4 py-2 rounded-xl text-sm font-medium bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Save Search
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Click outside to close saved searches dropdown */}
+      {showSavedSearches && (
+        <div
+          className="fixed inset-0 z-0"
+          onClick={() => setShowSavedSearches(false)}
+        />
+      )}
 
       <div className="mb-6 flex flex-wrap gap-2">
         <button
