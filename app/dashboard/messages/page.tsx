@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback, memo } from 'react';
 import Link from 'next/link';
 import { Search, FolderOpen } from 'lucide-react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
@@ -85,6 +85,59 @@ const MOCK_CONVERSATIONS: Conversation[] = [
   },
 ];
 
+interface ConversationItemRowProps {
+  conversation: Conversation;
+}
+
+const ConversationItemRow = memo(function ConversationItemRow({
+  conversation,
+}: Readonly<ConversationItemRowProps>) {
+  return (
+    <li>
+      <Link
+        href={`/dashboard/messages/${conversation.id}`}
+        className="flex items-center gap-4 px-4 py-3 transition-colors hover:bg-gray-50 focus-visible:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 dark:hover:bg-gray-800/60 dark:focus-visible:bg-gray-800/60"
+      >
+        <div className="relative shrink-0">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-violet-100 text-sm font-semibold text-violet-700 dark:bg-violet-900/40 dark:text-violet-200">
+            {conversation.participantInitials}
+          </div>
+          {conversation.online && (
+            <span
+              aria-hidden="true"
+              className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 dark:border-gray-900"
+            />
+          )}
+        </div>
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
+              {conversation.participantName}
+            </p>
+            <span className="shrink-0 text-xs text-gray-500 dark:text-gray-400">
+              {conversation.timestamp}
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <p className="truncate text-sm text-gray-600 dark:text-gray-300">
+              {conversation.lastMessage}
+            </p>
+            {conversation.unreadCount > 0 && (
+              <span
+                aria-label={`${conversation.unreadCount} unread messages`}
+                className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-violet-600 px-1.5 text-[11px] font-semibold text-white"
+              >
+                {conversation.unreadCount}
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
+    </li>
+  );
+});
+
 export default function ConversationsListPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 300);
@@ -100,6 +153,9 @@ export default function ConversationsListPage() {
     );
   }, [debouncedSearch]);
 
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  }, []);
   const groupedConversations = useMemo(() => {
     const groups: { [key: string]: Conversation[] } = {};
     
@@ -146,7 +202,7 @@ export default function ConversationsListPage() {
             placeholder="Search conversations"
             aria-label="Search conversations"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearchChange}
             className="w-full rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
           />
         </div>
@@ -156,6 +212,14 @@ export default function ConversationsListPage() {
             No conversations match your search.
           </p>
         ) : (
+          <ul
+            className="divide-y divide-gray-200 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:divide-gray-800 dark:border-gray-800 dark:bg-gray-900"
+            aria-label="Conversations"
+          >
+            {filteredConversations.map((conversation) => (
+              <ConversationItemRow key={conversation.id} conversation={conversation} />
+            ))}
+          </ul>
           <div className="space-y-4">
             {Object.entries(groupedConversations).map(([projectId, conversations]) => {
               const projectTitle = projectId === 'ungrouped' 

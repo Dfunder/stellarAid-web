@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, memo, useCallback } from 'react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { getEarnings } from '@/lib/api/analytics';
 import ErrorMessage from '@/app/components/common/ErrorMessage';
@@ -102,11 +102,11 @@ function formatMoney(value: number): string {
   return `$${value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} USDC`;
 }
 
-export default function EarningsChart({
+function EarningsChart({
   title = 'Earnings',
   description = 'Monthly earnings for the last six months.',
   data,
-}: EarningsChartProps) {
+}: Readonly<EarningsChartProps>) {
   const [earningsData, setEarningsData] = useState<unknown | null>(data ?? null);
   const [loading, setLoading] = useState(!Boolean(data));
   const [error, setError] = useState<string | null>(null);
@@ -142,9 +142,17 @@ export default function EarningsChart({
   }, [data]);
 
   const chartPoints = useMemo(() => normalizeEarnings(earningsData), [earningsData]);
-  const totalEarnings = chartPoints.reduce((sum, point) => sum + point.amount, 0);
-  const lastPoint = chartPoints[chartPoints.length - 1];
-  const currentMonthEarnings = lastPoint ? lastPoint.amount : 0;
+  const totalEarnings = useMemo(
+    () => chartPoints.reduce((sum, point) => sum + point.amount, 0),
+    [chartPoints]
+  );
+  const currentMonthEarnings = useMemo(() => {
+    const lastPoint = chartPoints[chartPoints.length - 1];
+    return lastPoint ? lastPoint.amount : 0;
+  }, [chartPoints]);
+
+  const tooltipFormatter = useCallback((value: unknown) => formatMoney(Number(value ?? 0)), []);
+  const yAxisFormatter = useCallback((value: number | string) => `$${value}`, []);
 
   return (
     <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
@@ -193,15 +201,12 @@ export default function EarningsChart({
                 tickLine={false}
               />
               <YAxis
-                tickFormatter={(value) => `$${value}`}
+                tickFormatter={yAxisFormatter}
                 tick={{ fill: '#6B7280', fontSize: 12 }}
                 axisLine={false}
                 tickLine={false}
               />
-              <Tooltip
-                formatter={(value) => formatMoney(Number(value ?? 0))}
-                cursor={{ fill: 'rgba(59, 130, 246, 0.08)' }}
-              />
+              <Tooltip formatter={tooltipFormatter} cursor={{ fill: 'rgba(59, 130, 246, 0.08)' }} />
               <Bar dataKey="amount" fill="#2563EB" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -210,3 +215,5 @@ export default function EarningsChart({
     </section>
   );
 }
+
+export default memo(EarningsChart);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, memo } from 'react';
 import Link from 'next/link';
 import { ArrowRight, MessageSquareText, PlusCircle, Sparkles } from 'lucide-react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
@@ -172,6 +172,58 @@ function normalizeCommission(item: unknown, index: number): CommissionItem {
   };
 }
 
+interface ArtistStatCardProps {
+  label: string;
+  value: string;
+  helper: string;
+}
+
+const ArtistStatCard = memo(function ArtistStatCard({
+  label,
+  value,
+  helper,
+}: Readonly<ArtistStatCardProps>) {
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{label}</p>
+      <p className="mt-3 text-2xl font-semibold text-gray-900 dark:text-white">{value}</p>
+      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{helper}</p>
+    </div>
+  );
+});
+
+interface ArtistCommissionRowProps {
+  commission: CommissionItem;
+}
+
+const ArtistCommissionRow = memo(function ArtistCommissionRow({
+  commission,
+}: Readonly<ArtistCommissionRowProps>) {
+  const statusInfo = STATUS_BADGE[commission.status];
+
+  return (
+    <tr className="text-gray-700 dark:text-gray-300">
+      <td className="px-3 py-3">
+        <div className="font-medium text-gray-900 dark:text-white">{commission.title}</div>
+        {commission.createdAt ? (
+          <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            {commission.createdAt}
+          </div>
+        ) : null}
+      </td>
+      <td className="px-3 py-3">{commission.clientName}</td>
+      <td className="px-3 py-3">
+        <span
+          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusInfo.className}`}
+        >
+          {statusInfo.label}
+        </span>
+      </td>
+      <td className="px-3 py-3">${commission.budgetUsdc.toFixed(2)} USDC</td>
+    </tr>
+  );
+});
+
 export default function ArtistDashboardPage() {
   const [stats, setStats] = useState<DashboardStats>({
     totalEarnings: 0,
@@ -224,7 +276,7 @@ export default function ArtistDashboardPage() {
           pendingRequests: pendingCount,
           averageRating,
         });
-      } catch (error) {
+      } catch {
         if (active) {
           setError(
             'We could not load the artist overview right now. Showing the latest sample data instead.'
@@ -252,6 +304,32 @@ export default function ArtistDashboardPage() {
   }, []);
 
   const recentCommissions = useMemo(() => commissions.slice(0, 5), [commissions]);
+
+  const statItems = useMemo(
+    () => [
+      {
+        label: 'Total earnings',
+        value: `$${stats.totalEarnings.toLocaleString()} USDC`,
+        helper: 'Lifetime volume',
+      },
+      {
+        label: 'Active commissions',
+        value: stats.activeCommissions.toString(),
+        helper: 'Live work in progress',
+      },
+      {
+        label: 'Pending requests',
+        value: stats.pendingRequests.toString(),
+        helper: 'Awaiting your reply',
+      },
+      {
+        label: 'Average rating',
+        value: `${stats.averageRating.toFixed(1)} ★`,
+        helper: 'Based on recent feedback',
+      },
+    ],
+    [stats]
+  );
 
   return (
     <DashboardLayout>
@@ -309,40 +387,13 @@ export default function ArtistDashboardPage() {
         ) : (
           <>
             <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {[
-                {
-                  label: 'Total earnings',
-                  value: `$${stats.totalEarnings.toLocaleString()} USDC`,
-                  helper: 'Lifetime volume',
-                },
-                {
-                  label: 'Active commissions',
-                  value: stats.activeCommissions.toString(),
-                  helper: 'Live work in progress',
-                },
-                {
-                  label: 'Pending requests',
-                  value: stats.pendingRequests.toString(),
-                  helper: 'Awaiting your reply',
-                },
-                {
-                  label: 'Average rating',
-                  value: `${stats.averageRating.toFixed(1)} ★`,
-                  helper: 'Based on recent feedback',
-                },
-              ].map((item) => (
-                <div
+              {statItems.map((item) => (
+                <ArtistStatCard
                   key={item.label}
-                  className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
-                >
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    {item.label}
-                  </p>
-                  <p className="mt-3 text-2xl font-semibold text-gray-900 dark:text-white">
-                    {item.value}
-                  </p>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{item.helper}</p>
-                </div>
+                  label={item.label}
+                  value={item.value}
+                  helper={item.helper}
+                />
               ))}
             </section>
 
@@ -382,27 +433,7 @@ export default function ArtistDashboardPage() {
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
                       {recentCommissions.map((commission) => (
-                        <tr key={commission.id} className="text-gray-700 dark:text-gray-300">
-                          <td className="px-3 py-3">
-                            <div className="font-medium text-gray-900 dark:text-white">
-                              {commission.title}
-                            </div>
-                            {commission.createdAt ? (
-                              <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                {commission.createdAt}
-                              </div>
-                            ) : null}
-                          </td>
-                          <td className="px-3 py-3">{commission.clientName}</td>
-                          <td className="px-3 py-3">
-                            <span
-                              className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_BADGE[commission.status].className}`}
-                            >
-                              {STATUS_BADGE[commission.status].label}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3">${commission.budgetUsdc.toFixed(2)} USDC</td>
-                        </tr>
+                        <ArtistCommissionRow key={commission.id} commission={commission} />
                       ))}
                     </tbody>
                   </table>

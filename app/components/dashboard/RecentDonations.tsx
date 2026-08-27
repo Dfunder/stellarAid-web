@@ -1,5 +1,6 @@
 'use client';
 
+import React, { memo, useMemo } from 'react';
 import Link from 'next/link';
 import { useAppSelector } from '@/app/store/hooks';
 import {
@@ -7,10 +8,34 @@ import {
   selectDashboardLoading,
 } from '@/app/features/dashboard/dashboardSelectors';
 
-export default function RecentDonations() {
+interface DonationRowProps {
+  id: string;
+  description: string;
+  timestamp: string;
+}
+
+const DonationRow = memo(function DonationRow({
+  description,
+  timestamp,
+}: Readonly<DonationRowProps>) {
+  const formattedDate = useMemo(() => new Date(timestamp).toLocaleDateString(), [timestamp]);
+
+  return (
+    <tr className="border-b border-gray-100 dark:border-gray-800">
+      <td className="py-3 text-gray-900 dark:text-white">{description}</td>
+      <td className="py-3 text-gray-500 dark:text-gray-400">{formattedDate}</td>
+    </tr>
+  );
+});
+
+function RecentDonations() {
   const activity = useAppSelector(selectRecentActivity);
   const loading = useAppSelector(selectDashboardLoading);
-  const donations = activity.filter((a) => a.type === 'donation').slice(0, 5);
+
+  const donations = useMemo(
+    () => activity.filter((a) => a.type === 'donation').slice(0, 5),
+    [activity]
+  );
 
   if (loading) {
     return (
@@ -44,12 +69,12 @@ export default function RecentDonations() {
           </thead>
           <tbody>
             {donations.map((donation) => (
-              <tr key={donation.id} className="border-b border-gray-100 dark:border-gray-800">
-                <td className="py-3 text-gray-900 dark:text-white">{donation.description}</td>
-                <td className="py-3 text-gray-500 dark:text-gray-400">
-                  {new Date(donation.timestamp).toLocaleDateString()}
-                </td>
-              </tr>
+              <DonationRow
+                key={donation.id}
+                id={donation.id}
+                description={donation.description}
+                timestamp={donation.timestamp}
+              />
             ))}
           </tbody>
         </table>
@@ -62,3 +87,5 @@ export default function RecentDonations() {
     </div>
   );
 }
+
+export default memo(RecentDonations);

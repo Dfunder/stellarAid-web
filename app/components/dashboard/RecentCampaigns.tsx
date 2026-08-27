@@ -1,5 +1,6 @@
 'use client';
 
+import React, { memo, useMemo } from 'react';
 import Link from 'next/link';
 import { useAppSelector } from '@/app/store/hooks';
 import {
@@ -7,10 +8,33 @@ import {
   selectDashboardLoading,
 } from '@/app/features/dashboard/dashboardSelectors';
 
-export default function RecentCampaigns() {
+interface CampaignCardProps {
+  description: string;
+  timestamp: string;
+}
+
+const CampaignCard = memo(function CampaignCard({
+  description,
+  timestamp,
+}: Readonly<CampaignCardProps>) {
+  const formattedDate = useMemo(() => new Date(timestamp).toLocaleDateString(), [timestamp]);
+
+  return (
+    <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{description}</p>
+      <p className="text-xs text-gray-400 mt-1">{formattedDate}</p>
+    </div>
+  );
+});
+
+function RecentCampaigns() {
   const activity = useAppSelector(selectRecentActivity);
   const loading = useAppSelector(selectDashboardLoading);
-  const campaigns = activity.filter((a) => a.type === 'campaign_created').slice(0, 4);
+
+  const campaigns = useMemo(
+    () => activity.filter((a) => a.type === 'campaign_created').slice(0, 4),
+    [activity]
+  );
 
   if (loading) {
     return (
@@ -46,17 +70,11 @@ export default function RecentCampaigns() {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {campaigns.map((campaign) => (
-          <div
+          <CampaignCard
             key={campaign.id}
-            className="border border-gray-200 dark:border-gray-700 rounded-lg p-3"
-          >
-            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-              {campaign.description}
-            </p>
-            <p className="text-xs text-gray-400 mt-1">
-              {new Date(campaign.timestamp).toLocaleDateString()}
-            </p>
-          </div>
+            description={campaign.description}
+            timestamp={campaign.timestamp}
+          />
         ))}
       </div>
       <div className="mt-3 text-right">
@@ -67,3 +85,5 @@ export default function RecentCampaigns() {
     </div>
   );
 }
+
+export default memo(RecentCampaigns);
