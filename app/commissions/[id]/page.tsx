@@ -23,6 +23,8 @@ interface Commission {
   attachments: { name: string; size: string }[];
 }
 
+type MilestonePaymentStatus = 'pending' | 'escrowed' | 'released' | 'funding' | 'releasing';
+
 interface Milestone {
   id: string;
   title: string;
@@ -30,6 +32,7 @@ interface Milestone {
   amountUsdc: number;
   dueDate: string;
   approved: boolean;
+  paymentStatus: MilestonePaymentStatus;
 }
 
 const MOCK_COMMISSIONS: Commission[] = [
@@ -58,6 +61,7 @@ const MOCK_MILESTONES: Milestone[] = [
     amountUsdc: 80,
     dueDate: '2026-08-01',
     approved: true,
+    paymentStatus: 'released',
   },
   {
     id: 'm-002',
@@ -66,6 +70,7 @@ const MOCK_MILESTONES: Milestone[] = [
     amountUsdc: 220,
     dueDate: '2026-08-12',
     approved: false,
+    paymentStatus: 'escrowed',
   },
   {
     id: 'm-003',
@@ -74,6 +79,7 @@ const MOCK_MILESTONES: Milestone[] = [
     amountUsdc: 50,
     dueDate: '2026-08-15',
     approved: false,
+    paymentStatus: 'pending',
   },
 ];
 
