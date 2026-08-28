@@ -12,6 +12,7 @@ import errorsReducer from '../features/errors/errorSlice';
 import artistsReducer from '../features/artists/artistsSlice';
 import portfoliosReducer from '../features/portfolios/portfoliosSlice';
 import servicesReducer from '../features/services/servicesSlice';
+import matchingReducer from '../features/matching/matchingSlice';
 
 const rootReducer = combineReducers({
   api: apiReducer,
@@ -25,6 +26,7 @@ const rootReducer = combineReducers({
   artists: artistsReducer,
   portfolios: portfoliosReducer,
   services: servicesReducer,
+  matching: matchingReducer,
 });
 
 export default rootReducer;
