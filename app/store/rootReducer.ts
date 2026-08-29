@@ -13,6 +13,8 @@ import artistsReducer from '../features/artists/artistsSlice';
 import portfoliosReducer from '../features/portfolios/portfoliosSlice';
 import servicesReducer from '../features/services/servicesSlice';
 import matchingReducer from '../features/matching/matchingSlice';
+import grantsReducer from '../features/grants/grantsSlice';
+import contentTiersReducer from '../features/contentTiers/contentTiersSlice';
 
 const rootReducer = combineReducers({
   api: apiReducer,
@@ -27,6 +29,8 @@ const rootReducer = combineReducers({
   portfolios: portfoliosReducer,
   services: servicesReducer,
   matching: matchingReducer,
+  grants: grantsReducer,
+  contentTiers: contentTiersReducer,
 });
 
 export default rootReducer;

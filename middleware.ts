@@ -1,7 +1,15 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const protectedRoutes = ['/dashboard', '/my-campaigns', '/settings', '/admin'];
+const protectedRoutes = [
+  '/dashboard',
+  '/my-campaigns',
+  '/settings',
+  '/admin',
+  '/grants/my-applications',
+  '/grants/apply',
+  '/content-tiers/manage',
+];
 const authRoutes = ['/login', '/signup', '/register', '/forgot-password'];
 
 export function middleware(request: NextRequest) {
@@ -30,6 +38,9 @@ export const config = {
     '/my-campaigns/:path*',
     '/settings/:path*',
     '/admin/:path*',
+    '/grants/my-applications/:path*',
+    '/grants/apply/:path*',
+    '/content-tiers/manage/:path*',
     '/login',
     '/signup',
     '/register',
