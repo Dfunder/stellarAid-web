@@ -2,17 +2,18 @@
 
 import { useState } from 'react';
 import NextImage from 'next/image';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import { useArtist } from '@/hooks/useArtist';
-import api from '@/app/services/api';
-import PortfolioTab from './components/PortfolioTab';
-import ServicesTab from './components/ServicesTab';
-import ReviewsTab from './components/ReviewsTab';
-import Button from '@/app/components/ui/Button';
-import { Skeleton } from '@/app/components/ui/Skeleton';
-import VerifiedBadge from '@/components/common/VerifiedBadge';
+  import Link from 'next/link';
+  import { useParams } from 'next/navigation';
+  import { useQuery } from '@tanstack/react-query';
+  import { useArtist } from '@/hooks/useArtist';
+  import api from '@/app/services/api';
+  import PortfolioTab from './components/PortfolioTab';
+  import ServicesTab from './components/ServicesTab';
+  import ReviewsTab from './components/ReviewsTab';
+  import Button from '@/app/components/ui/Button';
+  import { Skeleton } from '@/app/components/ui/Skeleton';
+  import VerifiedBadge from '@/components/common/VerifiedBadge';
+  import LazyImage from '@/components/common/LazyImage';
 import {
   MapPin,
   Star,
@@ -266,10 +267,12 @@ export default function ArtistProfilePage() {
                   >
                     <div className="relative h-40 bg-gradient-to-r from-primary-600/20 to-secondary-600/20">
                       {similarArtist.coverImage && (
-                        <img
+                        <LazyImage
                           src={similarArtist.coverImage}
                           alt={`${similarArtist.name} cover`}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw"
                         />
                       )}
                     </div>

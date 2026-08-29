@@ -29,10 +29,13 @@ export default function LoginPage() {
     }
 
     try {
-      await dispatch(loginUser({ email, password })).unwrap();
-      router.push('/dashboard');
+      const result = await dispatch(loginUser({ email, password })).unwrap();
+      if (result.requires2FA && result.tempToken) {
+        router.push(`/auth/2fa?tempToken=${encodeURIComponent(result.tempToken)}`);
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err: any) {
-      // Error is already handled by the thunk, but we can add specific handling here if needed
       const status = err?.response?.status;
       if (status === 403) {
         setLocalError('Unverified account — please check your email');
