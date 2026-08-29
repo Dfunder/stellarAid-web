@@ -230,6 +230,7 @@ export default function FeaturedArtists() {
                           alt={artist.name}
                           fill
                           sizes="64px"
+                          loading="lazy"
                           className="object-cover group-hover:scale-105 transition-transform duration-300"
                           onError={() => handleImageError(artist.id)}
                         />

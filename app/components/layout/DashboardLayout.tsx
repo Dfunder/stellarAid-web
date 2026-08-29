@@ -15,6 +15,8 @@ const sidebarLinks = [
   { name: 'Donations', href: '/dashboard/donations' },
   { name: 'Wallet', href: '/dashboard/wallet' },
   { name: 'Settings', href: '/dashboard/settings' },
+  { name: 'Security', href: '/settings/security' },
+  { name: 'Sessions', href: '/settings/sessions' },
 ];
 
 interface DashboardLayoutProps {

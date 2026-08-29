@@ -1,5 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { setCredentials, clearCredentials, setAuthLoading, setAuthError } from './authSlice';
+import { setCredentials, clearCredentials, setAuthLoading, setAuthError, setPending2FA, setTwoFactorEnabled } from './authSlice';
 import { apiClient } from '@/utils/apiClient';
 
 export const registerUser = createAsyncThunk(
@@ -24,9 +24,17 @@ export const loginUser = createAsyncThunk(
     dispatch(setAuthLoading(true));
     try {
       const response = await apiClient.post('/api/auth/login', credentials);
-      const { user, accessToken, refreshToken } = response.data;
+      const { user, accessToken, refreshToken, requires2FA, tempToken } = response.data;
       localStorage.setItem('refreshToken', refreshToken);
+      if (requires2FA && tempToken) {
+        dispatch(setPending2FA({ pending: true, tempToken }));
+        dispatch(setAuthLoading(false));
+        dispatch(setAuthError(null));
+        return { requires2FA: true, tempToken };
+      }
+      dispatch(setTwoFactorEnabled(response.data.twoFactorEnabled || false));
       dispatch(setCredentials({ user, token: accessToken }));
+      dispatch(setAuthLoading(false));
       return response.data;
     } catch (error: any) {
       const message = error.response?.data?.message || 'Login failed';

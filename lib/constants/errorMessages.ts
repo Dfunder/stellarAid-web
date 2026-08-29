@@ -37,6 +37,10 @@ export const ERROR_MESSAGES = {
     VERIFICATION_RESENT: 'Verification email sent successfully.',
     PASSWORD_RESET_FAILED: 'Password reset failed. Please try again.',
     SESSION_EXPIRED: 'Your session has expired. Please log in again.',
+    TWO_FACTOR_REQUIRED: 'Two-factor authentication is required.',
+    TWO_FACTOR_INVALID: 'Invalid two-factor authentication code.',
+    TWO_FACTOR_ENABLE_FAILED: 'Failed to enable two-factor authentication.',
+    TWO_FACTOR_DISABLE_FAILED: 'Failed to disable two-factor authentication.',
   },
   GENERAL: {
     UNKNOWN: 'An unexpected error occurred. Please try again.',

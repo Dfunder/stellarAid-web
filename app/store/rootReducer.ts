@@ -3,6 +3,8 @@
 import { combineReducers } from '@reduxjs/toolkit';
 import apiReducer from './slices/apiSlice';
 import authReducer from '../features/auth/authSlice';
+import twoFactorReducer from '../features/twoFactor/twoFactorSlice';
+import sessionsReducer from '../features/sessions/sessionsSlice';
 import campaignsReducer from '../features/campaigns/campaignsSlice';
 import donationsReducer from '../features/donations/donationsSlice';
 import dashboardReducer from '../features/dashboard/dashboardSlice';
@@ -16,9 +18,13 @@ import matchingReducer from '../features/matching/matchingSlice';
 import grantsReducer from '../features/grants/grantsSlice';
 import contentTiersReducer from '../features/contentTiers/contentTiersSlice';
 
+import competitionsReducer from '../features/competitions/competitionsSlice';
+
 const rootReducer = combineReducers({
   api: apiReducer,
   auth: authReducer,
+  twoFactor: twoFactorReducer,
+  sessions: sessionsReducer,
   campaigns: campaignsReducer,
   donations: donationsReducer,
   dashboard: dashboardReducer,
@@ -31,6 +37,7 @@ const rootReducer = combineReducers({
   matching: matchingReducer,
   grants: grantsReducer,
   contentTiers: contentTiersReducer,
+  competitions: competitionsReducer,
 });
 
 export default rootReducer;
