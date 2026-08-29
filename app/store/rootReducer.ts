@@ -15,6 +15,8 @@ import artistsReducer from '../features/artists/artistsSlice';
 import portfoliosReducer from '../features/portfolios/portfoliosSlice';
 import servicesReducer from '../features/services/servicesSlice';
 import matchingReducer from '../features/matching/matchingSlice';
+import grantsReducer from '../features/grants/grantsSlice';
+import contentTiersReducer from '../features/contentTiers/contentTiersSlice';
 
 import competitionsReducer from '../features/competitions/competitionsSlice';
 
@@ -33,6 +35,8 @@ const rootReducer = combineReducers({
   portfolios: portfoliosReducer,
   services: servicesReducer,
   matching: matchingReducer,
+  grants: grantsReducer,
+  contentTiers: contentTiersReducer,
   competitions: competitionsReducer,
 });
 
