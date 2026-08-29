@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/app/services/api';
 import { Skeleton } from '@/app/components/ui/Skeleton';
 import { Image, FolderOpen } from 'lucide-react';
+import LazyImage from '@/components/common/LazyImage';
 
 interface PortfolioTabProps {
   artistId: string;
@@ -65,10 +66,12 @@ export default function PortfolioTab({ artistId }: PortfolioTabProps) {
         >
           <div className="relative h-48 bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
             {portfolio.coverImage ? (
-              <img
+              <LazyImage
                 src={portfolio.coverImage}
                 alt={portfolio.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                 sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">

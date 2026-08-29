@@ -171,11 +171,12 @@ export default function ServiceDetailPage() {
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
                               {review.userAvatar ? (
-                                <img
-                                  src={review.userAvatar}
-                                  alt={review.userName}
-                                  className="w-full h-full object-cover"
-                                />
+                              <img
+                                 src={review.userAvatar}
+                                 alt={review.userName}
+                                 loading="lazy"
+                                 className="w-full h-full object-cover"
+                               />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-neutral-500">
                                   <User className="w-5 h-5" />
@@ -268,6 +269,7 @@ export default function ServiceDetailPage() {
                           <img
                             src={artist.avatar}
                             alt={artist.name}
+                            loading="lazy"
                             className="w-full h-full object-cover"
                           />
                         ) : (

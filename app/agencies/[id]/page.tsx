@@ -6,16 +6,19 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import Button from '@/app/components/ui/Button';
 import { Skeleton } from '@/app/components/ui/Skeleton';
-import {
-  MapPin,
-  Star,
-  ShieldCheck,
-  Briefcase,
-  MessageSquare,
-  Image as ImageIcon,
-  Mail,
-  Users,
-} from 'lucide-react';
+  import {
+    MapPin,
+    Star,
+    ShieldCheck,
+    Briefcase,
+    MessageSquare,
+    Image as ImageIcon,
+    Mail,
+    Users,
+    Building2,
+    User,
+  } from 'lucide-react';
+  import LazyImage from '@/components/common/LazyImage';
 
 type TabKey = 'portfolio' | 'teams' | 'services' | 'reviews';
 

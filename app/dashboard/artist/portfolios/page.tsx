@@ -15,7 +15,8 @@ import {
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import Button from '@/app/components/ui/Button';
 import { Skeleton } from '@/app/components/ui/Skeleton';
-import { Plus, Edit, Trash2, Eye, EyeOff, Image, FolderOpen } from 'lucide-react';
+  import { Plus, Edit, Trash2, Eye, EyeOff, Image, FolderOpen } from 'lucide-react';
+  import LazyImage from '@/components/common/LazyImage';
 
 export default function PortfolioManagementPage() {
   const dispatch = useAppDispatch();
@@ -111,14 +112,16 @@ export default function PortfolioManagementPage() {
               >
                 <div className="flex flex-col sm:flex-row gap-4">
                   {/* Cover Image */}
-                  <div className="w-full sm:w-28 h-28 rounded-xl overflow-hidden bg-neutral-100 dark:bg-neutral-800 flex-shrink-0">
-                    {portfolio.coverImage ? (
-                      <img
-                        src={portfolio.coverImage}
-                        alt={portfolio.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
+                   <div className="w-full sm:w-28 h-28 rounded-xl overflow-hidden bg-neutral-100 dark:bg-neutral-800 flex-shrink-0 relative">
+                     {portfolio.coverImage ? (
+                       <LazyImage
+                         src={portfolio.coverImage}
+                         alt={portfolio.title}
+                         fill
+                         className="object-cover"
+                         sizes="112px"
+                       />
+                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <Image className="w-8 h-8 text-neutral-300 dark:text-neutral-600" />
                       </div>
