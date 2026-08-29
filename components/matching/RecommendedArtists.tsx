@@ -137,6 +137,7 @@ function ArtistCard({
                 fill
                 className="object-cover"
                 sizes="56px"
+                loading="lazy"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-neutral-400">
