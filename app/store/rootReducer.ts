@@ -3,6 +3,8 @@
 import { combineReducers } from '@reduxjs/toolkit';
 import apiReducer from './slices/apiSlice';
 import authReducer from '../features/auth/authSlice';
+import twoFactorReducer from '../features/twoFactor/twoFactorSlice';
+import sessionsReducer from '../features/sessions/sessionsSlice';
 import campaignsReducer from '../features/campaigns/campaignsSlice';
 import donationsReducer from '../features/donations/donationsSlice';
 import dashboardReducer from '../features/dashboard/dashboardSlice';
@@ -17,6 +19,8 @@ import matchingReducer from '../features/matching/matchingSlice';
 const rootReducer = combineReducers({
   api: apiReducer,
   auth: authReducer,
+  twoFactor: twoFactorReducer,
+  sessions: sessionsReducer,
   campaigns: campaignsReducer,
   donations: donationsReducer,
   dashboard: dashboardReducer,
