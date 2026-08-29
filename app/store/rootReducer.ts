@@ -14,6 +14,8 @@ import portfoliosReducer from '../features/portfolios/portfoliosSlice';
 import servicesReducer from '../features/services/servicesSlice';
 import matchingReducer from '../features/matching/matchingSlice';
 
+import competitionsReducer from '../features/competitions/competitionsSlice';
+
 const rootReducer = combineReducers({
   api: apiReducer,
   auth: authReducer,
@@ -27,6 +29,7 @@ const rootReducer = combineReducers({
   portfolios: portfoliosReducer,
   services: servicesReducer,
   matching: matchingReducer,
+  competitions: competitionsReducer,
 });
 
 export default rootReducer;
