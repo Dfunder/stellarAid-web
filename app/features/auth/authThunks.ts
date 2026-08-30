@@ -1,16 +1,30 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { setCredentials, clearCredentials, setAuthLoading, setAuthError, setPending2FA, setTwoFactorEnabled } from './authSlice';
+import {
+  setCredentials,
+  clearCredentials,
+  setAuthLoading,
+  setAuthError,
+  setPending2FA,
+  setTwoFactorEnabled,
+} from './authSlice';
 import { apiClient } from '@/utils/apiClient';
+import { registerSchema } from '@/lib/validations/auth';
 
 export const registerUser = createAsyncThunk(
   'auth/registerUser',
   async (userData: { fullName: string; email: string; password: string }, { dispatch }) => {
     dispatch(setAuthLoading(true));
     try {
-      const response = await apiClient.post('/api/auth/register', userData);
+      const validatedData = registerSchema.parse(userData);
+      const response = await apiClient.post('/api/auth/register', validatedData);
       dispatch(setAuthLoading(false));
       return response.data;
     } catch (error: any) {
+      if (error.name === 'ZodError') {
+        const message = error.errors[0].message;
+        dispatch(setAuthError(message));
+        throw error;
+      }
       const message = error.response?.data?.message || 'Registration failed';
       dispatch(setAuthError(message));
       throw error;
@@ -18,12 +32,15 @@ export const registerUser = createAsyncThunk(
   }
 );
 
+import { loginSchema } from '@/lib/validations/auth';
+
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async (credentials: { email: string; password: string }, { dispatch }) => {
     dispatch(setAuthLoading(true));
     try {
-      const response = await apiClient.post('/api/auth/login', credentials);
+      const validatedCredentials = loginSchema.parse(credentials);
+      const response = await apiClient.post('/api/auth/login', validatedCredentials);
       const { user, accessToken, refreshToken, requires2FA, tempToken } = response.data;
       localStorage.setItem('refreshToken', refreshToken);
       if (requires2FA && tempToken) {
@@ -37,6 +54,11 @@ export const loginUser = createAsyncThunk(
       dispatch(setAuthLoading(false));
       return response.data;
     } catch (error: any) {
+      if (error.name === 'ZodError') {
+        const message = error.errors[0].message;
+        dispatch(setAuthError(message));
+        throw error;
+      }
       const message = error.response?.data?.message || 'Login failed';
       dispatch(setAuthError(message));
       throw error;
