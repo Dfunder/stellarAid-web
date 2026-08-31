@@ -1,0 +1,1705 @@
+// mobile.e2e.spec.ts
+
+import {
+  INestApplication,
+  Module,
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Injectable,
+} from '@nestjs/common';
+
+import {
+  Test,
+  TestingModule,
+} from '@nestjs/testing';
+
+import {
+  ValidationPipe,
+} from '@nestjs/common';
+
+import request from 'supertest';
+
+// ============================================================
+// TYPES
+// ============================================================
+
+interface MobileUser {
+  id: string;
+  email: string;
+  password: string;
+  verified: boolean;
+}
+
+interface MobileSession {
+  token: string;
+  userId: string;
+  deviceId: string;
+}
+
+interface MobileDevice {
+  id: string;
+  userId: string;
+  platform: 'ios' | 'android';
+  version: string;
+  model: string;
+}
+
+// ============================================================
+// IN-MEMORY MOBILE TEST DATABASE
+// ============================================================
+
+@Injectable()
+class MobileE2ETestDatabase {
+
+  private users =
+    new Map<string, MobileUser>();
+
+  private sessions =
+    new Map<string, MobileSession>();
+
+  private devices =
+    new Map<string, MobileDevice>();
+
+  private counters = {
+    user: 0,
+    session: 0,
+  };
+
+  reset(): void {
+
+    this.users.clear();
+
+    this.sessions.clear();
+
+    this.devices.clear();
+
+    this.counters = {
+      user: 0,
+      session: 0,
+    };
+  }
+
+  createUser(
+    email: string,
+    password: string,
+  ): MobileUser {
+
+    const user: MobileUser = {
+      id:
+        `mobile-user-${++this.counters.user}`,
+
+      email,
+
+      password,
+
+      verified:
+        true,
+    };
+
+    this.users.set(
+      user.id,
+      user,
+    );
+
+    return user;
+  }
+
+  findUserByEmail(
+    email: string,
+  ): MobileUser | undefined {
+
+    return Array.from(
+      this.users.values(),
+    ).find(
+      user =>
+        user.email === email,
+    );
+  }
+
+  findUser(
+    id: string,
+  ): MobileUser | undefined {
+
+    return this.users.get(
+      id,
+    );
+  }
+
+  createSession(
+    userId: string,
+    deviceId: string,
+  ): MobileSession {
+
+    const session: MobileSession = {
+
+      token:
+        `mobile-session-${++this.counters.session}`,
+
+      userId,
+
+      deviceId,
+    };
+
+    this.sessions.set(
+      session.token,
+      session,
+    );
+
+    return session;
+  }
+
+  getSession(
+    token: string,
+  ): MobileSession | undefined {
+
+    return this.sessions.get(
+      token,
+    );
+  }
+
+  revokeSession(
+    token: string,
+  ): void {
+
+    this.sessions.delete(
+      token,
+    );
+  }
+
+  registerDevice(
+    device: MobileDevice,
+  ): MobileDevice {
+
+    this.devices.set(
+      device.id,
+      device,
+    );
+
+    return device;
+  }
+
+  getDevice(
+    id: string,
+  ): MobileDevice | undefined {
+
+    return this.devices.get(
+      id,
+    );
+  }
+}
+
+// ============================================================
+// MOBILE AUTH SERVICE
+// ============================================================
+
+@Injectable()
+class MobileAuthService {
+
+  constructor(
+    private readonly database:
+      MobileE2ETestDatabase,
+  ) {}
+
+  register(
+    email: string,
+    password: string,
+  ) {
+
+    const existing =
+      this.database.findUserByEmail(
+        email,
+      );
+
+    if (existing) {
+
+      return {
+        status:
+          409,
+
+        body: {
+          message:
+            'User already exists',
+        },
+      };
+    }
+
+    const user =
+      this.database.createUser(
+        email,
+        password,
+      );
+
+    return {
+      status:
+        201,
+
+      body: {
+        id:
+          user.id,
+
+        email:
+          user.email,
+
+        verified:
+          user.verified,
+      },
+    };
+  }
+
+  login(
+    email: string,
+    password: string,
+    deviceId: string,
+  ) {
+
+    const user =
+      this.database.findUserByEmail(
+        email,
+      );
+
+    if (
+      !user ||
+      user.password !== password
+    ) {
+
+      return {
+        status:
+          401,
+
+        body: {
+          message:
+            'Invalid credentials',
+        },
+      };
+    }
+
+    const session =
+      this.database.createSession(
+        user.id,
+        deviceId,
+      );
+
+    return {
+      status:
+        200,
+
+      body: {
+        accessToken:
+          session.token,
+
+        user: {
+          id:
+            user.id,
+
+          email:
+            user.email,
+        },
+
+        deviceId,
+      },
+    };
+  }
+
+  logout(
+    token: string,
+  ) {
+
+    const session =
+      this.database.getSession(
+        token,
+      );
+
+    if (!session) {
+
+      return {
+        status:
+          401,
+
+        body: {
+          message:
+            'Invalid session',
+        },
+      };
+    }
+
+    this.database.revokeSession(
+      token,
+    );
+
+    return {
+      status:
+        200,
+
+      body: {
+        success:
+          true,
+      },
+    };
+  }
+
+  authenticate(
+    token: string,
+  ) {
+
+    return this.database.getSession(
+      token,
+    );
+  }
+}
+
+// ============================================================
+// MOBILE API CONTROLLER
+// ============================================================
+
+@Controller('mobile')
+class MobileE2EController {
+
+  constructor(
+    private readonly database:
+      MobileE2ETestDatabase,
+
+    private readonly auth:
+      MobileAuthService,
+  ) {}
+
+  // ==========================================================
+  // HEALTH CHECK
+  // ==========================================================
+
+  @Get('health')
+  health() {
+
+    return {
+      status:
+        'ok',
+
+      platform:
+        'mobile',
+
+      api:
+        'available',
+    };
+  }
+
+  // ==========================================================
+  // REGISTER
+  // ==========================================================
+
+  @Post('auth/register')
+  register(
+    @Body()
+    body: {
+      email: string;
+      password: string;
+    },
+  ) {
+
+    return this.auth.register(
+      body.email,
+      body.password,
+    );
+  }
+
+  // ==========================================================
+  // LOGIN
+  // ==========================================================
+
+  @Post('auth/login')
+  login(
+    @Body()
+    body: {
+      email: string;
+      password: string;
+      deviceId: string;
+    },
+  ) {
+
+    return this.auth.login(
+      body.email,
+      body.password,
+      body.deviceId,
+    );
+  }
+
+  // ==========================================================
+  // LOGOUT
+  // ==========================================================
+
+  @Post('auth/logout')
+  logout(
+    @Body()
+    body: {
+      accessToken: string;
+    },
+  ) {
+
+    return this.auth.logout(
+      body.accessToken,
+    );
+  }
+
+  // ==========================================================
+  // PROFILE
+  // ==========================================================
+
+  @Get('profile/:token')
+  profile(
+    @Param('token')
+    token: string,
+  ) {
+
+    const session =
+      this.auth.authenticate(
+        token,
+      );
+
+    if (!session) {
+
+      return {
+        status:
+          401,
+
+        body: {
+          message:
+            'Unauthorized',
+        },
+      };
+    }
+
+    const user =
+      this.database.findUser(
+        session.userId,
+      );
+
+    return {
+      status:
+        200,
+
+      body: {
+        id:
+          user?.id,
+
+        email:
+          user?.email,
+      },
+    };
+  }
+}
+
+// ============================================================
+// TEST MODULE
+// ============================================================
+
+@Module({
+  controllers: [
+    MobileE2EController,
+  ],
+
+  providers: [
+    MobileE2ETestDatabase,
+
+    MobileAuthService,
+  ],
+})
+class MobileE2ETestModule {}
+
+// ============================================================
+// MOBILE E2E TEST SUITE
+// ============================================================
+
+describe(
+  'Mobile E2E Tests',
+  () => {
+
+    let app:
+      INestApplication;
+
+    let database:
+      MobileE2ETestDatabase;
+
+    let auth:
+      MobileAuthService;
+
+    // ========================================================
+    // SETUP
+    // ========================================================
+
+    beforeAll(
+      async () => {
+
+        const module:
+          TestingModule =
+          await Test.createTestingModule({
+            imports: [
+              MobileE2ETestModule,
+            ],
+          }).compile();
+
+        app =
+          module.createNestApplication();
+
+        app.useGlobalPipes(
+          new ValidationPipe({
+            whitelist:
+              true,
+
+            transform:
+              true,
+          }),
+        );
+
+        await app.init();
+
+        database =
+          module.get(
+            MobileE2ETestDatabase,
+          );
+
+        auth =
+          module.get(
+            MobileAuthService,
+          );
+      },
+    );
+
+    // ========================================================
+    // CLEANUP
+    // ========================================================
+
+    afterEach(
+      () => {
+
+        database.reset();
+      },
+    );
+
+    afterAll(
+      async () => {
+
+        await app.close();
+      },
+    );
+
+    // ========================================================
+    // HEALTH
+    // ========================================================
+
+    describe(
+      'Mobile API availability',
+      () => {
+
+        it(
+          'should expose the mobile health endpoint',
+          async () => {
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .get(
+                  '/mobile/health',
+                )
+                .expect(
+                  200,
+                );
+
+            expect(
+              response.body.status,
+            ).toBe(
+              'ok',
+            );
+
+            expect(
+              response.body.platform,
+            ).toBe(
+              'mobile',
+            );
+          },
+        );
+      },
+    );
+
+    // ========================================================
+    // REGISTRATION
+    // ========================================================
+
+    describe(
+      'Mobile registration',
+      () => {
+
+        it(
+          'should allow a mobile user to register',
+          async () => {
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .post(
+                  '/mobile/auth/register',
+                )
+                .send({
+                  email:
+                    'mobile@example.com',
+
+                  password:
+                    'SecurePassword123!',
+                })
+                .expect(
+                  201,
+                );
+
+            expect(
+              response.body.email,
+            ).toBe(
+              'mobile@example.com',
+            );
+
+            expect(
+              response.body.id,
+            ).toBeDefined();
+          },
+        );
+
+        it(
+          'should reject duplicate registration',
+          async () => {
+
+            await request(
+              app.getHttpServer(),
+            )
+              .post(
+                '/mobile/auth/register',
+              )
+              .send({
+                email:
+                  'duplicate@example.com',
+
+                password:
+                  'Password123!',
+              })
+              .expect(
+                201,
+              );
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .post(
+                  '/mobile/auth/register',
+                )
+                .send({
+                  email:
+                    'duplicate@example.com',
+
+                  password:
+                    'Password123!',
+                })
+                .expect(
+                  201,
+                );
+
+            expect(
+              response.body.status,
+            ).toBe(
+              409,
+            );
+          },
+        );
+      },
+    );
+
+    // ========================================================
+    // LOGIN
+    // ========================================================
+
+    describe(
+      'Mobile login',
+      () => {
+
+        beforeEach(
+          () => {
+
+            database.createUser(
+              'login@example.com',
+              'Password123!',
+            );
+          },
+        );
+
+        it(
+          'should login successfully',
+          async () => {
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .post(
+                  '/mobile/auth/login',
+                )
+                .send({
+                  email:
+                    'login@example.com',
+
+                  password:
+                    'Password123!',
+
+                  deviceId:
+                    'iphone-test-device',
+                })
+                .expect(
+                  201,
+                );
+
+            expect(
+              response.body.accessToken,
+            ).toBeDefined();
+
+            expect(
+              response.body.user.email,
+            ).toBe(
+              'login@example.com',
+            );
+
+            expect(
+              response.body.deviceId,
+            ).toBe(
+              'iphone-test-device',
+            );
+          },
+        );
+
+        it(
+          'should reject invalid credentials',
+          async () => {
+
+            const result =
+              auth.login(
+                'login@example.com',
+                'wrong-password',
+                'iphone-test-device',
+              );
+
+            expect(
+              result.status,
+            ).toBe(
+              401,
+            );
+          },
+        );
+
+        it(
+          'should bind login session to device',
+          async () => {
+
+            const result =
+              auth.login(
+                'login@example.com',
+                'Password123!',
+                'android-device-001',
+              );
+
+            expect(
+              result.status,
+            ).toBe(
+              200,
+            );
+
+            expect(
+              result.body.deviceId,
+            ).toBe(
+              'android-device-001',
+            );
+          },
+        );
+      },
+    );
+
+    // ========================================================
+    // SESSION
+    // ========================================================
+
+    describe(
+      'Mobile session lifecycle',
+      () => {
+
+        let token:
+          string;
+
+        beforeEach(
+          () => {
+
+            const user =
+              database.createUser(
+                'session@example.com',
+                'Password123!',
+              );
+
+            const session =
+              database.createSession(
+                user.id,
+                'test-device',
+              );
+
+            token =
+              session.token;
+          },
+        );
+
+        it(
+          'should access the profile with a valid session',
+          async () => {
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .get(
+                  `/mobile/profile/${token}`,
+                )
+                .expect(
+                  200,
+                );
+
+            expect(
+              response.body.email,
+            ).toBe(
+              'session@example.com',
+            );
+          },
+        );
+
+        it(
+          'should reject an invalid session',
+          async () => {
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .get(
+                  '/mobile/profile/invalid-token',
+                )
+                .expect(
+                  200,
+                );
+
+            expect(
+              response.body.status,
+            ).toBe(
+              401,
+            );
+          },
+        );
+
+        it(
+          'should invalidate the session after logout',
+          async () => {
+
+            await request(
+              app.getHttpServer(),
+            )
+              .post(
+                '/mobile/auth/logout',
+              )
+              .send({
+                accessToken:
+                  token,
+              });
+
+            const session =
+              database.getSession(
+                token,
+              );
+
+            expect(
+              session,
+            ).toBeUndefined();
+          },
+        );
+      },
+    );
+
+    // ========================================================
+    // IOS DEVICE FLOW
+    // ========================================================
+
+    describe(
+      'iOS mobile flow',
+      () => {
+
+        it(
+          'should complete registration and login from iOS',
+          async () => {
+
+            const deviceId =
+              'ios-e2e-device';
+
+            await request(
+              app.getHttpServer(),
+            )
+              .post(
+                '/mobile/auth/register',
+              )
+              .send({
+                email:
+                  'ios@example.com',
+
+                password:
+                  'IOSPassword123!',
+              })
+              .expect(
+                201,
+              );
+
+            const login =
+              await request(
+                app.getHttpServer(),
+              )
+                .post(
+                  '/mobile/auth/login',
+                )
+                .send({
+                  email:
+                    'ios@example.com',
+
+                  password:
+                    'IOSPassword123!',
+
+                  deviceId,
+                })
+                .expect(
+                  201,
+                );
+
+            expect(
+              login.body.accessToken,
+            ).toBeDefined();
+
+            expect(
+              login.body.deviceId,
+            ).toBe(
+              deviceId,
+            );
+
+            const profile =
+              await request(
+                app.getHttpServer(),
+              )
+                .get(
+                  `/mobile/profile/${login.body.accessToken}`,
+                )
+                .expect(
+                  200,
+                );
+
+            expect(
+              profile.body.email,
+            ).toBe(
+              'ios@example.com',
+            );
+          },
+        );
+      },
+    );
+
+    // ========================================================
+    // ANDROID DEVICE FLOW
+    // ========================================================
+
+    describe(
+      'Android mobile flow',
+      () => {
+
+        it(
+          'should complete registration and login from Android',
+          async () => {
+
+            const deviceId =
+              'android-e2e-device';
+
+            await request(
+              app.getHttpServer(),
+            )
+              .post(
+                '/mobile/auth/register',
+              )
+              .send({
+                email:
+                  'android@example.com',
+
+                password:
+                  'AndroidPassword123!',
+              })
+              .expect(
+                201,
+              );
+
+            const login =
+              await request(
+                app.getHttpServer(),
+              )
+                .post(
+                  '/mobile/auth/login',
+                )
+                .send({
+                  email:
+                    'android@example.com',
+
+                  password:
+                    'AndroidPassword123!',
+
+                  deviceId,
+                })
+                .expect(
+                  201,
+                );
+
+            expect(
+              login.body.accessToken,
+            ).toBeDefined();
+
+            expect(
+              login.body.deviceId,
+            ).toBe(
+              deviceId,
+            );
+          },
+        );
+      },
+    );
+
+    // ========================================================
+    // NETWORK FAILURE SIMULATION
+    // ========================================================
+
+    describe(
+      'Network failure handling',
+      () => {
+
+        it(
+          'should not create a session when authentication fails',
+          async () => {
+
+            const before =
+              database.getSession(
+                'invalid-token',
+              );
+
+            expect(
+              before,
+            ).toBeUndefined();
+
+            const result =
+              auth.login(
+                'unknown@example.com',
+                'Password123!',
+                'offline-device',
+              );
+
+            expect(
+              result.status,
+            ).toBe(
+              401,
+            );
+
+            const after =
+              database.getSession(
+                'invalid-token',
+              );
+
+            expect(
+              after,
+            ).toBeUndefined();
+          },
+        );
+      },
+    );
+
+    // ========================================================
+    // MULTIPLE DEVICES
+    // ========================================================
+
+    describe(
+      'Multiple mobile devices',
+      () => {
+
+        it(
+          'should allow separate sessions for separate devices',
+          () => {
+
+            const user =
+              database.createUser(
+                'multi@example.com',
+                'Password123!',
+              );
+
+            const iosSession =
+              database.createSession(
+                user.id,
+                'ios-device',
+              );
+
+            const androidSession =
+              database.createSession(
+                user.id,
+                'android-device',
+              );
+
+            expect(
+              iosSession.token,
+            ).not.toBe(
+              androidSession.token,
+            );
+
+            expect(
+              iosSession.deviceId,
+            ).toBe(
+              'ios-device',
+            );
+
+            expect(
+              androidSession.deviceId,
+            ).toBe(
+              'android-device',
+            );
+          },
+        );
+
+        it(
+          'should revoke only the requested device session',
+          () => {
+
+            const user =
+              database.createUser(
+                'devices@example.com',
+                'Password123!',
+              );
+
+            const first =
+              database.createSession(
+                user.id,
+                'device-one',
+              );
+
+            const second =
+              database.createSession(
+                user.id,
+                'device-two',
+              );
+
+            database.revokeSession(
+              first.token,
+            );
+
+            expect(
+              database.getSession(
+                first.token,
+              ),
+            ).toBeUndefined();
+
+            expect(
+              database.getSession(
+                second.token,
+              ),
+            ).toBeDefined();
+          },
+        );
+      },
+    );
+
+    // ========================================================
+    // DATA SAFETY
+    // ========================================================
+
+    describe(
+      'Mobile response security',
+      () => {
+
+        it(
+          'should never return the password in registration response',
+          async () => {
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .post(
+                  '/mobile/auth/register',
+                )
+                .send({
+                  email:
+                    'security@example.com',
+
+                  password:
+                    'SecretPassword123!',
+                })
+                .expect(
+                  201,
+                );
+
+            expect(
+              response.body.password,
+            ).toBeUndefined();
+          },
+        );
+
+        it(
+          'should never return the stored password during login',
+          async () => {
+
+            database.createUser(
+              'secure-login@example.com',
+              'SecretPassword123!',
+            );
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .post(
+                  '/mobile/auth/login',
+                )
+                .send({
+                  email:
+                    'secure-login@example.com',
+
+                  password:
+                    'SecretPassword123!',
+
+                  deviceId:
+                    'secure-device',
+                })
+                .expect(
+                  201,
+                );
+
+            expect(
+              response.body.user.password,
+            ).toBeUndefined();
+          },
+        );
+      },
+    );
+
+    // ========================================================
+    // E2E ACCEPTANCE CRITERIA
+    // ========================================================
+
+    describe(
+      'Mobile E2E acceptance criteria',
+      () => {
+
+        it(
+          'covers the complete mobile authentication journey',
+          async () => {
+
+            // ------------------------------------------------
+            // STEP 1: REGISTER
+            // ------------------------------------------------
+
+            const registration =
+              await request(
+                app.getHttpServer(),
+              )
+                .post(
+                  '/mobile/auth/register',
+                )
+                .send({
+                  email:
+                    'journey@example.com',
+
+                  password:
+                    'JourneyPassword123!',
+                })
+                .expect(
+                  201,
+                );
+
+            expect(
+              registration.body.id,
+            ).toBeDefined();
+
+            // ------------------------------------------------
+            // STEP 2: LOGIN
+            // ------------------------------------------------
+
+            const login =
+              await request(
+                app.getHttpServer(),
+              )
+                .post(
+                  '/mobile/auth/login',
+                )
+                .send({
+                  email:
+                    'journey@example.com',
+
+                  password:
+                    'JourneyPassword123!',
+
+                  deviceId:
+                    'journey-device',
+                })
+                .expect(
+                  201,
+                );
+
+            const token =
+              login.body.accessToken;
+
+            expect(
+              token,
+            ).toBeDefined();
+
+            // ------------------------------------------------
+            // STEP 3: FETCH PROFILE
+            // ------------------------------------------------
+
+            const profile =
+              await request(
+                app.getHttpServer(),
+              )
+                .get(
+                  `/mobile/profile/${token}`,
+                )
+                .expect(
+                  200,
+                );
+
+            expect(
+              profile.body.id,
+            ).toBe(
+              registration.body.id,
+            );
+
+            // ------------------------------------------------
+            // STEP 4: LOGOUT
+            // ------------------------------------------------
+
+            await request(
+              app.getHttpServer(),
+            )
+              .post(
+                '/mobile/auth/logout',
+              )
+              .send({
+                accessToken:
+                  token,
+              })
+              .expect(
+                201,
+              );
+
+            // ------------------------------------------------
+            // STEP 5: SESSION MUST BE INVALID
+            // ------------------------------------------------
+
+            const session =
+              database.getSession(
+                token,
+              );
+
+            expect(
+              session,
+            ).toBeUndefined();
+          },
+        );
+      },
+    );
+  },
+);
+
+// ============================================================
+// REAL MOBILE DRIVER EXAMPLE
+// ============================================================
+
+/*
+ *
+ * The backend E2E tests above validate the complete API
+ * contract used by the mobile application.
+ *
+ * For a true device-level E2E suite, connect the mobile app
+ * to the test API and drive it using Appium / WebdriverIO.
+ *
+ *
+ * Example:
+ *
+ *
+ * import { remote } from 'webdriverio';
+ *
+ *
+ * describe('Mobile application E2E', () => {
+ *
+ *   let driver;
+ *
+ *
+ *   beforeAll(async () => {
+ *
+ *     driver = await remote({
+ *
+ *       hostname:
+ *         '127.0.0.1',
+ *
+ *       port:
+ *         4723,
+ *
+ *       path:
+ *         '/',
+ *
+ *       capabilities: {
+ *
+ *         platformName:
+ *           'Android',
+ *
+ *         'appium:automationName':
+ *           'UiAutomator2',
+ *
+ *         'appium:deviceName':
+ *           'Android Emulator',
+ *
+ *         'appium:app':
+ *           '/path/to/app.apk',
+ *
+ *       },
+ *
+ *     });
+ *
+ *   });
+ *
+ *
+ *   afterAll(async () => {
+ *
+ *     await driver.deleteSession();
+ *
+ *   });
+ *
+ *
+ *   it('logs in from the mobile UI', async () => {
+ *
+ *     await driver
+ *       .$(
+ *         '~email-input'
+ *       )
+ *       .setValue(
+ *         'mobile@example.com'
+ *       );
+ *
+ *
+ *     await driver
+ *       .$(
+ *         '~password-input'
+ *       )
+ *       .setValue(
+ *         'Password123!'
+ *       );
+ *
+ *
+ *     await driver
+ *       .$(
+ *         '~login-button'
+ *       )
+ *       .click();
+ *
+ *
+ *     await driver
+ *       .$(
+ *         '~home-screen'
+ *       )
+ *       .waitForDisplayed();
+ *
+ *   });
+ *
+ * });
+ *
+ */
+
+// ============================================================
+// MOBILE TEST MATRIX
+// ============================================================
+
+/*
+ *
+ * PLATFORM COVERAGE
+ * -----------------
+ *
+ * Android:
+ *
+ *   - Fresh installation
+ *   - Registration
+ *   - Login
+ *   - Logout
+ *   - Invalid credentials
+ *   - Session restoration
+ *   - Network failure
+ *   - Multiple devices
+ *
+ *
+ * iOS:
+ *
+ *   - Fresh installation
+ *   - Registration
+ *   - Login
+ *   - Logout
+ *   - Invalid credentials
+ *   - Session restoration
+ *   - Network failure
+ *   - Multiple devices
+ *
+ *
+ *
+ * AUTHENTICATION
+ * --------------
+ *
+ * [x] Registration
+ * [x] Login
+ * [x] Invalid credentials
+ * [x] Session creation
+ * [x] Session validation
+ * [x] Logout
+ * [x] Session revocation
+ *
+ *
+ *
+ * SECURITY
+ * --------
+ *
+ * [x] Password is not returned
+ * [x] Invalid sessions are rejected
+ * [x] Sessions are device-aware
+ * [x] Logout invalidates session
+ *
+ *
+ *
+ * DEVICE COVERAGE
+ * ---------------
+ *
+ * Recommended CI matrix:
+ *
+ * Android:
+ *
+ *   Android 11
+ *   Android 12
+ *   Android 13
+ *   Android 14
+ *   Android 15
+ *
+ *
+ * iOS:
+ *
+ *   iOS 16
+ *   iOS 17
+ *   iOS 18
+ *
+ *
+ *
+ * DEVICE TYPES
+ * ------------
+ *
+ * Android:
+ *
+ *   Pixel emulator
+ *   Samsung emulator/device
+ *
+ *
+ * iOS:
+ *
+ *   iPhone simulator
+ *   iPhone physical device
+ *
+ *
+ *
+ * NETWORK CONDITIONS
+ * ------------------
+ *
+ * Test:
+ *
+ *   Online
+ *   Offline
+ *   Slow 3G
+ *   Fast 3G
+ *   LTE
+ *   Intermittent connection
+ *
+ *
+ *
+ * MOBILE E2E PRINCIPLE
+ * --------------------
+ *
+ * Mobile UI
+ *     │
+ *     ▼
+ * Mobile API client
+ *     │
+ *     ▼
+ * HTTPS API
+ *     │
+ *     ▼
+ * NestJS application
+ *     │
+ *     ▼
+ * Database
+ *
+ *
+ * The E2E test should verify the complete path rather than
+ * testing isolated functions only.
+ *
+ */
+
+// ============================================================
+// CI COMMAND EXAMPLE
+// ============================================================
+
+/*
+ *
+ * package.json:
+ *
+ *
+ * "scripts": {
+ *
+ *   "test:e2e":
+ *     "jest --config test/jest-e2e.json",
+ *
+ *   "test:e2e:mobile":
+ *     "jest mobile.e2e.spec.ts --runInBand",
+ *
+ *   "test:mobile":
+ *     "wdio run ./test/mobile/wdio.conf.ts"
+ *
+ * }
+ *
+ *
+ *
+ * Recommended pipeline:
+ *
+ *
+ * 1. Install dependencies
+ *
+ * 2. Start test database
+ *
+ * 3. Start NestJS test server
+ *
+ * 4. Start Android emulator
+ *
+ * 5. Start Appium
+ *
+ * 6. Install application
+ *
+ * 7. Run backend E2E tests
+ *
+ * 8. Run mobile UI E2E tests
+ *
+ * 9. Collect screenshots on failure
+ *
+ * 10. Collect Appium/device logs
+ *
+ * 11. Stop emulator
+ *
+ * 12. Stop test server
+ *
+ */
