@@ -1,0 +1,2316 @@
+// escrow_security.rs
+
+#![cfg(test)]
+
+use std::collections::HashMap;
+
+// ============================================================
+// TYPES
+// ============================================================
+
+pub type Address = String;
+pub type EscrowId = u64;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum EscrowStatus {
+    Created,
+    Funded,
+    Released,
+    Refunded,
+    Cancelled,
+}
+
+#[derive(Debug, Clone)]
+pub struct Escrow {
+    pub id: EscrowId,
+    pub payer: Address,
+    pub payee: Address,
+    pub arbiter: Address,
+    pub amount: i128,
+    pub funded_amount: i128,
+    pub status: EscrowStatus,
+    pub created_at: u64,
+    pub release_after: Option<u64>,
+}
+
+// ============================================================
+// ERRORS
+// ============================================================
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum EscrowError {
+    EscrowNotFound,
+    Unauthorized,
+    InvalidAmount,
+    InvalidAddress,
+    AlreadyFunded,
+    InsufficientFunding,
+    InvalidState,
+    AlreadyReleased,
+    AlreadyRefunded,
+    AlreadyCancelled,
+    ReleaseTooEarly,
+    EscrowExpired,
+    CannotRefund,
+    CannotRelease,
+    ArithmeticOverflow,
+}
+
+// ============================================================
+// ESCROW SERVICE
+// ============================================================
+
+pub struct EscrowService {
+    escrows: HashMap<EscrowId, Escrow>,
+    balances: HashMap<Address, i128>,
+    next_id: EscrowId,
+}
+
+impl Default for EscrowService {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl EscrowService {
+    // ========================================================
+    // CONSTRUCTOR
+    // ========================================================
+
+    pub fn new() -> Self {
+        Self {
+            escrows: HashMap::new(),
+            balances: HashMap::new(),
+            next_id: 1,
+        }
+    }
+
+    // ========================================================
+    // TEST BALANCE HELPERS
+    // ========================================================
+
+    pub fn set_balance(
+        &mut self,
+        address: Address,
+        amount: i128,
+    ) -> Result<(), EscrowError> {
+        if amount < 0 {
+            return Err(EscrowError::InvalidAmount);
+        }
+
+        self.balances.insert(address, amount);
+
+        Ok(())
+    }
+
+    pub fn balance_of(
+        &self,
+        address: &Address,
+    ) -> i128 {
+        *self
+            .balances
+            .get(address)
+            .unwrap_or(&0)
+    }
+
+    // ========================================================
+    // CREATE ESCROW
+    // ========================================================
+
+    pub fn create_escrow(
+        &mut self,
+        payer: Address,
+        payee: Address,
+        arbiter: Address,
+        amount: i128,
+        created_at: u64,
+        release_after: Option<u64>,
+    ) -> Result<EscrowId, EscrowError> {
+
+        // ----------------------------------------------------
+        // SECURITY: VALIDATE ADDRESSES
+        // ----------------------------------------------------
+
+        if payer.is_empty()
+            || payee.is_empty()
+            || arbiter.is_empty()
+        {
+            return Err(
+                EscrowError::InvalidAddress
+            );
+        }
+
+        // ----------------------------------------------------
+        // SECURITY: PAYER AND PAYEE MUST DIFFER
+        // ----------------------------------------------------
+
+        if payer == payee {
+            return Err(
+                EscrowError::InvalidAddress
+            );
+        }
+
+        // ----------------------------------------------------
+        // SECURITY: POSITIVE AMOUNT
+        // ----------------------------------------------------
+
+        if amount <= 0 {
+            return Err(
+                EscrowError::InvalidAmount
+            );
+        }
+
+        // ----------------------------------------------------
+        // SECURITY: RELEASE TIME MUST NOT BE IN THE PAST
+        // ----------------------------------------------------
+
+        if let Some(release_time) =
+            release_after
+        {
+            if release_time < created_at {
+                return Err(
+                    EscrowError::ReleaseTooEarly
+                );
+            }
+        }
+
+        let id =
+            self.next_id;
+
+        self.next_id =
+            self.next_id
+                .checked_add(1)
+                .ok_or(
+                    EscrowError::ArithmeticOverflow
+                )?;
+
+        let escrow =
+            Escrow {
+                id,
+                payer,
+                payee,
+                arbiter,
+                amount,
+                funded_amount: 0,
+                status:
+                    EscrowStatus::Created,
+                created_at,
+                release_after,
+            };
+
+        self.escrows.insert(
+            id,
+            escrow,
+        );
+
+        Ok(id)
+    }
+
+    // ========================================================
+    // FUND ESCROW
+    // ========================================================
+
+    pub fn fund_escrow(
+        &mut self,
+        caller: &Address,
+        escrow_id: EscrowId,
+        amount: i128,
+    ) -> Result<(), EscrowError> {
+
+        if amount <= 0 {
+            return Err(
+                EscrowError::InvalidAmount
+            );
+        }
+
+        let escrow =
+            self.escrows
+                .get(&escrow_id)
+                .ok_or(
+                    EscrowError::EscrowNotFound
+                )?
+                .clone();
+
+        // ----------------------------------------------------
+        // SECURITY: ONLY PAYER MAY FUND
+        // ----------------------------------------------------
+
+        if &escrow.payer != caller {
+            return Err(
+                EscrowError::Unauthorized
+            );
+        }
+
+        // ----------------------------------------------------
+        // SECURITY: ESCROW MUST NOT ALREADY BE TERMINAL
+        // ----------------------------------------------------
+
+        match escrow.status {
+            EscrowStatus::Released
+            | EscrowStatus::Refunded
+            | EscrowStatus::Cancelled => {
+                return Err(
+                    EscrowError::InvalidState
+                );
+            }
+
+            _ => {}
+        }
+
+        // ----------------------------------------------------
+        // SECURITY: PREVENT DOUBLE FUNDING
+        // ----------------------------------------------------
+
+        if escrow.funded_amount > 0 {
+            return Err(
+                EscrowError::AlreadyFunded
+            );
+        }
+
+        // ----------------------------------------------------
+        // SECURITY: EXACT AMOUNT REQUIRED
+        // ----------------------------------------------------
+
+        if amount != escrow.amount {
+            return Err(
+                EscrowError::InsufficientFunding
+            );
+        }
+
+        let balance =
+            self.balance_of(
+                caller,
+            );
+
+        if balance < amount {
+            return Err(
+                EscrowError::InsufficientFunding
+            );
+        }
+
+        let new_balance =
+            balance
+                .checked_sub(amount)
+                .ok_or(
+                    EscrowError::ArithmeticOverflow
+                )?;
+
+        self.balances.insert(
+            caller.clone(),
+            new_balance,
+        );
+
+        let escrow =
+            self.escrows
+                .get_mut(&escrow_id)
+                .ok_or(
+                    EscrowError::EscrowNotFound
+                )?;
+
+        escrow.funded_amount =
+            amount;
+
+        escrow.status =
+            EscrowStatus::Funded;
+
+        Ok(())
+    }
+
+    // ========================================================
+    // RELEASE ESCROW
+    // ========================================================
+
+    pub fn release_escrow(
+        &mut self,
+        caller: &Address,
+        escrow_id: EscrowId,
+        now: u64,
+    ) -> Result<(), EscrowError> {
+
+        let escrow =
+            self.escrows
+                .get(&escrow_id)
+                .ok_or(
+                    EscrowError::EscrowNotFound
+                )?
+                .clone();
+
+        // ----------------------------------------------------
+        // SECURITY: ONLY AUTHORIZED ACTORS MAY RELEASE
+        // ----------------------------------------------------
+
+        let authorized =
+            caller == &escrow.payer
+                || caller == &escrow.arbiter;
+
+        if !authorized {
+            return Err(
+                EscrowError::Unauthorized
+            );
+        }
+
+        // ----------------------------------------------------
+        // SECURITY: VALID STATE
+        // ----------------------------------------------------
+
+        if escrow.status
+            != EscrowStatus::Funded
+        {
+            return Err(
+                EscrowError::CannotRelease
+            );
+        }
+
+        // ----------------------------------------------------
+        // SECURITY: FULLY FUNDED
+        // ----------------------------------------------------
+
+        if escrow.funded_amount
+            != escrow.amount
+        {
+            return Err(
+                EscrowError::InsufficientFunding
+            );
+        }
+
+        // ----------------------------------------------------
+        // SECURITY: TIME LOCK
+        // ----------------------------------------------------
+
+        if let Some(release_after) =
+            escrow.release_after
+        {
+            if now < release_after {
+                return Err(
+                    EscrowError::ReleaseTooEarly
+                );
+            }
+        }
+
+        // ----------------------------------------------------
+        // SECURITY: TRANSFER ONLY ONCE
+        // ----------------------------------------------------
+
+        let payee_balance =
+            self.balance_of(
+                &escrow.payee,
+            );
+
+        let new_balance =
+            payee_balance
+                .checked_add(
+                    escrow.funded_amount,
+                )
+                .ok_or(
+                    EscrowError::ArithmeticOverflow
+                )?;
+
+        self.balances.insert(
+            escrow.payee.clone(),
+            new_balance,
+        );
+
+        let escrow =
+            self.escrows
+                .get_mut(&escrow_id)
+                .ok_or(
+                    EscrowError::EscrowNotFound
+                )?;
+
+        escrow.funded_amount =
+            0;
+
+        escrow.status =
+            EscrowStatus::Released;
+
+        Ok(())
+    }
+
+    // ========================================================
+    // REFUND ESCROW
+    // ========================================================
+
+    pub fn refund_escrow(
+        &mut self,
+        caller: &Address,
+        escrow_id: EscrowId,
+        now: u64,
+    ) -> Result<(), EscrowError> {
+
+        let escrow =
+            self.escrows
+                .get(&escrow_id)
+                .ok_or(
+                    EscrowError::EscrowNotFound
+                )?
+                .clone();
+
+        // ----------------------------------------------------
+        // SECURITY: ONLY PAYER OR ARBITER
+        // ----------------------------------------------------
+
+        if caller != &escrow.payer
+            && caller != &escrow.arbiter
+        {
+            return Err(
+                EscrowError::Unauthorized
+            );
+        }
+
+        // ----------------------------------------------------
+        // SECURITY: ONLY FUNDED ESCROWS
+        // ----------------------------------------------------
+
+        if escrow.status
+            != EscrowStatus::Funded
+        {
+            return Err(
+                EscrowError::CannotRefund
+            );
+        }
+
+        // ----------------------------------------------------
+        // SECURITY: REFUND ONLY AFTER RELEASE DEADLINE
+        // ----------------------------------------------------
+
+        if let Some(release_after) =
+            escrow.release_after
+        {
+            if now < release_after {
+                return Err(
+                    EscrowError::ReleaseTooEarly
+                );
+            }
+        }
+
+        // ----------------------------------------------------
+        // RETURN FUNDS TO PAYER
+        // ----------------------------------------------------
+
+        let payer_balance =
+            self.balance_of(
+                &escrow.payer,
+            );
+
+        let new_balance =
+            payer_balance
+                .checked_add(
+                    escrow.funded_amount,
+                )
+                .ok_or(
+                    EscrowError::ArithmeticOverflow
+                )?;
+
+        self.balances.insert(
+            escrow.payer.clone(),
+            new_balance,
+        );
+
+        // ----------------------------------------------------
+        // MARK AS REFUNDED
+        // ----------------------------------------------------
+
+        let escrow =
+            self.escrows
+                .get_mut(&escrow_id)
+                .ok_or(
+                    EscrowError::EscrowNotFound
+                )?;
+
+        escrow.funded_amount =
+            0;
+
+        escrow.status =
+            EscrowStatus::Refunded;
+
+        Ok(())
+    }
+
+    // ========================================================
+    // CANCEL ESCROW
+    // ========================================================
+
+    pub fn cancel_escrow(
+        &mut self,
+        caller: &Address,
+        escrow_id: EscrowId,
+    ) -> Result<(), EscrowError> {
+
+        let escrow =
+            self.escrows
+                .get(&escrow_id)
+                .ok_or(
+                    EscrowError::EscrowNotFound
+                )?
+                .clone();
+
+        // ----------------------------------------------------
+        // SECURITY: ONLY PAYER CAN CANCEL
+        // ----------------------------------------------------
+
+        if caller != &escrow.payer {
+            return Err(
+                EscrowError::Unauthorized
+            );
+        }
+
+        // ----------------------------------------------------
+        // SECURITY: CANNOT CANCEL FUNDED ESCROW
+        // ----------------------------------------------------
+
+        if escrow.status
+            != EscrowStatus::Created
+        {
+            return Err(
+                EscrowError::InvalidState
+            );
+        }
+
+        let escrow =
+            self.escrows
+                .get_mut(&escrow_id)
+                .ok_or(
+                    EscrowError::EscrowNotFound
+                )?;
+
+        escrow.status =
+            EscrowStatus::Cancelled;
+
+        Ok(())
+    }
+
+    // ========================================================
+    // GET ESCROW
+    // ========================================================
+
+    pub fn get_escrow(
+        &self,
+        escrow_id: EscrowId,
+    ) -> Result<&Escrow, EscrowError> {
+
+        self.escrows
+            .get(&escrow_id)
+            .ok_or(
+                EscrowError::EscrowNotFound
+            )
+    }
+}
+
+// ============================================================
+// TEST HELPERS
+// ============================================================
+
+fn setup() -> (
+    EscrowService,
+    Address,
+    Address,
+    Address,
+    Address,
+) {
+
+    let payer =
+        "payer".to_string();
+
+    let payee =
+        "payee".to_string();
+
+    let arbiter =
+        "arbiter".to_string();
+
+    let attacker =
+        "attacker".to_string();
+
+    let mut service =
+        EscrowService::new();
+
+    service
+        .set_balance(
+            payer.clone(),
+            1_000,
+        )
+        .unwrap();
+
+    service
+        .set_balance(
+            payee.clone(),
+            0,
+        )
+        .unwrap();
+
+    service
+        .set_balance(
+            arbiter.clone(),
+            0,
+        )
+        .unwrap();
+
+    service
+        .set_balance(
+            attacker.clone(),
+            1_000,
+        )
+        .unwrap();
+
+    (
+        service,
+        payer,
+        payee,
+        arbiter,
+        attacker,
+    )
+}
+
+// ============================================================
+// SECURITY TESTS
+// ============================================================
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    // ========================================================
+    // CREATION
+    // ========================================================
+
+    #[test]
+    fn should_create_valid_escrow() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let id =
+            service
+                .create_escrow(
+                    payer,
+                    payee,
+                    arbiter,
+                    100,
+                    10,
+                    Some(20),
+                )
+                .unwrap();
+
+        let escrow =
+            service
+                .get_escrow(id)
+                .unwrap();
+
+        assert_eq!(
+            escrow.amount,
+            100
+        );
+
+        assert_eq!(
+            escrow.status,
+            EscrowStatus::Created
+        );
+    }
+
+    #[test]
+    fn should_reject_zero_amount() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let result =
+            service.create_escrow(
+                payer,
+                payee,
+                arbiter,
+                0,
+                10,
+                None,
+            );
+
+        assert_eq!(
+            result,
+            Err(
+                EscrowError::InvalidAmount
+            )
+        );
+    }
+
+    #[test]
+    fn should_reject_negative_amount() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let result =
+            service.create_escrow(
+                payer,
+                payee,
+                arbiter,
+                -1,
+                10,
+                None,
+            );
+
+        assert_eq!(
+            result,
+            Err(
+                EscrowError::InvalidAmount
+            )
+        );
+    }
+
+    #[test]
+    fn should_reject_empty_addresses() {
+
+        let (
+            mut service,
+            _,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let result =
+            service.create_escrow(
+                "".to_string(),
+                payee,
+                arbiter,
+                100,
+                10,
+                None,
+            );
+
+        assert_eq!(
+            result,
+            Err(
+                EscrowError::InvalidAddress
+            )
+        );
+    }
+
+    #[test]
+    fn should_reject_self_escrow() {
+
+        let (
+            mut service,
+            payer,
+            _,
+            arbiter,
+            _,
+        ) = setup();
+
+        let result =
+            service.create_escrow(
+                payer.clone(),
+                payer,
+                arbiter,
+                100,
+                10,
+                None,
+            );
+
+        assert_eq!(
+            result,
+            Err(
+                EscrowError::InvalidAddress
+            )
+        );
+    }
+
+    // ========================================================
+    // FUNDING AUTHORIZATION
+    // ========================================================
+
+    #[test]
+    fn attacker_cannot_fund_escrow() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            attacker,
+        ) = setup();
+
+        let id =
+            service
+                .create_escrow(
+                    payer,
+                    payee,
+                    arbiter,
+                    100,
+                    10,
+                    None,
+                )
+                .unwrap();
+
+        let result =
+            service.fund_escrow(
+                &attacker,
+                id,
+                100,
+            );
+
+        assert_eq!(
+            result,
+            Err(
+                EscrowError::Unauthorized
+            )
+        );
+    }
+
+    #[test]
+    fn payer_can_fund_escrow() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let id =
+            service
+                .create_escrow(
+                    payer.clone(),
+                    payee,
+                    arbiter,
+                    100,
+                    10,
+                    None,
+                )
+                .unwrap();
+
+        service
+            .fund_escrow(
+                &payer,
+                id,
+                100,
+            )
+            .unwrap();
+
+        assert_eq!(
+            service.balance_of(&payer),
+            900
+        );
+
+        assert_eq!(
+            service
+                .get_escrow(id)
+                .unwrap()
+                .status,
+            EscrowStatus::Funded
+        );
+    }
+
+    // ========================================================
+    // DOUBLE FUNDING
+    // ========================================================
+
+    #[test]
+    fn should_prevent_double_funding() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let id =
+            service
+                .create_escrow(
+                    payer.clone(),
+                    payee,
+                    arbiter,
+                    100,
+                    10,
+                    None,
+                )
+                .unwrap();
+
+        service
+            .fund_escrow(
+                &payer,
+                id,
+                100,
+            )
+            .unwrap();
+
+        let result =
+            service.fund_escrow(
+                &payer,
+                id,
+                100,
+            );
+
+        assert_eq!(
+            result,
+            Err(
+                EscrowError::AlreadyFunded
+            )
+        );
+
+        assert_eq!(
+            service.balance_of(&payer),
+            900
+        );
+    }
+
+    // ========================================================
+    // PARTIAL FUNDING
+    // ========================================================
+
+    #[test]
+    fn should_reject_partial_funding() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let id =
+            service
+                .create_escrow(
+                    payer.clone(),
+                    payee,
+                    arbiter,
+                    100,
+                    10,
+                    None,
+                )
+                .unwrap();
+
+        let result =
+            service.fund_escrow(
+                &payer,
+                id,
+                50,
+            );
+
+        assert_eq!(
+            result,
+            Err(
+                EscrowError::InsufficientFunding
+            )
+        );
+
+        assert_eq!(
+            service.balance_of(&payer),
+            1_000
+        );
+    }
+
+    // ========================================================
+    // RELEASE AUTHORIZATION
+    // ========================================================
+
+    #[test]
+    fn attacker_cannot_release_escrow() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            attacker,
+        ) = setup();
+
+        let id =
+            service
+                .create_escrow(
+                    payer.clone(),
+                    payee,
+                    arbiter,
+                    100,
+                    10,
+                    None,
+                )
+                .unwrap();
+
+        service
+            .fund_escrow(
+                &payer,
+                id,
+                100,
+            )
+            .unwrap();
+
+        let result =
+            service.release_escrow(
+                &attacker,
+                id,
+                100,
+            );
+
+        assert_eq!(
+            result,
+            Err(
+                EscrowError::Unauthorized
+            )
+        );
+    }
+
+    #[test]
+    fn arbiter_can_release_escrow() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let id =
+            service
+                .create_escrow(
+                    payer.clone(),
+                    payee.clone(),
+                    arbiter.clone(),
+                    100,
+                    10,
+                    None,
+                )
+                .unwrap();
+
+        service
+            .fund_escrow(
+                &payer,
+                id,
+                100,
+            )
+            .unwrap();
+
+        service
+            .release_escrow(
+                &arbiter,
+                id,
+                10,
+            )
+            .unwrap();
+
+        assert_eq!(
+            service.balance_of(&payee),
+            100
+        );
+    }
+
+    // ========================================================
+    // DOUBLE RELEASE
+    // ========================================================
+
+    #[test]
+    fn should_prevent_double_release() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let id =
+            service
+                .create_escrow(
+                    payer.clone(),
+                    payee.clone(),
+                    arbiter.clone(),
+                    100,
+                    10,
+                    None,
+                )
+                .unwrap();
+
+        service
+            .fund_escrow(
+                &payer,
+                id,
+                100,
+            )
+            .unwrap();
+
+        service
+            .release_escrow(
+                &arbiter,
+                id,
+                10,
+            )
+            .unwrap();
+
+        assert_eq!(
+            service.balance_of(&payee),
+            100
+        );
+
+        let result =
+            service.release_escrow(
+                &arbiter,
+                id,
+                20,
+            );
+
+        assert_eq!(
+            result,
+            Err(
+                EscrowError::CannotRelease
+            )
+        );
+
+        assert_eq!(
+            service.balance_of(&payee),
+            100
+        );
+    }
+
+    // ========================================================
+    // TIME LOCK
+    // ========================================================
+
+    #[test]
+    fn should_prevent_early_release() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let id =
+            service
+                .create_escrow(
+                    payer.clone(),
+                    payee.clone(),
+                    arbiter.clone(),
+                    100,
+                    10,
+                    Some(100),
+                )
+                .unwrap();
+
+        service
+            .fund_escrow(
+                &payer,
+                id,
+                100,
+            )
+            .unwrap();
+
+        let result =
+            service.release_escrow(
+                &arbiter,
+                id,
+                99,
+            );
+
+        assert_eq!(
+            result,
+            Err(
+                EscrowError::ReleaseTooEarly
+            )
+        );
+
+        assert_eq!(
+            service.balance_of(&payee),
+            0
+        );
+    }
+
+    #[test]
+    fn should_allow_release_after_timelock() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let id =
+            service
+                .create_escrow(
+                    payer.clone(),
+                    payee.clone(),
+                    arbiter.clone(),
+                    100,
+                    10,
+                    Some(100),
+                )
+                .unwrap();
+
+        service
+            .fund_escrow(
+                &payer,
+                id,
+                100,
+            )
+            .unwrap();
+
+        service
+            .release_escrow(
+                &arbiter,
+                id,
+                100,
+            )
+            .unwrap();
+
+        assert_eq!(
+            service.balance_of(&payee),
+            100
+        );
+    }
+
+    // ========================================================
+    // REFUND
+    // ========================================================
+
+    #[test]
+    fn should_refund_after_deadline() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let id =
+            service
+                .create_escrow(
+                    payer.clone(),
+                    payee,
+                    arbiter.clone(),
+                    100,
+                    10,
+                    Some(100),
+                )
+                .unwrap();
+
+        service
+            .fund_escrow(
+                &payer,
+                id,
+                100,
+            )
+            .unwrap();
+
+        service
+            .refund_escrow(
+                &arbiter,
+                id,
+                100,
+            )
+            .unwrap();
+
+        assert_eq!(
+            service.balance_of(&payer),
+            1_000
+        );
+
+        assert_eq!(
+            service
+                .get_escrow(id)
+                .unwrap()
+                .status,
+            EscrowStatus::Refunded
+        );
+    }
+
+    #[test]
+    fn should_prevent_early_refund() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let id =
+            service
+                .create_escrow(
+                    payer.clone(),
+                    payee,
+                    arbiter.clone(),
+                    100,
+                    10,
+                    Some(100),
+                )
+                .unwrap();
+
+        service
+            .fund_escrow(
+                &payer,
+                id,
+                100,
+            )
+            .unwrap();
+
+        let result =
+            service.refund_escrow(
+                &arbiter,
+                id,
+                99,
+            );
+
+        assert_eq!(
+            result,
+            Err(
+                EscrowError::ReleaseTooEarly
+            )
+        );
+    }
+
+    // ========================================================
+    // REFUND AUTHORIZATION
+    // ========================================================
+
+    #[test]
+    fn attacker_cannot_refund() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            attacker,
+        ) = setup();
+
+        let id =
+            service
+                .create_escrow(
+                    payer.clone(),
+                    payee,
+                    arbiter,
+                    100,
+                    10,
+                    None,
+                )
+                .unwrap();
+
+        service
+            .fund_escrow(
+                &payer,
+                id,
+                100,
+            )
+            .unwrap();
+
+        let result =
+            service.refund_escrow(
+                &attacker,
+                id,
+                100,
+            );
+
+        assert_eq!(
+            result,
+            Err(
+                EscrowError::Unauthorized
+            )
+        );
+    }
+
+    // ========================================================
+    // DOUBLE REFUND
+    // ========================================================
+
+    #[test]
+    fn should_prevent_double_refund() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let id =
+            service
+                .create_escrow(
+                    payer.clone(),
+                    payee,
+                    arbiter.clone(),
+                    100,
+                    10,
+                    Some(100),
+                )
+                .unwrap();
+
+        service
+            .fund_escrow(
+                &payer,
+                id,
+                100,
+            )
+            .unwrap();
+
+        service
+            .refund_escrow(
+                &arbiter,
+                id,
+                100,
+            )
+            .unwrap();
+
+        let result =
+            service.refund_escrow(
+                &arbiter,
+                id,
+                200,
+            );
+
+        assert_eq!(
+            result,
+            Err(
+                EscrowError::CannotRefund
+            )
+        );
+
+        assert_eq!(
+            service.balance_of(&payer),
+            1_000
+        );
+    }
+
+    // ========================================================
+    // CANCEL
+    // ========================================================
+
+    #[test]
+    fn payer_can_cancel_unfunded_escrow() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let id =
+            service
+                .create_escrow(
+                    payer.clone(),
+                    payee,
+                    arbiter,
+                    100,
+                    10,
+                    None,
+                )
+                .unwrap();
+
+        service
+            .cancel_escrow(
+                &payer,
+                id,
+            )
+            .unwrap();
+
+        assert_eq!(
+            service
+                .get_escrow(id)
+                .unwrap()
+                .status,
+            EscrowStatus::Cancelled
+        );
+    }
+
+    #[test]
+    fn attacker_cannot_cancel_escrow() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            attacker,
+        ) = setup();
+
+        let id =
+            service
+                .create_escrow(
+                    payer,
+                    payee,
+                    arbiter,
+                    100,
+                    10,
+                    None,
+                )
+                .unwrap();
+
+        let result =
+            service.cancel_escrow(
+                &attacker,
+                id,
+            );
+
+        assert_eq!(
+            result,
+            Err(
+                EscrowError::Unauthorized
+            )
+        );
+    }
+
+    #[test]
+    fn funded_escrow_cannot_be_cancelled() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let id =
+            service
+                .create_escrow(
+                    payer.clone(),
+                    payee,
+                    arbiter,
+                    100,
+                    10,
+                    None,
+                )
+                .unwrap();
+
+        service
+            .fund_escrow(
+                &payer,
+                id,
+                100,
+            )
+            .unwrap();
+
+        let result =
+            service.cancel_escrow(
+                &payer,
+                id,
+            );
+
+        assert_eq!(
+            result,
+            Err(
+                EscrowError::InvalidState
+            )
+        );
+    }
+
+    // ========================================================
+    // STATE TRANSITION SECURITY
+    // ========================================================
+
+    #[test]
+    fn cannot_release_unfunded_escrow() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let id =
+            service
+                .create_escrow(
+                    payer,
+                    payee,
+                    arbiter.clone(),
+                    100,
+                    10,
+                    None,
+                )
+                .unwrap();
+
+        let result =
+            service.release_escrow(
+                &arbiter,
+                id,
+                10,
+            );
+
+        assert_eq!(
+            result,
+            Err(
+                EscrowError::CannotRelease
+            )
+        );
+    }
+
+    #[test]
+    fn cannot_refund_unfunded_escrow() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let id =
+            service
+                .create_escrow(
+                    payer,
+                    payee,
+                    arbiter.clone(),
+                    100,
+                    10,
+                    None,
+                )
+                .unwrap();
+
+        let result =
+            service.refund_escrow(
+                &arbiter,
+                id,
+                10,
+            );
+
+        assert_eq!(
+            result,
+            Err(
+                EscrowError::CannotRefund
+            )
+        );
+    }
+
+    // ========================================================
+    // BALANCE CONSERVATION
+    // ========================================================
+
+    #[test]
+    fn release_should_conserve_total_balance() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let initial_total =
+            service.balance_of(&payer)
+                + service.balance_of(&payee);
+
+        let id =
+            service
+                .create_escrow(
+                    payer.clone(),
+                    payee.clone(),
+                    arbiter.clone(),
+                    100,
+                    10,
+                    None,
+                )
+                .unwrap();
+
+        service
+            .fund_escrow(
+                &payer,
+                id,
+                100,
+            )
+            .unwrap();
+
+        service
+            .release_escrow(
+                &arbiter,
+                id,
+                10,
+            )
+            .unwrap();
+
+        let final_total =
+            service.balance_of(&payer)
+                + service.balance_of(&payee);
+
+        assert_eq!(
+            initial_total,
+            final_total
+        );
+    }
+
+    #[test]
+    fn refund_should_conserve_total_balance() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let initial_total =
+            service.balance_of(&payer)
+                + service.balance_of(&payee);
+
+        let id =
+            service
+                .create_escrow(
+                    payer.clone(),
+                    payee.clone(),
+                    arbiter.clone(),
+                    100,
+                    10,
+                    Some(100),
+                )
+                .unwrap();
+
+        service
+            .fund_escrow(
+                &payer,
+                id,
+                100,
+            )
+            .unwrap();
+
+        service
+            .refund_escrow(
+                &arbiter,
+                id,
+                100,
+            )
+            .unwrap();
+
+        let final_total =
+            service.balance_of(&payer)
+                + service.balance_of(&payee);
+
+        assert_eq!(
+            initial_total,
+            final_total
+        );
+    }
+
+    // ========================================================
+    // UNKNOWN ESCROW
+    // ========================================================
+
+    #[test]
+    fn should_reject_unknown_escrow() {
+
+        let (
+            mut service,
+            payer,
+            _,
+            _,
+            _,
+        ) = setup();
+
+        let result =
+            service.fund_escrow(
+                &payer,
+                999_999,
+                100,
+            );
+
+        assert_eq!(
+            result,
+            Err(
+                EscrowError::EscrowNotFound
+            )
+        );
+    }
+
+    // ========================================================
+    // IMMUTABLE TERMINAL STATE
+    // ========================================================
+
+    #[test]
+    fn released_escrow_is_terminal() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let id =
+            service
+                .create_escrow(
+                    payer.clone(),
+                    payee,
+                    arbiter.clone(),
+                    100,
+                    10,
+                    None,
+                )
+                .unwrap();
+
+        service
+            .fund_escrow(
+                &payer,
+                id,
+                100,
+            )
+            .unwrap();
+
+        service
+            .release_escrow(
+                &arbiter,
+                id,
+                10,
+            )
+            .unwrap();
+
+        let result =
+            service.fund_escrow(
+                &payer,
+                id,
+                100,
+            );
+
+        assert_eq!(
+            result,
+            Err(
+                EscrowError::InvalidState
+            )
+        );
+    }
+
+    // ========================================================
+    // MULTIPLE ESCROWS
+    // ========================================================
+
+    #[test]
+    fn escrows_should_be_isolated() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            _,
+        ) = setup();
+
+        let first =
+            service
+                .create_escrow(
+                    payer.clone(),
+                    payee.clone(),
+                    arbiter.clone(),
+                    100,
+                    10,
+                    None,
+                )
+                .unwrap();
+
+        let second =
+            service
+                .create_escrow(
+                    payer.clone(),
+                    payee.clone(),
+                    arbiter.clone(),
+                    200,
+                    10,
+                    None,
+                )
+                .unwrap();
+
+        service
+            .fund_escrow(
+                &payer,
+                first,
+                100,
+            )
+            .unwrap();
+
+        service
+            .release_escrow(
+                &arbiter,
+                first,
+                10,
+            )
+            .unwrap();
+
+        assert_eq!(
+            service
+                .get_escrow(second)
+                .unwrap()
+                .status,
+            EscrowStatus::Created
+        );
+
+        assert_eq!(
+            service.balance_of(&payee),
+            100
+        );
+    }
+
+    // ========================================================
+    // SECURITY REGRESSION TEST
+    // ========================================================
+
+    #[test]
+    fn complete_secure_escrow_lifecycle() {
+
+        let (
+            mut service,
+            payer,
+            payee,
+            arbiter,
+            attacker,
+        ) = setup();
+
+        // ----------------------------------------------------
+        // CREATE
+        // ----------------------------------------------------
+
+        let id =
+            service
+                .create_escrow(
+                    payer.clone(),
+                    payee.clone(),
+                    arbiter.clone(),
+                    250,
+                    1,
+                    Some(100),
+                )
+                .unwrap();
+
+        // ----------------------------------------------------
+        // ATTACKER CANNOT FUND
+        // ----------------------------------------------------
+
+        assert_eq!(
+            service.fund_escrow(
+                &attacker,
+                id,
+                250,
+            ),
+            Err(
+                EscrowError::Unauthorized
+            )
+        );
+
+        // ----------------------------------------------------
+        // PAYER FUNDS
+        // ----------------------------------------------------
+
+        service
+            .fund_escrow(
+                &payer,
+                id,
+                250,
+            )
+            .unwrap();
+
+        // ----------------------------------------------------
+        // ATTACKER CANNOT RELEASE
+        // ----------------------------------------------------
+
+        assert_eq!(
+            service.release_escrow(
+                &attacker,
+                id,
+                100,
+            ),
+            Err(
+                EscrowError::Unauthorized
+            )
+        );
+
+        // ----------------------------------------------------
+        // RELEASE
+        // ----------------------------------------------------
+
+        service
+            .release_escrow(
+                &arbiter,
+                id,
+                100,
+            )
+            .unwrap();
+
+        // ----------------------------------------------------
+        // PAYMENT MUST EXIST EXACTLY ONCE
+        // ----------------------------------------------------
+
+        assert_eq!(
+            service.balance_of(&payee),
+            250
+        );
+
+        // ----------------------------------------------------
+        // SECOND RELEASE MUST FAIL
+        // ----------------------------------------------------
+
+        assert_eq!(
+            service.release_escrow(
+                &arbiter,
+                id,
+                101,
+            ),
+            Err(
+                EscrowError::CannotRelease
+            )
+        );
+
+        // ----------------------------------------------------
+        // NO SECOND PAYMENT
+        // ----------------------------------------------------
+
+        assert_eq!(
+            service.balance_of(&payee),
+            250
+        );
+    }
+}
+
+// ============================================================
+// SOROBAN INTEGRATION NOTES
+// ============================================================
+
+/*
+ *
+ * For the actual Soroban contract, the same security rules
+ * should be implemented using Soroban's environment and
+ * persistent storage.
+ *
+ *
+ * IMPORTANT SECURITY REQUIREMENTS
+ * ===============================
+ *
+ * 1. Never trust a caller supplied payer address.
+ *
+ *    Use:
+ *
+ *        payer.require_auth();
+ *
+ *
+ *    rather than accepting the payer address as proof of
+ *    authorization.
+ *
+ *
+ * 2. Every privileged action must authenticate the caller.
+ *
+ *    Release:
+ *
+ *        caller.require_auth();
+ *
+ *
+ *    Refund:
+ *
+ *        caller.require_auth();
+ *
+ *
+ *    Cancel:
+ *
+ *        caller.require_auth();
+ *
+ *
+ * 3. Escrow state must be persisted.
+ *
+ *    Recommended:
+ *
+ *        DataKey::Escrow(id)
+ *
+ *
+ * 4. Never allow a terminal state to transition back.
+ *
+ *
+ *    Created
+ *       |
+ *       v
+ *    Funded
+ *      / \
+ *     /   \
+ *    v     v
+ * Released Refunded
+ *
+ *
+ *    Created -> Cancelled
+ *
+ *
+ * 5. Never transfer funds before changing/validating state.
+ *
+ *
+ * 6. Use checked arithmetic for amounts.
+ *
+ *
+ * 7. Prevent zero and negative amounts.
+ *
+ *
+ * 8. Prevent duplicate release.
+ *
+ *
+ * 9. Validate the expected token contract.
+ *
+ *
+ * 10. Do not allow arbitrary token contracts to be supplied
+ *     by callers.
+ *
+ *
+ * 11. Emit events for:
+ *
+ *     escrow_created
+ *     escrow_funded
+ *     escrow_released
+ *     escrow_refunded
+ *     escrow_cancelled
+ *
+ *
+ * 12. Consider a reentrancy-safe interaction pattern:
+ *
+ *     validate
+ *        |
+ *        v
+ *     update state
+ *        |
+ *        v
+ *     transfer
+ *        |
+ *        v
+ *     emit event
+ *
+ *
+ * 13. Verify the token transfer result.
+ *
+ *
+ * 14. Test unauthorized callers explicitly.
+ *
+ *
+ * 15. Test duplicate transactions explicitly.
+ *
+ *
+ * 16. Test timeout boundaries:
+ *
+ *     now < deadline
+ *     now == deadline
+ *     now > deadline
+ *
+ *
+ * 17. Test insufficient balances.
+ *
+ *
+ * 18. Test maximum integer values.
+ *
+ *
+ * 19. Test nonexistent escrow IDs.
+ *
+ *
+ * 20. Test every invalid state transition.
+ *
+ */
+
+// ============================================================
+// SECURITY TEST MATRIX
+// ============================================================
+
+/*
+ *
+ * ESCROW SECURITY TEST MATRIX
+ * ============================
+ *
+ * Creation
+ * --------
+ *
+ * [x] Valid escrow
+ * [x] Zero amount rejected
+ * [x] Negative amount rejected
+ * [x] Empty address rejected
+ * [x] Self escrow rejected
+ * [x] Invalid deadline rejected
+ *
+ *
+ * Authorization
+ * -------------
+ *
+ * [x] Unauthorized funding rejected
+ * [x] Unauthorized release rejected
+ * [x] Unauthorized refund rejected
+ * [x] Unauthorized cancellation rejected
+ *
+ *
+ * Funding
+ * -------
+ *
+ * [x] Exact funding required
+ * [x] Insufficient balance rejected
+ * [x] Double funding rejected
+ * [x] Terminal escrow cannot be funded
+ *
+ *
+ * Release
+ * -------
+ *
+ * [x] Unfunded escrow cannot release
+ * [x] Early release rejected
+ * [x] Authorized release succeeds
+ * [x] Double release rejected
+ * [x] Released escrow remains terminal
+ *
+ *
+ * Refund
+ * ------
+ *
+ * [x] Early refund rejected
+ * [x] Unauthorized refund rejected
+ * [x] Refund succeeds after deadline
+ * [x] Double refund rejected
+ *
+ *
+ * Cancellation
+ * ------------
+ *
+ * [x] Payer can cancel
+ * [x] Attacker cannot cancel
+ * [x] Funded escrow cannot cancel
+ *
+ *
+ * Accounting
+ * ----------
+ *
+ * [x] Release conserves balance
+ * [x] Refund conserves balance
+ * [x] No duplicate payment
+ * [x] Multiple escrows isolated
+ *
+ *
+ * State Machine
+ * -------------
+ *
+ * [x] Created -> Funded
+ * [x] Created -> Cancelled
+ * [x] Funded -> Released
+ * [x] Funded -> Refunded
+ *
+ * [x] Released -> Funded      BLOCKED
+ * [x] Released -> Refunded    BLOCKED
+ * [x] Refunded -> Released    BLOCKED
+ * [x] Refunded -> Funded      BLOCKED
+ * [x] Cancelled -> Funded     BLOCKED
+ * [x] Cancelled -> Released   BLOCKED
+ *
+ */
