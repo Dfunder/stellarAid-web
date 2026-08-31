@@ -1,0 +1,1901 @@
+import {
+  INestApplication,
+  ValidationPipe,
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+  BadRequestException,
+  Module,
+  MiddlewareConsumer,
+  NestModule,
+} from '@nestjs/common';
+
+import {
+  Test,
+  TestingModule,
+} from '@nestjs/testing';
+
+import * as request from 'supertest';
+
+import {
+  Request,
+  Response,
+  NextFunction,
+} from 'express';
+
+// ============================================================
+// TEST DTO
+// ============================================================
+
+export class CreateItemDto {
+
+  name!: string;
+
+  description?: string;
+}
+
+// ============================================================
+// TEST ITEM
+// ============================================================
+
+export interface TestItem {
+
+  id: string;
+
+  name: string;
+
+  description?: string;
+
+  createdAt: Date;
+
+  updatedAt: Date;
+}
+
+// ============================================================
+// TEST REPOSITORY
+// ============================================================
+
+@Injectable()
+export class TestItemRepository {
+
+  private readonly items =
+    new Map<string, TestItem>();
+
+  private sequence = 0;
+
+  // ==========================================================
+  // CREATE
+  // ==========================================================
+
+  create(
+    name: string,
+    description?: string,
+  ): TestItem {
+
+    this.sequence++;
+
+    const now =
+      new Date();
+
+    const item:
+      TestItem = {
+
+      id:
+        `item-${this.sequence}`,
+
+      name,
+
+      description,
+
+      createdAt:
+        now,
+
+      updatedAt:
+        now,
+    };
+
+    this.items.set(
+      item.id,
+      item,
+    );
+
+    return item;
+  }
+
+  // ==========================================================
+  // FIND ALL
+  // ==========================================================
+
+  findAll(): TestItem[] {
+
+    return Array.from(
+      this.items.values(),
+    );
+  }
+
+  // ==========================================================
+  // FIND ONE
+  // ==========================================================
+
+  findOne(
+    id: string,
+  ): TestItem | undefined {
+
+    return this.items.get(
+      id,
+    );
+  }
+
+  // ==========================================================
+  // UPDATE
+  // ==========================================================
+
+  update(
+    id: string,
+    changes: Partial<TestItem>,
+  ): TestItem {
+
+    const existing =
+      this.items.get(id);
+
+    if (!existing) {
+
+      throw new NotFoundException(
+        'Item not found',
+      );
+    }
+
+    const updated:
+      TestItem = {
+
+      ...existing,
+
+      ...changes,
+
+      id:
+        existing.id,
+
+      createdAt:
+        existing.createdAt,
+
+      updatedAt:
+        new Date(),
+    };
+
+    this.items.set(
+      id,
+      updated,
+    );
+
+    return updated;
+  }
+
+  // ==========================================================
+  // DELETE
+  // ==========================================================
+
+  delete(
+    id: string,
+  ): void {
+
+    if (
+      !this.items.has(id)
+    ) {
+
+      throw new NotFoundException(
+        'Item not found',
+      );
+    }
+
+    this.items.delete(
+      id,
+    );
+  }
+
+  // ==========================================================
+  // CLEAR
+  // ==========================================================
+
+  clear(): void {
+
+    this.items.clear();
+
+    this.sequence = 0;
+  }
+}
+
+// ============================================================
+// TEST SERVICE
+// ============================================================
+
+@Injectable()
+export class TestItemService {
+
+  constructor(
+    private readonly repository:
+      TestItemRepository,
+  ) {}
+
+  // ==========================================================
+  // CREATE
+  // ==========================================================
+
+  create(
+    dto: CreateItemDto,
+  ): TestItem {
+
+    if (
+      !dto.name ||
+      dto.name.trim().length === 0
+    ) {
+
+      throw new BadRequestException(
+        'name is required',
+      );
+    }
+
+    if (
+      dto.name.length > 100
+    ) {
+
+      throw new BadRequestException(
+        'name must not exceed 100 characters',
+      );
+    }
+
+    return this.repository.create(
+      dto.name.trim(),
+      dto.description,
+    );
+  }
+
+  // ==========================================================
+  // FIND ALL
+  // ==========================================================
+
+  findAll(): TestItem[] {
+
+    return this.repository.findAll();
+  }
+
+  // ==========================================================
+  // FIND ONE
+  // ==========================================================
+
+  findOne(
+    id: string,
+  ): TestItem {
+
+    const item =
+      this.repository.findOne(
+        id,
+      );
+
+    if (!item) {
+
+      throw new NotFoundException(
+        'Item not found',
+      );
+    }
+
+    return item;
+  }
+
+  // ==========================================================
+  // UPDATE
+  // ==========================================================
+
+  update(
+    id: string,
+    dto: Partial<CreateItemDto>,
+  ): TestItem {
+
+    this.findOne(id);
+
+    if (
+      dto.name !== undefined &&
+      dto.name.trim().length === 0
+    ) {
+
+      throw new BadRequestException(
+        'name cannot be empty',
+      );
+    }
+
+    return this.repository.update(
+      id,
+      {
+        name:
+          dto.name?.trim(),
+
+        description:
+          dto.description,
+      },
+    );
+  }
+
+  // ==========================================================
+  // DELETE
+  // ==========================================================
+
+  delete(
+    id: string,
+  ): void {
+
+    this.repository.delete(
+      id,
+    );
+  }
+}
+
+// ============================================================
+// AUTHENTICATION MIDDLEWARE
+// ============================================================
+
+@Injectable()
+export class TestAuthMiddleware {
+
+  use(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): void {
+
+    const authorization =
+      request.headers.authorization;
+
+    /*
+     * Public routes are handled by the controller.
+     *
+     * Protected API routes require:
+     *
+     * Authorization: Bearer integration-test-token
+     */
+
+    if (
+      request.path ===
+      '/api/health'
+    ) {
+
+      next();
+
+      return;
+    }
+
+    if (
+      authorization !==
+      'Bearer integration-test-token'
+    ) {
+
+      response
+        .status(401)
+        .json({
+          statusCode:
+            401,
+
+          message:
+            'Unauthorized',
+        });
+
+      return;
+    }
+
+    next();
+  }
+}
+
+// ============================================================
+// SECURITY HEADERS MIDDLEWARE
+// ============================================================
+
+@Injectable()
+export class TestSecurityHeadersMiddleware {
+
+  use(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): void {
+
+    response.setHeader(
+      'X-Content-Type-Options',
+      'nosniff',
+    );
+
+    response.setHeader(
+      'X-Frame-Options',
+      'DENY',
+    );
+
+    response.setHeader(
+      'Referrer-Policy',
+      'strict-origin-when-cross-origin',
+    );
+
+    response.setHeader(
+      'Content-Security-Policy',
+      "default-src 'none'",
+    );
+
+    response.removeHeader(
+      'X-Powered-By',
+    );
+
+    next();
+  }
+}
+
+// ============================================================
+// CONTROLLER
+// ============================================================
+
+@Controller('api')
+export class TestItemController {
+
+  constructor(
+    private readonly service:
+      TestItemService,
+  ) {}
+
+  // ==========================================================
+  // HEALTH
+  // ==========================================================
+
+  @Get('health')
+  health() {
+
+    return {
+      status:
+        'ok',
+    };
+  }
+
+  // ==========================================================
+  // CREATE
+  // ==========================================================
+
+  @Post('items')
+  create(
+    @Body()
+    dto: CreateItemDto,
+  ) {
+
+    return {
+      success:
+        true,
+
+      data:
+        this.service.create(
+          dto,
+        ),
+    };
+  }
+
+  // ==========================================================
+  // FIND ALL
+  // ==========================================================
+
+  @Get('items')
+  findAll() {
+
+    return {
+      success:
+        true,
+
+      data:
+        this.service.findAll(),
+    };
+  }
+
+  // ==========================================================
+  // FIND ONE
+  // ==========================================================
+
+  @Get('items/:id')
+  findOne(
+    @Param('id')
+    id: string,
+  ) {
+
+    return {
+      success:
+        true,
+
+      data:
+        this.service.findOne(
+          id,
+        ),
+    };
+  }
+
+  // ==========================================================
+  // UPDATE
+  // ==========================================================
+
+  @Put('items/:id')
+  update(
+    @Param('id')
+    id: string,
+
+    @Body()
+    dto: Partial<CreateItemDto>,
+  ) {
+
+    return {
+      success:
+        true,
+
+      data:
+        this.service.update(
+          id,
+          dto,
+        ),
+    };
+  }
+
+  // ==========================================================
+  // DELETE
+  // ==========================================================
+
+  @Delete('items/:id')
+  delete(
+    @Param('id')
+    id: string,
+  ) {
+
+    this.service.delete(
+      id,
+    );
+
+    return {
+      success:
+        true,
+
+      message:
+        'Item deleted successfully',
+    };
+  }
+}
+
+// ============================================================
+// TEST MODULE
+// ============================================================
+
+@Module({
+  controllers: [
+    TestItemController,
+  ],
+
+  providers: [
+    TestItemRepository,
+    TestItemService,
+  ],
+})
+export class IntegrationTestModule
+  implements NestModule {
+
+  configure(
+    consumer: MiddlewareConsumer,
+  ): void {
+
+    consumer
+      .apply(
+        TestSecurityHeadersMiddleware,
+        TestAuthMiddleware,
+      )
+      .forRoutes(
+        TestItemController,
+      );
+  }
+}
+
+// ============================================================
+// API INTEGRATION TEST SUITE
+// ============================================================
+
+describe(
+  'API Integration Tests',
+  () => {
+
+    let app:
+      INestApplication;
+
+    let repository:
+      TestItemRepository;
+
+    // ========================================================
+    // BOOT APPLICATION
+    // ========================================================
+
+    beforeAll(
+      async () => {
+
+        const moduleFixture:
+          TestingModule =
+          await Test
+            .createTestingModule({
+              imports: [
+                IntegrationTestModule,
+              ],
+            })
+            .compile();
+
+        app =
+          moduleFixture
+            .createNestApplication();
+
+        /*
+         * Match production-style request validation.
+         */
+
+        app.useGlobalPipes(
+          new ValidationPipe({
+            whitelist:
+              true,
+
+            transform:
+              true,
+
+            forbidNonWhitelisted:
+              false,
+          }),
+        );
+
+        await app.init();
+
+        repository =
+          moduleFixture.get(
+            TestItemRepository,
+          );
+      },
+    );
+
+    // ========================================================
+    // CLEANUP
+    // ========================================================
+
+    afterEach(
+      () => {
+
+        repository.clear();
+      },
+    );
+
+    // ========================================================
+    // SHUTDOWN
+    // ========================================================
+
+    afterAll(
+      async () => {
+
+        await app.close();
+      },
+    );
+
+    // ========================================================
+    // HEALTH CHECK
+    // ========================================================
+
+    describe(
+      'GET /api/health',
+      () => {
+
+        it(
+          'returns a healthy API response',
+          async () => {
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .get(
+                  '/api/health',
+                )
+                .expect(200);
+
+            expect(
+              response.body,
+            ).toEqual({
+              status:
+                'ok',
+            });
+          },
+        );
+      },
+    );
+
+    // ========================================================
+    // AUTHENTICATION
+    // ========================================================
+
+    describe(
+      'Authentication',
+      () => {
+
+        it(
+          'rejects requests without authentication',
+          async () => {
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .get(
+                  '/api/items',
+                )
+                .expect(401);
+
+            expect(
+              response.body.statusCode,
+            ).toBe(
+              401,
+            );
+          },
+        );
+
+        it(
+          'rejects an invalid bearer token',
+          async () => {
+
+            await request(
+              app.getHttpServer(),
+            )
+              .get(
+                '/api/items',
+              )
+              .set(
+                'Authorization',
+                'Bearer invalid-token',
+              )
+              .expect(401);
+          },
+        );
+
+        it(
+          'accepts a valid bearer token',
+          async () => {
+
+            await request(
+              app.getHttpServer(),
+            )
+              .get(
+                '/api/items',
+              )
+              .set(
+                'Authorization',
+                'Bearer integration-test-token',
+              )
+              .expect(200);
+          },
+        );
+      },
+    );
+
+    // ========================================================
+    // SECURITY HEADERS
+    // ========================================================
+
+    describe(
+      'Security Headers',
+      () => {
+
+        it(
+          'returns security headers',
+          async () => {
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .get(
+                  '/api/items',
+                )
+                .set(
+                  'Authorization',
+                  'Bearer integration-test-token',
+                )
+                .expect(200);
+
+            expect(
+              response.headers[
+                'x-content-type-options'
+              ],
+            ).toBe(
+              'nosniff',
+            );
+
+            expect(
+              response.headers[
+                'x-frame-options'
+              ],
+            ).toBe(
+              'DENY',
+            );
+
+            expect(
+              response.headers[
+                'referrer-policy'
+              ],
+            ).toBe(
+              'strict-origin-when-cross-origin',
+            );
+
+            expect(
+              response.headers[
+                'content-security-policy'
+              ],
+            ).toBe(
+              "default-src 'none'",
+            );
+
+            expect(
+              response.headers[
+                'x-powered-by'
+              ],
+            ).toBeUndefined();
+          },
+        );
+      },
+    );
+
+    // ========================================================
+    // CREATE ITEM
+    // ========================================================
+
+    describe(
+      'POST /api/items',
+      () => {
+
+        it(
+          'creates a new item',
+          async () => {
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .post(
+                  '/api/items',
+                )
+                .set(
+                  'Authorization',
+                  'Bearer integration-test-token',
+                )
+                .send({
+                  name:
+                    'Integration Test Item',
+
+                  description:
+                    'Created during API integration testing',
+                })
+                .expect(201);
+
+            expect(
+              response.body.success,
+            ).toBe(
+              true,
+            );
+
+            expect(
+              response.body.data,
+            ).toMatchObject({
+              id:
+                expect.any(String),
+
+              name:
+                'Integration Test Item',
+
+              description:
+                'Created during API integration testing',
+            });
+          },
+        );
+
+        it(
+          'rejects an empty name',
+          async () => {
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .post(
+                  '/api/items',
+                )
+                .set(
+                  'Authorization',
+                  'Bearer integration-test-token',
+                )
+                .send({
+                  name:
+                    '',
+                })
+                .expect(400);
+
+            expect(
+              response.body.statusCode,
+            ).toBe(
+              400,
+            );
+
+            expect(
+              response.body.message,
+            ).toContain(
+              'name is required',
+            );
+          },
+        );
+
+        it(
+          'rejects an excessively long name',
+          async () => {
+
+            const longName =
+              'x'.repeat(
+                101,
+              );
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .post(
+                  '/api/items',
+                )
+                .set(
+                  'Authorization',
+                  'Bearer integration-test-token',
+                )
+                .send({
+                  name:
+                    longName,
+                })
+                .expect(400);
+
+            expect(
+              response.body.statusCode,
+            ).toBe(
+              400,
+            );
+          },
+        );
+
+        it(
+          'trims surrounding whitespace',
+          async () => {
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .post(
+                  '/api/items',
+                )
+                .set(
+                  'Authorization',
+                  'Bearer integration-test-token',
+                )
+                .send({
+                  name:
+                    '   Test Item   ',
+                })
+                .expect(201);
+
+            expect(
+              response.body.data.name,
+            ).toBe(
+              'Test Item',
+            );
+          },
+        );
+      },
+    );
+
+    // ========================================================
+    // LIST ITEMS
+    // ========================================================
+
+    describe(
+      'GET /api/items',
+      () => {
+
+        it(
+          'returns an empty collection initially',
+          async () => {
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .get(
+                  '/api/items',
+                )
+                .set(
+                  'Authorization',
+                  'Bearer integration-test-token',
+                )
+                .expect(200);
+
+            expect(
+              response.body.success,
+            ).toBe(
+              true,
+            );
+
+            expect(
+              response.body.data,
+            ).toEqual([]);
+          },
+        );
+
+        it(
+          'returns created items',
+          async () => {
+
+            await request(
+              app.getHttpServer(),
+            )
+              .post(
+                '/api/items',
+              )
+              .set(
+                'Authorization',
+                'Bearer integration-test-token',
+              )
+              .send({
+                name:
+                  'First Item',
+              })
+              .expect(201);
+
+            await request(
+              app.getHttpServer(),
+            )
+              .post(
+                '/api/items',
+              )
+              .set(
+                'Authorization',
+                'Bearer integration-test-token',
+              )
+              .send({
+                name:
+                  'Second Item',
+              })
+              .expect(201);
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .get(
+                  '/api/items',
+                )
+                .set(
+                  'Authorization',
+                  'Bearer integration-test-token',
+                )
+                .expect(200);
+
+            expect(
+              response.body.data,
+            ).toHaveLength(
+              2,
+            );
+          },
+        );
+      },
+    );
+
+    // ========================================================
+    // GET ITEM
+    // ========================================================
+
+    describe(
+      'GET /api/items/:id',
+      () => {
+
+        it(
+          'returns a specific item',
+          async () => {
+
+            const created =
+              await request(
+                app.getHttpServer(),
+              )
+                .post(
+                  '/api/items',
+                )
+                .set(
+                  'Authorization',
+                  'Bearer integration-test-token',
+                )
+                .send({
+                  name:
+                    'Find Me',
+                })
+                .expect(201);
+
+            const id =
+              created.body.data.id;
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .get(
+                  `/api/items/${id}`,
+                )
+                .set(
+                  'Authorization',
+                  'Bearer integration-test-token',
+                )
+                .expect(200);
+
+            expect(
+              response.body.data.id,
+            ).toBe(
+              id,
+            );
+
+            expect(
+              response.body.data.name,
+            ).toBe(
+              'Find Me',
+            );
+          },
+        );
+
+        it(
+          'returns 404 for an unknown item',
+          async () => {
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .get(
+                  '/api/items/item-does-not-exist',
+                )
+                .set(
+                  'Authorization',
+                  'Bearer integration-test-token',
+                )
+                .expect(404);
+
+            expect(
+              response.body.statusCode,
+            ).toBe(
+              404,
+            );
+
+            expect(
+              response.body.message,
+            ).toBe(
+              'Item not found',
+            );
+          },
+        );
+      },
+    );
+
+    // ========================================================
+    // UPDATE ITEM
+    // ========================================================
+
+    describe(
+      'PUT /api/items/:id',
+      () => {
+
+        it(
+          'updates an existing item',
+          async () => {
+
+            const created =
+              await request(
+                app.getHttpServer(),
+              )
+                .post(
+                  '/api/items',
+                )
+                .set(
+                  'Authorization',
+                  'Bearer integration-test-token',
+                )
+                .send({
+                  name:
+                    'Original Name',
+                })
+                .expect(201);
+
+            const id =
+              created.body.data.id;
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .put(
+                  `/api/items/${id}`,
+                )
+                .set(
+                  'Authorization',
+                  'Bearer integration-test-token',
+                )
+                .send({
+                  name:
+                    'Updated Name',
+
+                  description:
+                    'Updated description',
+                })
+                .expect(200);
+
+            expect(
+              response.body.success,
+            ).toBe(
+              true,
+            );
+
+            expect(
+              response.body.data.name,
+            ).toBe(
+              'Updated Name',
+            );
+
+            expect(
+              response.body.data.description,
+            ).toBe(
+              'Updated description',
+            );
+          },
+        );
+
+        it(
+          'returns 404 when updating an unknown item',
+          async () => {
+
+            await request(
+              app.getHttpServer(),
+            )
+              .put(
+                '/api/items/does-not-exist',
+              )
+              .set(
+                'Authorization',
+                'Bearer integration-test-token',
+              )
+              .send({
+                name:
+                  'Updated',
+              })
+              .expect(404);
+          },
+        );
+
+        it(
+          'rejects an empty updated name',
+          async () => {
+
+            const created =
+              await request(
+                app.getHttpServer(),
+              )
+                .post(
+                  '/api/items',
+                )
+                .set(
+                  'Authorization',
+                  'Bearer integration-test-token',
+                )
+                .send({
+                  name:
+                    'Valid Name',
+                })
+                .expect(201);
+
+            const id =
+              created.body.data.id;
+
+            await request(
+              app.getHttpServer(),
+            )
+              .put(
+                `/api/items/${id}`,
+              )
+              .set(
+                'Authorization',
+                'Bearer integration-test-token',
+              )
+              .send({
+                name:
+                  '   ',
+              })
+              .expect(400);
+          },
+        );
+      },
+    );
+
+    // ========================================================
+    // DELETE ITEM
+    // ========================================================
+
+    describe(
+      'DELETE /api/items/:id',
+      () => {
+
+        it(
+          'deletes an existing item',
+          async () => {
+
+            const created =
+              await request(
+                app.getHttpServer(),
+              )
+                .post(
+                  '/api/items',
+                )
+                .set(
+                  'Authorization',
+                  'Bearer integration-test-token',
+                )
+                .send({
+                  name:
+                    'Delete Me',
+                })
+                .expect(201);
+
+            const id =
+              created.body.data.id;
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .delete(
+                  `/api/items/${id}`,
+                )
+                .set(
+                  'Authorization',
+                  'Bearer integration-test-token',
+                )
+                .expect(200);
+
+            expect(
+              response.body.success,
+            ).toBe(
+              true,
+            );
+
+            /*
+             * Verify through the public API that the resource
+             * really disappeared.
+             */
+
+            await request(
+              app.getHttpServer(),
+            )
+              .get(
+                `/api/items/${id}`,
+              )
+              .set(
+                'Authorization',
+                'Bearer integration-test-token',
+              )
+              .expect(404);
+          },
+        );
+
+        it(
+          'returns 404 when deleting an unknown item',
+          async () => {
+
+            await request(
+              app.getHttpServer(),
+            )
+              .delete(
+                '/api/items/does-not-exist',
+              )
+              .set(
+                'Authorization',
+                'Bearer integration-test-token',
+              )
+              .expect(404);
+          },
+        );
+      },
+    );
+
+    // ========================================================
+    // END-TO-END CRUD FLOW
+    // ========================================================
+
+    describe(
+      'Complete API workflow',
+      () => {
+
+        it(
+          'supports the complete item lifecycle',
+          async () => {
+
+            // ------------------------------------------------
+            // CREATE
+            // ------------------------------------------------
+
+            const created =
+              await request(
+                app.getHttpServer(),
+              )
+                .post(
+                  '/api/items',
+                )
+                .set(
+                  'Authorization',
+                  'Bearer integration-test-token',
+                )
+                .send({
+                  name:
+                    'Lifecycle Item',
+
+                  description:
+                    'Initial description',
+                })
+                .expect(201);
+
+            const id =
+              created.body.data.id;
+
+            expect(
+              id,
+            ).toBeDefined();
+
+            // ------------------------------------------------
+            // READ
+            // ------------------------------------------------
+
+            const read =
+              await request(
+                app.getHttpServer(),
+              )
+                .get(
+                  `/api/items/${id}`,
+                )
+                .set(
+                  'Authorization',
+                  'Bearer integration-test-token',
+                )
+                .expect(200);
+
+            expect(
+              read.body.data.name,
+            ).toBe(
+              'Lifecycle Item',
+            );
+
+            // ------------------------------------------------
+            // UPDATE
+            // ------------------------------------------------
+
+            const updated =
+              await request(
+                app.getHttpServer(),
+              )
+                .put(
+                  `/api/items/${id}`,
+                )
+                .set(
+                  'Authorization',
+                  'Bearer integration-test-token',
+                )
+                .send({
+                  name:
+                    'Updated Lifecycle Item',
+                })
+                .expect(200);
+
+            expect(
+              updated.body.data.name,
+            ).toBe(
+              'Updated Lifecycle Item',
+            );
+
+            // ------------------------------------------------
+            // DELETE
+            // ------------------------------------------------
+
+            await request(
+              app.getHttpServer(),
+            )
+              .delete(
+                `/api/items/${id}`,
+              )
+              .set(
+                'Authorization',
+                'Bearer integration-test-token',
+              )
+              .expect(200);
+
+            // ------------------------------------------------
+            // VERIFY DELETE
+            // ------------------------------------------------
+
+            await request(
+              app.getHttpServer(),
+            )
+              .get(
+                `/api/items/${id}`,
+              )
+              .set(
+                'Authorization',
+                'Bearer integration-test-token',
+              )
+              .expect(404);
+          },
+        );
+      },
+    );
+
+    // ========================================================
+    // UNKNOWN ROUTES
+    // ========================================================
+
+    describe(
+      'Unknown routes',
+      () => {
+
+        it(
+          'returns 404 for an unknown endpoint',
+          async () => {
+
+            await request(
+              app.getHttpServer(),
+            )
+              .get(
+                '/api/does-not-exist',
+              )
+              .set(
+                'Authorization',
+                'Bearer integration-test-token',
+              )
+              .expect(404);
+          },
+        );
+      },
+    );
+
+    // ========================================================
+    // CONTENT NEGOTIATION
+    // ========================================================
+
+    describe(
+      'HTTP behavior',
+      () => {
+
+        it(
+          'returns JSON responses',
+          async () => {
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .get(
+                  '/api/items',
+                )
+                .set(
+                  'Authorization',
+                  'Bearer integration-test-token',
+                )
+                .expect(
+                  'Content-Type',
+                  /json/,
+                );
+
+            expect(
+              response.body,
+            ).toBeDefined();
+          },
+        );
+
+        it(
+          'supports JSON request bodies',
+          async () => {
+
+            const response =
+              await request(
+                app.getHttpServer(),
+              )
+                .post(
+                  '/api/items',
+                )
+                .set(
+                  'Authorization',
+                  'Bearer integration-test-token',
+                )
+                .set(
+                  'Content-Type',
+                  'application/json',
+                )
+                .send(
+                  JSON.stringify({
+                    name:
+                      'JSON Item',
+                  }),
+                )
+                .expect(201);
+
+            expect(
+              response.body.data.name,
+            ).toBe(
+              'JSON Item',
+            );
+          },
+        );
+      },
+    );
+  },
+);
+
+// ============================================================
+// JEST CONFIGURATION
+// ============================================================
+
+/*
+ *
+ * jest-e2e.json
+ *
+ *
+ * {
+ *   "moduleFileExtensions": [
+ *     "js",
+ *     "json",
+ *     "ts"
+ *   ],
+ *
+ *   "rootDir": ".",
+ *
+ *   "testEnvironment": "node",
+ *
+ *   "testRegex": ".e2e-spec.ts$",
+ *
+ *   "transform": {
+ *     "^.+\\.(t|j)s$": "ts-jest"
+ *   }
+ * }
+ *
+ */
+
+// ============================================================
+// PACKAGE REQUIREMENTS
+// ============================================================
+
+/*
+ *
+ * package.json
+ *
+ *
+ * {
+ *   "devDependencies": {
+ *
+ *     "@nestjs/testing": "...",
+ *
+ *     "@types/supertest": "...",
+ *
+ *     "jest": "...",
+ *
+ *     "supertest": "...",
+ *
+ *     "ts-jest": "..."
+ *   }
+ * }
+ *
+ */
+
+// ============================================================
+// TEST COMMANDS
+// ============================================================
+
+/*
+ *
+ * Run all unit tests:
+ *
+ *     npm test
+ *
+ *
+ * Run integration tests:
+ *
+ *     npm run test:e2e
+ *
+ *
+ * Run integration tests with coverage:
+ *
+ *     npm run test:e2e -- --coverage
+ *
+ *
+ * Run a specific integration test:
+ *
+ *     npx jest --config jest-e2e.json api.integration.spec.ts
+ *
+ */
+
+// ============================================================
+// CI CONFIGURATION
+// ============================================================
+
+/*
+ *
+ * CI SHOULD RUN:
+ *
+ *
+ *     npm ci
+ *
+ *     npm run build
+ *
+ *     npm test
+ *
+ *     npm run test:e2e
+ *
+ *
+ * Integration tests should fail the pipeline if:
+ *
+ * - application bootstrap fails
+ * - an endpoint returns an unexpected status
+ * - authentication is bypassed
+ * - validation is bypassed
+ * - CRUD behavior breaks
+ * - security headers disappear
+ * - error responses change unexpectedly
+ *
+ */
+
+// ============================================================
+// INTEGRATION TEST PRINCIPLES
+// ============================================================
+
+/*
+ *
+ * These tests intentionally test the application through:
+ *
+ *
+ *       HTTP request
+ *            ↓
+ *       Middleware
+ *            ↓
+ *       Guards / Auth
+ *            ↓
+ *       Pipes / Validation
+ *            ↓
+ *       Controller
+ *            ↓
+ *       Service
+ *            ↓
+ *       Repository
+ *            ↓
+ *       HTTP response
+ *
+ *
+ * This is different from a unit test.
+ *
+ *
+ * UNIT TEST:
+ *
+ *     service.method()
+ *
+ *
+ * INTEGRATION TEST:
+ *
+ *     POST /api/items
+ *
+ *
+ * Integration tests therefore verify that the pieces work
+ * together correctly.
+ *
+ */
+
+// ============================================================
+// PRODUCTION DATABASE TESTING
+// ============================================================
+
+/*
+ *
+ * For the real project, replace:
+ *
+ *     TestItemRepository
+ *
+ * with the actual database repository.
+ *
+ *
+ * Recommended approach:
+ *
+ *
+ *     Test Suite
+ *         │
+ *         ▼
+ *     Nest Application
+ *         │
+ *         ▼
+ *     Real Services
+ *         │
+ *         ▼
+ *     Test Database
+ *
+ *
+ * Do NOT point integration tests at production databases.
+ *
+ *
+ * Recommended environment:
+ *
+ *
+ *     NODE_ENV=test
+ *
+ *     DATABASE_URL=<isolated-test-database>
+ *
+ *
+ * Before each test:
+ *
+ *     clean database
+ *
+ *
+ * After all tests:
+ *
+ *     close database connection
+ *
+ */
+
+// ============================================================
+// FINAL ACCEPTANCE CHECKLIST
+// ============================================================
+
+/*
+ *
+ * [x] Application starts inside the test environment
+ *
+ * [x] HTTP endpoints are tested through Supertest
+ *
+ * [x] Authentication is tested
+ *
+ * [x] Unauthorized requests are rejected
+ *
+ * [x] Successful authentication is verified
+ *
+ * [x] Request validation is tested
+ *
+ * [x] 400 responses are tested
+ *
+ * [x] 404 responses are tested
+ *
+ * [x] CRUD operations are tested
+ *
+ * [x] Security headers are tested
+ *
+ * [x] JSON responses are tested
+ *
+ * [x] Complete resource lifecycle is tested
+ *
+ * [x] Test state is cleaned between tests
+ *
+ * [x] Application is closed after tests
+ *
+ * [x] CI execution is documented
+ *
+ *
+ * The most important principle:
+ *
+ *     Test the API the way a real client uses it.
+ *
+ * Do not make integration tests depend on private service
+ * implementation details unless absolutely necessary.
+ *
+ */
+
+// ============================================================
+// END
+// ============================================================
