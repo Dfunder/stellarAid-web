@@ -1,0 +1,1013 @@
+import {
+  Injectable,
+  NestMiddleware,
+  Module,
+  Controller,
+  Get,
+  INestApplication,
+} from '@nestjs/common';
+
+import {
+  Request,
+  Response,
+  NextFunction,
+} from 'express';
+
+// ============================================================
+// SECURITY HEADERS CONFIGURATION
+// ============================================================
+
+export interface SecurityHeadersOptions {
+
+  /*
+   * Prevent browsers from MIME-sniffing responses.
+   */
+  contentTypeOptions?: boolean;
+
+  /*
+   * Prevent the page from being embedded in frames.
+   */
+  frameOptions?: 'DENY' | 'SAMEORIGIN';
+
+  /*
+   * Enable browser XSS protection where supported.
+   */
+  xssProtection?: boolean;
+
+  /*
+   * Control the amount of referrer information sent.
+   */
+  referrerPolicy?: string;
+
+  /*
+   * Prevent browsers from loading resources over HTTP when
+   * the application is served over HTTPS.
+   */
+  contentSecurityPolicy?: string;
+
+  /*
+   * Enable HTTP Strict Transport Security.
+   *
+   * IMPORTANT:
+   * Only enable this when the application is permanently
+   * available through HTTPS.
+   */
+  hsts?: boolean;
+
+  /*
+   * Number of seconds browsers should remember HTTPS.
+   */
+  hstsMaxAge?: number;
+
+  /*
+   * Include subdomains in HSTS policy.
+   */
+  hstsIncludeSubDomains?: boolean;
+
+  /*
+   * Allow HSTS to be submitted to browser preload lists.
+   */
+  hstsPreload?: boolean;
+
+  /*
+   * Prevent cross-origin resource abuse.
+   */
+  crossOriginResourcePolicy?: string;
+
+  /*
+   * Control whether the document can be loaded cross-origin.
+   */
+  crossOriginOpenerPolicy?: string;
+
+  /*
+   * Control access to browser capabilities such as camera,
+   * microphone and geolocation.
+   */
+  permissionsPolicy?: string;
+}
+
+// ============================================================
+// DEFAULT CONFIGURATION
+// ============================================================
+
+const DEFAULT_SECURITY_OPTIONS:
+  Required<SecurityHeadersOptions> = {
+
+  contentTypeOptions:
+    true,
+
+  frameOptions:
+    'DENY',
+
+  xssProtection:
+    true,
+
+  referrerPolicy:
+    'strict-origin-when-cross-origin',
+
+  contentSecurityPolicy:
+    [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+      "object-src 'none'",
+      "script-src 'self'",
+      "style-src 'self'",
+      "img-src 'self' data: https:",
+      "font-src 'self' data: https:",
+      "connect-src 'self'",
+    ].join('; '),
+
+  hsts:
+    true,
+
+  hstsMaxAge:
+    31536000,
+
+  hstsIncludeSubDomains:
+    true,
+
+  hstsPreload:
+    true,
+
+  crossOriginResourcePolicy:
+    'same-origin',
+
+  crossOriginOpenerPolicy:
+    'same-origin',
+
+  permissionsPolicy:
+    [
+      'camera=()',
+      'microphone=()',
+      'geolocation=()',
+      'payment=()',
+      'usb=()',
+      'magnetometer=()',
+      'gyroscope=()',
+      'accelerometer=()',
+    ].join(', '),
+};
+
+// ============================================================
+// SECURITY HEADERS MIDDLEWARE
+// ============================================================
+
+@Injectable()
+export class SecurityHeadersMiddleware
+  implements NestMiddleware {
+
+  private readonly options:
+    Required<SecurityHeadersOptions>;
+
+  constructor(
+    options:
+      SecurityHeadersOptions = {},
+  ) {
+
+    this.options = {
+      ...DEFAULT_SECURITY_OPTIONS,
+      ...options,
+    };
+  }
+
+  // ==========================================================
+  // MIDDLEWARE
+  // ==========================================================
+
+  use(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): void {
+
+    // --------------------------------------------------------
+    // X-CONTENT-TYPE-OPTIONS
+    // --------------------------------------------------------
+
+    if (
+      this.options
+        .contentTypeOptions
+    ) {
+
+      response.setHeader(
+        'X-Content-Type-Options',
+        'nosniff',
+      );
+    }
+
+    // --------------------------------------------------------
+    // X-FRAME-OPTIONS
+    // --------------------------------------------------------
+
+    if (
+      this.options.frameOptions
+    ) {
+
+      response.setHeader(
+        'X-Frame-Options',
+        this.options.frameOptions,
+      );
+    }
+
+    // --------------------------------------------------------
+    // X-XSS-PROTECTION
+    // --------------------------------------------------------
+
+    /*
+     * This header is deprecated by modern browsers, but can
+     * still be useful for older browser environments.
+     *
+     * CSP is the primary modern XSS defense.
+     */
+
+    if (
+      this.options.xssProtection
+    ) {
+
+      response.setHeader(
+        'X-XSS-Protection',
+        '1; mode=block',
+      );
+    }
+
+    // --------------------------------------------------------
+    // REFERRER-POLICY
+    // --------------------------------------------------------
+
+    response.setHeader(
+      'Referrer-Policy',
+      this.options.referrerPolicy,
+    );
+
+    // --------------------------------------------------------
+    // CONTENT-SECURITY-POLICY
+    // --------------------------------------------------------
+
+    if (
+      this.options
+        .contentSecurityPolicy
+    ) {
+
+      response.setHeader(
+        'Content-Security-Policy',
+        this.options
+          .contentSecurityPolicy,
+      );
+    }
+
+    // --------------------------------------------------------
+    // HSTS
+    // --------------------------------------------------------
+
+    if (
+      this.options.hsts
+    ) {
+
+      let value =
+        `max-age=${this.options.hstsMaxAge}`;
+
+      if (
+        this.options
+          .hstsIncludeSubDomains
+      ) {
+
+        value +=
+          '; includeSubDomains';
+      }
+
+      if (
+        this.options.hstsPreload
+      ) {
+
+        value +=
+          '; preload';
+      }
+
+      response.setHeader(
+        'Strict-Transport-Security',
+        value,
+      );
+    }
+
+    // --------------------------------------------------------
+    // CROSS-ORIGIN-RESOURCE-POLICY
+    // --------------------------------------------------------
+
+    response.setHeader(
+      'Cross-Origin-Resource-Policy',
+      this.options
+        .crossOriginResourcePolicy,
+    );
+
+    // --------------------------------------------------------
+    // CROSS-ORIGIN-OPENER-POLICY
+    // --------------------------------------------------------
+
+    response.setHeader(
+      'Cross-Origin-Opener-Policy',
+      this.options
+        .crossOriginOpenerPolicy,
+    );
+
+    // --------------------------------------------------------
+    // PERMISSIONS-POLICY
+    // --------------------------------------------------------
+
+    response.setHeader(
+      'Permissions-Policy',
+      this.options
+        .permissionsPolicy,
+    );
+
+    // --------------------------------------------------------
+    // REMOVE TECHNOLOGY DISCLOSURE
+    // --------------------------------------------------------
+
+    /*
+     * Express may expose:
+     *
+     * X-Powered-By: Express
+     *
+     * Remove it so the server implementation is not
+     * unnecessarily disclosed.
+     */
+
+    response.removeHeader(
+      'X-Powered-By',
+    );
+
+    next();
+  }
+}
+
+// ============================================================
+// SECURITY HEADERS SERVICE
+// ============================================================
+
+@Injectable()
+export class SecurityHeadersService {
+
+  private readonly headers = [
+    'X-Content-Type-Options',
+    'X-Frame-Options',
+    'X-XSS-Protection',
+    'Referrer-Policy',
+    'Content-Security-Policy',
+    'Strict-Transport-Security',
+    'Cross-Origin-Resource-Policy',
+    'Cross-Origin-Opener-Policy',
+    'Permissions-Policy',
+  ];
+
+  // ==========================================================
+  // GET EXPECTED HEADERS
+  // ==========================================================
+
+  getExpectedHeaders(): string[] {
+
+    return [
+      ...this.headers,
+    ];
+  }
+
+  // ==========================================================
+  // VALIDATE RESPONSE
+  // ==========================================================
+
+  validate(
+    response: Response,
+  ): {
+    secure: boolean;
+    missing: string[];
+  } {
+
+    const missing =
+      this.headers.filter(
+        header =>
+          !response.getHeader(
+            header,
+          ),
+      );
+
+    return {
+      secure:
+        missing.length === 0,
+
+      missing,
+    };
+  }
+}
+
+// ============================================================
+// EXAMPLE CONTROLLER
+// ============================================================
+
+@Controller('security')
+export class SecurityController {
+
+  @Get('headers')
+  getHeaders() {
+
+    return {
+      success:
+        true,
+
+      message:
+        'Security headers are enabled',
+    };
+  }
+
+  @Get('health')
+  health() {
+
+    return {
+      status:
+        'ok',
+    };
+  }
+}
+
+// ============================================================
+// MODULE
+// ============================================================
+
+@Module({
+  controllers: [
+    SecurityController,
+  ],
+
+  providers: [
+    SecurityHeadersService,
+  ],
+})
+export class SecurityModule {}
+
+// ============================================================
+// APPLICATION SETUP
+// ============================================================
+
+/*
+ *
+ * main.ts
+ *
+ *
+ * import {
+ *   NestFactory,
+ * } from '@nestjs/core';
+ *
+ *
+ * async function bootstrap() {
+ *
+ *   const app =
+ *     await NestFactory.create(
+ *       AppModule,
+ *     );
+ *
+ *
+ *   // -------------------------------------------------------
+ *   // REMOVE EXPRESS FINGERPRINT
+ *   // -------------------------------------------------------
+ *
+ *   const httpAdapter =
+ *     app.getHttpAdapter();
+ *
+ *   const instance =
+ *     httpAdapter.getInstance();
+ *
+ *   instance.disable(
+ *     'x-powered-by',
+ *   );
+ *
+ *
+ *   // -------------------------------------------------------
+ *   // SECURITY HEADERS
+ *   // -------------------------------------------------------
+ *
+ *   app.use(
+ *     new SecurityHeadersMiddleware()
+ *       .use.bind(
+ *         new SecurityHeadersMiddleware(),
+ *       ),
+ *   );
+ *
+ *
+ *   await app.listen(
+ *     process.env.PORT ?? 3000,
+ *   );
+ * }
+ *
+ *
+ * bootstrap();
+ *
+ */
+
+// ============================================================
+// RECOMMENDED NESTJS MIDDLEWARE CONFIGURATION
+// ============================================================
+
+/*
+ *
+ * A cleaner production approach is to register the
+ * middleware through configure():
+ *
+ *
+ * @Module({
+ *
+ *   imports: [
+ *     SecurityModule,
+ *   ],
+ *
+ * })
+ * export class AppModule
+ *   implements NestModule {
+ *
+ *   configure(
+ *     consumer: MiddlewareConsumer,
+ *   ) {
+ *
+ *     consumer
+ *       .apply(
+ *         SecurityHeadersMiddleware,
+ *       )
+ *       .forRoutes('*');
+ *   }
+ * }
+ *
+ */
+
+// ============================================================
+// CSP VARIANT FOR REST API
+// ============================================================
+
+/*
+ *
+ * If this NestJS application is ONLY a REST API and does not
+ * serve HTML pages, a simpler CSP can be used:
+ *
+ *
+ * const API_CSP =
+ *   [
+ *     "default-src 'none'",
+ *     "frame-ancestors 'none'",
+ *   ].join('; ');
+ *
+ *
+ * This is generally preferable to pretending that the API
+ * serves scripts, styles, images, etc.
+ *
+ */
+
+// ============================================================
+// DEVELOPMENT CONFIGURATION
+// ============================================================
+
+/*
+ *
+ * Development environments sometimes use:
+ *
+ * - Swagger UI
+ * - localhost APIs
+ * - WebSockets
+ * - hot module reloading
+ * - inline development scripts
+ *
+ *
+ * Therefore CSP should be configurable rather than blindly
+ * hard-coded.
+ *
+ *
+ * Example:
+ *
+ *
+ * const isProduction =
+ *   process.env.NODE_ENV ===
+ *   'production';
+ *
+ *
+ * const middleware =
+ *   new SecurityHeadersMiddleware({
+ *
+ *     hsts:
+ *       isProduction,
+ *
+ *     contentSecurityPolicy:
+ *       isProduction
+ *         ? "default-src 'none'; frame-ancestors 'none'"
+ *         : "default-src 'self' 'unsafe-inline' 'unsafe-eval'",
+ *   });
+ *
+ */
+
+// ============================================================
+// UNIT TESTS
+// ============================================================
+
+describe(
+  'SecurityHeadersMiddleware',
+  () => {
+
+    let middleware:
+      SecurityHeadersMiddleware;
+
+    let response:
+      any;
+
+    let next:
+      jest.Mock;
+
+    beforeEach(
+      () => {
+
+        middleware =
+          new SecurityHeadersMiddleware();
+
+        response = {
+
+          setHeader:
+            jest.fn(),
+
+          removeHeader:
+            jest.fn(),
+
+          getHeader:
+            jest.fn(),
+        };
+
+        next =
+          jest.fn();
+      },
+    );
+
+    // ========================================================
+    // ALL HEADERS
+    // ========================================================
+
+    it(
+      'adds security headers',
+      () => {
+
+        middleware.use(
+          {} as Request,
+          response,
+          next,
+        );
+
+        expect(
+          response.setHeader,
+        ).toHaveBeenCalledWith(
+          'X-Content-Type-Options',
+          'nosniff',
+        );
+
+        expect(
+          response.setHeader,
+        ).toHaveBeenCalledWith(
+          'X-Frame-Options',
+          'DENY',
+        );
+
+        expect(
+          response.setHeader,
+        ).toHaveBeenCalledWith(
+          'Referrer-Policy',
+          'strict-origin-when-cross-origin',
+        );
+
+        expect(
+          response.setHeader,
+        ).toHaveBeenCalledWith(
+          'Content-Security-Policy',
+          expect.any(String),
+        );
+
+        expect(
+          response.setHeader,
+        ).toHaveBeenCalledWith(
+          'Strict-Transport-Security',
+          expect.stringContaining(
+            'max-age=31536000',
+          ),
+        );
+
+        expect(
+          response.setHeader,
+        ).toHaveBeenCalledWith(
+          'Permissions-Policy',
+          expect.any(String),
+        );
+
+        expect(
+          next,
+        ).toHaveBeenCalled();
+      },
+    );
+
+    // ========================================================
+    // EXPRESS FINGERPRINT
+    // ========================================================
+
+    it(
+      'removes X-Powered-By',
+      () => {
+
+        middleware.use(
+          {} as Request,
+          response,
+          next,
+        );
+
+        expect(
+          response.removeHeader,
+        ).toHaveBeenCalledWith(
+          'X-Powered-By',
+        );
+      },
+    );
+
+    // ========================================================
+    // HSTS
+    // ========================================================
+
+    it(
+      'generates a complete HSTS policy',
+      () => {
+
+        middleware =
+          new SecurityHeadersMiddleware({
+            hsts:
+              true,
+
+            hstsMaxAge:
+              63072000,
+
+            hstsIncludeSubDomains:
+              true,
+
+            hstsPreload:
+              true,
+          });
+
+        middleware.use(
+          {} as Request,
+          response,
+          next,
+        );
+
+        expect(
+          response.setHeader,
+        ).toHaveBeenCalledWith(
+          'Strict-Transport-Security',
+          'max-age=63072000; includeSubDomains; preload',
+        );
+      },
+    );
+
+    // ========================================================
+    // DISABLE HSTS
+    // ========================================================
+
+    it(
+      'can disable HSTS',
+      () => {
+
+        middleware =
+          new SecurityHeadersMiddleware({
+            hsts:
+              false,
+          });
+
+        middleware.use(
+          {} as Request,
+          response,
+          next,
+        );
+
+        const calls =
+          response.setHeader.mock.calls;
+
+        const hstsCall =
+          calls.find(
+            (call: any[]) =>
+              call[0] ===
+              'Strict-Transport-Security',
+          );
+
+        expect(
+          hstsCall,
+        ).toBeUndefined();
+      },
+    );
+
+    // ========================================================
+    // CUSTOM CSP
+    // ========================================================
+
+    it(
+      'supports a custom CSP',
+      () => {
+
+        middleware =
+          new SecurityHeadersMiddleware({
+            contentSecurityPolicy:
+              "default-src 'none'",
+          });
+
+        middleware.use(
+          {} as Request,
+          response,
+          next,
+        );
+
+        expect(
+          response.setHeader,
+        ).toHaveBeenCalledWith(
+          'Content-Security-Policy',
+          "default-src 'none'",
+        );
+      },
+    );
+
+    // ========================================================
+    // FRAME PROTECTION
+    // ========================================================
+
+    it(
+      'prevents clickjacking',
+      () => {
+
+        middleware.use(
+          {} as Request,
+          response,
+          next,
+        );
+
+        expect(
+          response.setHeader,
+        ).toHaveBeenCalledWith(
+          'X-Frame-Options',
+          'DENY',
+        );
+      },
+    );
+  },
+);
+
+// ============================================================
+// SECURITY HEADER CHECKLIST
+// ============================================================
+
+/*
+ *
+ * IMPLEMENTED:
+ *
+ * [x] X-Content-Type-Options
+ *
+ * [x] X-Frame-Options
+ *
+ * [x] Content-Security-Policy
+ *
+ * [x] Strict-Transport-Security
+ *
+ * [x] Referrer-Policy
+ *
+ * [x] Permissions-Policy
+ *
+ * [x] Cross-Origin-Resource-Policy
+ *
+ * [x] Cross-Origin-Opener-Policy
+ *
+ * [x] X-XSS-Protection for legacy clients
+ *
+ * [x] Remove X-Powered-By
+ *
+ * [x] Configurable policies
+ *
+ * [x] Unit tests
+ *
+ *
+ * SECURITY PURPOSE:
+ *
+ *
+ * X-Content-Type-Options
+ *     ↓
+ * MIME sniffing protection
+ *
+ *
+ * X-Frame-Options
+ *     ↓
+ * Clickjacking protection
+ *
+ *
+ * Content-Security-Policy
+ *     ↓
+ * Restricts executable/resource origins
+ *
+ *
+ * Strict-Transport-Security
+ *     ↓
+ * Forces HTTPS after browser policy is cached
+ *
+ *
+ * Referrer-Policy
+ *     ↓
+ * Limits URL/referrer leakage
+ *
+ *
+ * Permissions-Policy
+ *     ↓
+ * Restricts browser capabilities
+ *
+ *
+ * Cross-Origin-Resource-Policy
+ *     ↓
+ * Restricts cross-origin resource loading
+ *
+ *
+ * Cross-Origin-Opener-Policy
+ *     ↓
+ * Provides browsing-context isolation
+ *
+ */
+
+// ============================================================
+// IMPORTANT PRODUCTION NOTES
+// ============================================================
+
+/*
+ *
+ * 1. HSTS
+ *
+ * Do NOT enable HSTS blindly on an environment that is not
+ * fully HTTPS-enabled.
+ *
+ *
+ *
+ * 2. CSP
+ *
+ * Do not add:
+ *
+ *     script-src 'unsafe-inline'
+ *
+ * or:
+ *
+ *     script-src 'unsafe-eval'
+ *
+ * in production unless there is a documented requirement.
+ *
+ *
+ *
+ * 3. REST API
+ *
+ * For a pure REST API, the strongest CSP is often:
+ *
+ *     default-src 'none';
+ *     frame-ancestors 'none'
+ *
+ *
+ *
+ * 4. Swagger
+ *
+ * If Swagger UI is served by this NestJS application, the CSP
+ * may need additional directives for Swagger's scripts,
+ * styles, fonts, and API connections.
+ *
+ *
+ *
+ * 5. Proxy
+ *
+ * If HTTPS is terminated by Nginx, a load balancer, Cloudflare,
+ * or another reverse proxy, configure the application to
+ * correctly understand the forwarded protocol before relying
+ * on HTTPS-only behavior.
+ *
+ *
+ *
+ * 6. Cookies
+ *
+ * Security headers do NOT replace secure cookie configuration.
+ *
+ * Authentication cookies should additionally consider:
+ *
+ *     Secure
+ *     HttpOnly
+ *     SameSite
+ *
+ *
+ *
+ * 7. CORS
+ *
+ * Security headers also do NOT replace proper CORS policy.
+ *
+ * Avoid:
+ *
+ *     Access-Control-Allow-Origin: *
+ *
+ * for authenticated/private APIs.
+ *
+ */
+
+// ============================================================
+// END
+// ============================================================
