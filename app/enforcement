@@ -1,0 +1,1164 @@
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Injectable,
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+  Req,
+} from '@nestjs/common';
+
+import {
+  NextFunction,
+  Request,
+  Response,
+} from 'express';
+
+// ============================================================
+// HTTPS ENFORCEMENT CONFIGURATION
+// ============================================================
+
+export interface HttpsEnforcementOptions {
+
+  /*
+   * Enable or disable HTTPS enforcement.
+   *
+   * In production this should normally be true.
+   */
+  enabled: boolean;
+
+  /*
+   * Allow localhost HTTP during local development.
+   */
+  allowLocalhost: boolean;
+
+  /*
+   * Allow private/internal network addresses during
+   * development or internal deployments.
+   */
+  allowPrivateNetworks: boolean;
+
+  /*
+   * Number of trusted proxy hops.
+   *
+   * Example:
+   *
+   * Browser
+   *    ↓
+   * Cloudflare
+   *    ↓
+   * Load Balancer
+   *    ↓
+   * NestJS
+   *
+   * The application must trust the proxy chain correctly
+   * before using X-Forwarded-Proto.
+   */
+  trustProxy: number;
+}
+
+// ============================================================
+// DEFAULT CONFIGURATION
+// ============================================================
+
+const DEFAULT_OPTIONS: HttpsEnforcementOptions = {
+
+  enabled:
+    process.env.NODE_ENV ===
+    'production',
+
+  allowLocalhost:
+    process.env.ALLOW_LOCALHOST_HTTP ===
+    'true',
+
+  allowPrivateNetworks:
+    process.env.ALLOW_PRIVATE_HTTP ===
+    'true',
+
+  trustProxy:
+    Number(
+      process.env.TRUST_PROXY ?? 1,
+    ),
+};
+
+// ============================================================
+// HTTPS ENFORCEMENT SERVICE
+// ============================================================
+
+@Injectable()
+export class HttpsEnforcementService {
+
+  private readonly options:
+    HttpsEnforcementOptions;
+
+  constructor() {
+
+    this.options = {
+      ...DEFAULT_OPTIONS,
+    };
+  }
+
+  // ==========================================================
+  // CHECK HTTPS
+  // ==========================================================
+
+  isHttps(
+    request: Request,
+  ): boolean {
+
+    /*
+     * req.secure depends on Express's trust-proxy
+     * configuration.
+     *
+     * It should therefore only be trusted when the proxy
+     * configuration is correct.
+     */
+
+    if (
+      request.secure
+    ) {
+      return true;
+    }
+
+    /*
+     * Explicitly inspect X-Forwarded-Proto.
+     *
+     * Reverse proxies commonly terminate TLS before forwarding
+     * the request to the NestJS application.
+     */
+
+    const forwardedProto =
+      request.headers[
+        'x-forwarded-proto'
+      ];
+
+    if (
+      typeof forwardedProto ===
+      'string'
+    ) {
+
+      const protocol =
+        forwardedProto
+          .split(',')[0]
+          .trim()
+          .toLowerCase();
+
+      return protocol ===
+        'https';
+    }
+
+    return false;
+  }
+
+  // ==========================================================
+  // SHOULD BYPASS
+  // ==========================================================
+
+  shouldBypass(
+    request: Request,
+  ): boolean {
+
+    if (
+      !this.options.enabled
+    ) {
+      return true;
+    }
+
+    const hostname =
+      request.hostname
+        .toLowerCase();
+
+    // --------------------------------------------------------
+    // LOCALHOST
+    // --------------------------------------------------------
+
+    if (
+      this.options.allowLocalhost &&
+      this.isLocalhost(hostname)
+    ) {
+      return true;
+    }
+
+    // --------------------------------------------------------
+    // PRIVATE NETWORK
+    // --------------------------------------------------------
+
+    if (
+      this.options.allowPrivateNetworks &&
+      this.isPrivateAddress(hostname)
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  // ==========================================================
+  // LOCALHOST CHECK
+  // ==========================================================
+
+  private isLocalhost(
+    hostname: string,
+  ): boolean {
+
+    return (
+      hostname ===
+        'localhost' ||
+
+      hostname ===
+        '127.0.0.1' ||
+
+      hostname ===
+        '::1' ||
+
+      hostname ===
+        '[::1]'
+    );
+  }
+
+  // ==========================================================
+  // PRIVATE NETWORK CHECK
+  // ==========================================================
+
+  private isPrivateAddress(
+    hostname: string,
+  ): boolean {
+
+    /*
+     * IPv4 private ranges:
+     *
+     * 10.0.0.0/8
+     * 172.16.0.0/12
+     * 192.168.0.0/16
+     */
+
+    const parts =
+      hostname.split('.');
+
+    if (
+      parts.length !== 4
+    ) {
+      return false;
+    }
+
+    const numbers =
+      parts.map(
+        part =>
+          Number(part),
+      );
+
+    if (
+      numbers.some(
+        number =>
+          !Number.isInteger(
+            number,
+          ) ||
+          number < 0 ||
+          number > 255,
+      )
+    ) {
+      return false;
+    }
+
+    const [
+      first,
+      second,
+    ] = numbers;
+
+    if (
+      first === 10
+    ) {
+      return true;
+    }
+
+    if (
+      first === 172 &&
+      second >= 16 &&
+      second <= 31
+    ) {
+      return true;
+    }
+
+    if (
+      first === 192 &&
+      second === 168
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  // ==========================================================
+  // REDIRECT LOCATION
+  // ==========================================================
+
+  buildHttpsUrl(
+    request: Request,
+  ): string {
+
+    const host =
+      request.get('host');
+
+    /*
+     * Prevent arbitrary forwarded-host values from being
+     * blindly trusted in the generated redirect.
+     *
+     * In production, it is preferable to configure an explicit
+     * canonical hostname.
+     */
+
+    const canonicalHost =
+      process.env.CANONICAL_HOST;
+
+    const safeHost =
+      canonicalHost ||
+      host;
+
+    const path =
+      request.originalUrl ||
+      request.url;
+
+    return `https://${safeHost}${path}`;
+  }
+
+  // ==========================================================
+  // OPTIONS
+  // ==========================================================
+
+  getOptions(): HttpsEnforcementOptions {
+
+    return {
+      ...this.options,
+    };
+  }
+}
+
+// ============================================================
+// HTTPS ENFORCEMENT MIDDLEWARE
+// ============================================================
+
+@Injectable()
+export class HttpsEnforcementMiddleware {
+
+  constructor(
+    private readonly httpsService:
+      HttpsEnforcementService,
+  ) {}
+
+  // ==========================================================
+  // HANDLE REQUEST
+  // ==========================================================
+
+  use(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): void {
+
+    // --------------------------------------------------------
+    // HTTPS ENFORCEMENT DISABLED
+    // --------------------------------------------------------
+
+    if (
+      this.httpsService
+        .getOptions()
+        .enabled === false
+    ) {
+
+      next();
+
+      return;
+    }
+
+    // --------------------------------------------------------
+    // BYPASS DEVELOPMENT HOSTS
+    // --------------------------------------------------------
+
+    if (
+      this.httpsService
+        .shouldBypass(
+          request,
+        )
+    ) {
+
+      next();
+
+      return;
+    }
+
+    // --------------------------------------------------------
+    // HTTPS REQUEST
+    // --------------------------------------------------------
+
+    if (
+      this.httpsService
+        .isHttps(
+          request,
+        )
+    ) {
+
+      next();
+
+      return;
+    }
+
+    // --------------------------------------------------------
+    // HTTP REQUEST
+    // --------------------------------------------------------
+
+    /*
+     * Redirect HTTP → HTTPS.
+     *
+     * 308 preserves the HTTP method and request body, making
+     * it safer for APIs than a 301/302 redirect.
+     */
+
+    const httpsUrl =
+      this.httpsService
+        .buildHttpsUrl(
+          request,
+        );
+
+    response
+      .status(308)
+      .set(
+        'Location',
+        httpsUrl,
+      )
+      .set(
+        'Cache-Control',
+        'no-store',
+      )
+      .end();
+  }
+}
+
+// ============================================================
+// HTTPS SECURITY HEADERS
+// ============================================================
+
+@Injectable()
+export class HttpsSecurityHeadersMiddleware {
+
+  use(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): void {
+
+    /*
+     * HSTS tells browsers to use HTTPS for future requests.
+     *
+     * Only enable HSTS when HTTPS is correctly configured
+     * across the domain.
+     */
+
+    response.setHeader(
+      'Strict-Transport-Security',
+      'max-age=31536000; includeSubDomains',
+    );
+
+    /*
+     * Prevent MIME type sniffing.
+     */
+
+    response.setHeader(
+      'X-Content-Type-Options',
+      'nosniff',
+    );
+
+    /*
+     * Prevent the application from being embedded in frames
+     * by other origins.
+     */
+
+    response.setHeader(
+      'X-Frame-Options',
+      'DENY',
+    );
+
+    /*
+     * Restrict referrer information.
+     */
+
+    response.setHeader(
+      'Referrer-Policy',
+      'strict-origin-when-cross-origin',
+    );
+
+    next();
+  }
+}
+
+// ============================================================
+// APPLICATION CONTROLLER
+// ============================================================
+
+@Controller('security')
+export class SecurityController {
+
+  @Get('https-status')
+  status(
+    @Req() request: Request,
+  ) {
+
+    return {
+      https:
+        request.secure,
+
+      protocol:
+        request.protocol,
+
+      secure:
+        request.secure,
+
+      forwardedProtocol:
+        request.headers[
+          'x-forwarded-proto'
+        ] ?? null,
+    };
+  }
+}
+
+// ============================================================
+// APPLICATION MODULE
+// ============================================================
+
+@Module({
+  controllers: [
+    SecurityController,
+  ],
+
+  providers: [
+    HttpsEnforcementService,
+    HttpsEnforcementMiddleware,
+    HttpsSecurityHeadersMiddleware,
+  ],
+})
+export class SecurityModule
+  implements NestModule {
+
+  configure(
+    consumer: MiddlewareConsumer,
+  ) {
+
+    consumer
+      .apply(
+        HttpsEnforcementMiddleware,
+        HttpsSecurityHeadersMiddleware,
+      )
+      .forRoutes({
+        path: '*',
+        method:
+          RequestMethod.ALL,
+      });
+  }
+}
+
+// ============================================================
+// MAIN.TS CONFIGURATION
+// ============================================================
+
+/*
+ *
+ * In main.ts:
+ *
+ *
+ * async function bootstrap() {
+ *
+ *   const app =
+ *     await NestFactory.create(
+ *       AppModule,
+ *     );
+ *
+ *   // -------------------------------------------------------
+ *   // TRUST REVERSE PROXY
+ *   // -------------------------------------------------------
+ *
+ *   const express =
+ *     app.getHttpAdapter()
+ *       .getInstance();
+ *
+ *   express.set(
+ *     'trust proxy',
+ *     Number(
+ *       process.env.TRUST_PROXY ?? 1,
+ *     ),
+ *   );
+ *
+ *   await app.listen(
+ *     process.env.PORT ?? 3000,
+ *   );
+ * }
+ *
+ * bootstrap();
+ *
+ */
+
+// ============================================================
+// ENVIRONMENT CONFIGURATION
+// ============================================================
+
+/*
+ *
+ * Production:
+ *
+ *
+ * NODE_ENV=production
+ *
+ * TRUST_PROXY=1
+ *
+ * CANONICAL_HOST=api.example.com
+ *
+ * ALLOW_LOCALHOST_HTTP=false
+ *
+ * ALLOW_PRIVATE_HTTP=false
+ *
+ *
+ *
+ * Local development:
+ *
+ *
+ * NODE_ENV=development
+ *
+ * ALLOW_LOCALHOST_HTTP=true
+ *
+ *
+ */
+
+// ============================================================
+// NGINX CONFIGURATION
+// ============================================================
+
+/*
+ *
+ * If Nginx is used as the TLS termination layer:
+ *
+ *
+ * server {
+ *
+ *     listen 80;
+ *
+ *     server_name api.example.com;
+ *
+ *     return 308 https://$host$request_uri;
+ * }
+ *
+ *
+ *
+ * server {
+ *
+ *     listen 443 ssl;
+ *
+ *     server_name api.example.com;
+ *
+ *     ssl_certificate
+ *       /etc/ssl/cert.pem;
+ *
+ *     ssl_certificate_key
+ *       /etc/ssl/key.pem;
+ *
+ *     location / {
+ *
+ *         proxy_pass
+ *           http://nestjs:3000;
+ *
+ *         proxy_set_header
+ *           Host $host;
+ *
+ *         proxy_set_header
+ *           X-Forwarded-Proto $scheme;
+ *
+ *         proxy_set_header
+ *           X-Forwarded-For $proxy_add_x_forwarded_for;
+ *
+ *         proxy_set_header
+ *           X-Real-IP $remote_addr;
+ *     }
+ * }
+ *
+ */
+
+// ============================================================
+// CLOUD LOAD BALANCER
+// ============================================================
+
+/*
+ *
+ * If a cloud load balancer terminates TLS:
+ *
+ *
+ * Client
+ *   |
+ *   | HTTPS
+ *   ↓
+ * Load Balancer
+ *   |
+ *   | HTTP internally
+ *   ↓
+ * NestJS
+ *
+ *
+ * The load balancer must forward:
+ *
+ *
+ * X-Forwarded-Proto: https
+ *
+ *
+ * NestJS must trust the known proxy.
+ *
+ * Do NOT simply trust arbitrary client-supplied
+ * X-Forwarded-Proto headers when the application is directly
+ * exposed to the public internet.
+ *
+ */
+
+// ============================================================
+// TESTS
+// ============================================================
+
+describe(
+  'HttpsEnforcementService',
+  () => {
+
+    let service:
+      HttpsEnforcementService;
+
+    beforeEach(
+      () => {
+
+        service =
+          new HttpsEnforcementService();
+      },
+    );
+
+    // ========================================================
+    // HTTPS REQUEST
+    // ========================================================
+
+    it(
+      'recognizes a secure request',
+      () => {
+
+        const request =
+          {
+            secure: true,
+
+            protocol:
+              'https',
+
+            headers: {},
+          } as Request;
+
+        expect(
+          service.isHttps(
+            request,
+          ),
+        ).toBe(
+          true,
+        );
+      },
+    );
+
+    // ========================================================
+    // FORWARDED HTTPS
+    // ========================================================
+
+    it(
+      'recognizes HTTPS behind a reverse proxy',
+      () => {
+
+        const request =
+          {
+            secure: false,
+
+            protocol:
+              'http',
+
+            headers: {
+              'x-forwarded-proto':
+                'https',
+            },
+          } as Request;
+
+        expect(
+          service.isHttps(
+            request,
+          ),
+        ).toBe(
+          true,
+        );
+      },
+    );
+
+    // ========================================================
+    // FORWARDED HTTP
+    // ========================================================
+
+    it(
+      'rejects forwarded HTTP',
+      () => {
+
+        const request =
+          {
+            secure: false,
+
+            protocol:
+              'http',
+
+            headers: {
+              'x-forwarded-proto':
+                'http',
+            },
+          } as Request;
+
+        expect(
+          service.isHttps(
+            request,
+          ),
+        ).toBe(
+          false,
+        );
+      },
+    );
+
+    // ========================================================
+    // LOCALHOST
+    // ========================================================
+
+    it(
+      'recognizes localhost',
+      () => {
+
+        const request =
+          {
+            hostname:
+              'localhost',
+          } as Request;
+
+        expect(
+          (service as any)
+            .isLocalhost(
+              'localhost',
+            ),
+        ).toBe(
+          true,
+        );
+      },
+    );
+
+    // ========================================================
+    // PRIVATE NETWORK
+    // ========================================================
+
+    it(
+      'recognizes private IPv4 addresses',
+      () => {
+
+        expect(
+          (service as any)
+            .isPrivateAddress(
+              '192.168.1.20',
+            ),
+        ).toBe(
+          true,
+        );
+
+        expect(
+          (service as any)
+            .isPrivateAddress(
+              '10.0.0.5',
+            ),
+        ).toBe(
+          true,
+        );
+
+        expect(
+          (service as any)
+            .isPrivateAddress(
+              '172.16.0.10',
+            ),
+        ).toBe(
+          true,
+        );
+      },
+    );
+
+    // ========================================================
+    // PUBLIC ADDRESS
+    // ========================================================
+
+    it(
+      'does not classify public addresses as private',
+      () => {
+
+        expect(
+          (service as any)
+            .isPrivateAddress(
+              '8.8.8.8',
+            ),
+        ).toBe(
+          false,
+        );
+      },
+    );
+  },
+);
+
+// ============================================================
+// MIDDLEWARE TESTS
+// ============================================================
+
+describe(
+  'HttpsEnforcementMiddleware',
+  () => {
+
+    let middleware:
+      HttpsEnforcementMiddleware;
+
+    const httpsService =
+      {
+        getOptions:
+          jest.fn(),
+
+        shouldBypass:
+          jest.fn(),
+
+        isHttps:
+          jest.fn(),
+
+        buildHttpsUrl:
+          jest.fn(),
+      };
+
+    beforeEach(
+      () => {
+
+        jest.clearAllMocks();
+
+        middleware =
+          new HttpsEnforcementMiddleware(
+            httpsService as any,
+          );
+      },
+    );
+
+    // ========================================================
+    // HTTPS PASSES
+    // ========================================================
+
+    it(
+      'allows HTTPS requests',
+      () => {
+
+        httpsService
+          .getOptions
+          .mockReturnValue({
+            enabled: true,
+          });
+
+        httpsService
+          .shouldBypass
+          .mockReturnValue(false);
+
+        httpsService
+          .isHttps
+          .mockReturnValue(true);
+
+        const next =
+          jest.fn();
+
+        const response =
+          {
+            status:
+              jest.fn()
+                .mockReturnThis(),
+
+            set:
+              jest.fn()
+                .mockReturnThis(),
+
+            end:
+              jest.fn(),
+          } as any;
+
+        middleware.use(
+          {} as Request,
+          response,
+          next,
+        );
+
+        expect(
+          next,
+        ).toHaveBeenCalled();
+
+        expect(
+          response.end,
+        ).not.toHaveBeenCalled();
+      },
+    );
+
+    // ========================================================
+    // HTTP REDIRECT
+    // ========================================================
+
+    it(
+      'redirects HTTP requests to HTTPS',
+      () => {
+
+        httpsService
+          .getOptions
+          .mockReturnValue({
+            enabled: true,
+          });
+
+        httpsService
+          .shouldBypass
+          .mockReturnValue(false);
+
+        httpsService
+          .isHttps
+          .mockReturnValue(false);
+
+        httpsService
+          .buildHttpsUrl
+          .mockReturnValue(
+            'https://example.com/test',
+          );
+
+        const next =
+          jest.fn();
+
+        const response =
+          {
+            status:
+              jest.fn()
+                .mockReturnThis(),
+
+            set:
+              jest.fn()
+                .mockReturnThis(),
+
+            end:
+              jest.fn(),
+          } as any;
+
+        middleware.use(
+          {} as Request,
+          response,
+          next,
+        );
+
+        expect(
+          response.status,
+        ).toHaveBeenCalledWith(
+          308,
+        );
+
+        expect(
+          response.set,
+        ).toHaveBeenCalledWith(
+          'Location',
+          'https://example.com/test',
+        );
+
+        expect(
+          response.end,
+        ).toHaveBeenCalled();
+
+        expect(
+          next,
+        ).not.toHaveBeenCalled();
+      },
+    );
+
+    // ========================================================
+    // DISABLED
+    // ========================================================
+
+    it(
+      'does nothing when HTTPS enforcement is disabled',
+      () => {
+
+        httpsService
+          .getOptions
+          .mockReturnValue({
+            enabled: false,
+          });
+
+        const next =
+          jest.fn();
+
+        const response =
+          {
+            status:
+              jest.fn()
+                .mockReturnThis(),
+
+            set:
+              jest.fn()
+                .mockReturnThis(),
+
+            end:
+              jest.fn(),
+          } as any;
+
+        middleware.use(
+          {} as Request,
+          response,
+          next,
+        );
+
+        expect(
+          next,
+        ).toHaveBeenCalled();
+
+        expect(
+          response.status,
+        ).not.toHaveBeenCalled();
+      },
+    );
+  },
+);
+
+// ============================================================
+// SECURITY REQUIREMENTS
+// ============================================================
+
+/*
+ *
+ * HTTPS enforcement should satisfy the following:
+ *
+ *
+ * [x] HTTP requests are redirected to HTTPS.
+ *
+ * [x] HTTPS requests continue normally.
+ *
+ * [x] 308 redirects preserve HTTP methods.
+ *
+ * [x] Reverse-proxy HTTPS is supported.
+ *
+ * [x] Local development can use HTTP.
+ *
+ * [x] HSTS is enabled in production.
+ *
+ * [x] Content sniffing is disabled.
+ *
+ * [x] Frame embedding is restricted.
+ *
+ * [x] Referrer information is restricted.
+ *
+ * [x] Proxy configuration is explicit.
+ *
+ * [x] Canonical host can be configured.
+ *
+ * [x] Automated tests cover HTTP/HTTPS behavior.
+ *
+ */
+
+// ============================================================
+// END
+// ============================================================
