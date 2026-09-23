@@ -1,0 +1,6 @@
+# ESLint runs with flat config (eslint.config.js), where ignores are declared
+# via the `globalIgnores` helper. This file is kept for editor tooling that
+# still reads .eslintignore.
+node_modules/
+dist/
+coverage/
