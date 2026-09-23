@@ -13,7 +13,9 @@
     "moduleDetection": "force",
     "noEmit": true,
 
-    /* Linting */
+    /* Strictness & linting */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,

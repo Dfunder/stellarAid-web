@@ -1,3 +1,3 @@
 export default function App() {
-  return <main id="app" />;
+  return <main id="app" />
 }
