@@ -1,0 +1,10 @@
+# Build output
+dist
+coverage
+
+# Dependencies & lockfiles
+node_modules
+package-lock.json
+
+# Logs
+*.log
