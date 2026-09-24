@@ -93,82 +93,101 @@
     --color-danger: 185 28 28;
     --color-focus-ring: 124 58 237;
   }
-}
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+  /* Semantic tokens - dark (activated by the theme script before first paint) */
+  :root[data-theme='dark'] {
+    color-scheme: dark;
+    --color-background: 18 16 14;
+    --color-surface: 28 25 23;
+    --color-surface-muted: 41 37 36;
+    --color-foreground: 245 241 236;
+    --color-muted: 168 162 158;
+    --color-line: 74 66 60;
+    --color-primary: 167 139 250;
+    --color-primary-strong: 139 92 246;
+    --color-primary-contrast: 28 25 23;
+    --color-gold: 225 178 79;
+    --color-success: 74 222 128;
+    --color-warning: 251 191 36;
+    --color-danger: 248 113 113;
+    --color-focus-ring: 167 139 250;
+  }
 
-html,
-body,
-#root {
-  min-height: 100%;
-}
-
-body {
-  margin: 0;
-  min-width: 320px;
-  background-color: rgb(var(--color-background));
-  color: rgb(var(--color-foreground));
-  font-family: var(--font-sans);
-  line-height: 1.5;
-}
-
-img,
-svg,
-video,
-canvas,
-audio,
-iframe,
-embed,
-object {
-  display: block;
-  vertical-align: middle;
-}
-
-img,
-video {
-  max-width: 100%;
-  height: auto;
-}
-
-input,
-button,
-textarea,
-select {
-  font: inherit;
-  color: inherit;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-display);
-  line-height: 1.2;
-}
-
-::selection {
-  background-color: rgb(var(--color-primary));
-  color: rgb(var(--color-primary-contrast));
-}
-
-:focus-visible {
-  outline: 2px solid rgb(var(--color-focus-ring));
-  outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    background-color: rgb(var(--color-background));
+    color: rgb(var(--color-foreground));
+    font-family: var(--font-sans);
+    line-height: 1.5;
+  }
+
+  img,
+  svg,
+  video,
+  canvas,
+  audio,
+  iframe,
+  embed,
+  object {
+    display: block;
+    vertical-align: middle;
+  }
+
+  img,
+  video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+    color: inherit;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+    line-height: 1.2;
+  }
+
+  ::selection {
+    background-color: rgb(var(--color-primary));
+    color: rgb(var(--color-primary-contrast));
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--color-focus-ring));
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

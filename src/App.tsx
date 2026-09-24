@@ -1,7 +1,15 @@
+import ThemeToggle from '@/components/ui/ThemeToggle'
+
 export default function App() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <main className="container">
+        <header className="flex items-center justify-between py-6">
+          <p className="text-caption-sm font-semibold uppercase tracking-widest text-gold">
+            Lumora
+          </p>
+          <ThemeToggle />
+        </header>
         <section className="flex flex-col items-center gap-6 py-20 text-center">
           <p className="text-caption-sm font-semibold uppercase tracking-widest text-gold">
             Lumora placeholder

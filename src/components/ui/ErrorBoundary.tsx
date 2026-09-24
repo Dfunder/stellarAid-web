@@ -63,81 +63,35 @@ function ErrorBoundaryFallback({ error, onRetry }: { error: Error; onRetry: () =
   return (
     <main
       role="alert"
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2rem',
-        backgroundColor: '#fafafa',
-        color: '#1f2937',
-        fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
-      }}
+      className="flex min-h-screen items-center justify-center bg-background px-8 py-16 text-foreground"
     >
-      <div
-        style={{
-          maxWidth: '32rem',
-          width: '100%',
-          padding: '2rem',
-          background: '#ffffff',
-          border: '1px solid #e5e7eb',
-          borderTop: '3px solid #4f46e5',
-          borderRadius: '0.5rem',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-        }}
-      >
-        <h1 style={{ margin: '0 0 0.5rem', fontSize: '1.35rem' }}>Something went wrong</h1>
-        <p style={{ margin: '0 0 1.5rem', lineHeight: 1.5 }}>
+      <div className="w-full max-w-2xl border-t-4 border-t-primary rounded-card bg-surface p-8 shadow-elevated">
+        <h1 className="text-h3">Something went wrong</h1>
+        <p className="mt-2 text-body text-muted">
           An unexpected error occurred while rendering this page. You can try again, or report the
           issue so we can fix it.
         </p>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <div className="mt-6 flex flex-wrap gap-3">
           <button
             type="button"
             onClick={onRetry}
-            style={{
-              padding: '0.6rem 1.25rem',
-              border: 'none',
-              borderRadius: '0.375rem',
-              backgroundColor: '#4f46e5',
-              color: '#ffffff',
-              fontSize: '0.925rem',
-              cursor: 'pointer',
-            }}
+            className="rounded-control bg-primary px-5 py-2.5 text-body font-semibold text-primary-contrast focus-visible:shadow-focus-ring"
           >
             Try again
           </button>
           <a
             href={buildReportLink(error)}
-            style={{
-              padding: '0.6rem 1.25rem',
-              border: '1px solid #d1d5db',
-              borderRadius: '0.375rem',
-              backgroundColor: '#ffffff',
-              color: '#374151',
-              fontSize: '0.925rem',
-              textDecoration: 'none',
-            }}
+            className="rounded-control border border-line bg-surface px-5 py-2.5 text-body font-semibold text-foreground shadow-card focus-visible:shadow-focus-ring"
           >
             Report issue
           </a>
         </div>
         {showDetails && (
-          <details style={{ marginTop: '1.5rem' }}>
-            <summary style={{ cursor: 'pointer', marginBottom: '0.5rem' }}>Error details</summary>
-            <pre
-              style={{
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-                background: '#f9fafb',
-                border: '1px solid #e5e7eb',
-                borderRadius: '0.375rem',
-                padding: '0.75rem',
-                fontSize: '0.8125rem',
-                maxHeight: '16rem',
-                overflowY: 'auto',
-              }}
-            >
+          <details className="mt-6">
+            <summary className="mb-2 cursor-pointer text-caption-sm font-semibold">
+              Error details
+            </summary>
+            <pre className="max-h-64 overflow-y-auto whitespace-pre-wrap break-words rounded-control border border-line bg-surface-muted p-3 text-caption-sm">
               {error.stack ?? error.message}
             </pre>
           </details>

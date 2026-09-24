@@ -8,6 +8,7 @@ This repository is the Lumora web client - React + TypeScript on Vite with stric
 
 - **React 19** + **TypeScript** (strict, with unchecked indexed access disallowed)
 - **Vite** for the dev server and production builds
+- **Tailwind CSS** (PostCSS + Autoprefixer) with a tokenized theme
 - **ESLint** (flat config) + **Prettier** for linting and formatting
 - `@/` path alias mapped to `src/`
 
@@ -45,6 +46,26 @@ Runtime configuration is centralized in `src/config/env.ts` and validated with [
 | `VITE_APP_URL`         | `http://localhost:5173` | Public URL the web app is served from   |
 
 The development server refuses to start with a clear error message when any variable is missing or invalid. `.env` is git-ignored; only `.env.example` is committed. Never read `import.meta.env` directly outside `src/config/env.ts` - import `{ env }` from `@/config` instead.
+
+## Design System & Theming
+
+Styling is built on a tokenized Tailwind theme so every color, radius, shadow, and type size comes from a design token instead of an ad-hoc value.
+
+- **Semantic colors** (`bg-background`, `text-foreground`, `border-line`, `bg-primary`, ...) are CSS variables defined in `src/index.css` in two palettes - light and dark. Dark mode is activated via `data-theme="dark"` on `<html>`.
+- **Brand palettes** (`brand-purple-*`, `brand-gold-*`, `neutral-*`) are exposed as utilities such as `bg-brand-purple-600`, `bg-brand-gold-500`, `bg-neutral-900`.
+- **Typography** uses a single ramp (`text-display`, `text-h1` … `text-caption-sm`) defined in `tailwind.config.ts`, applied to headings automatically; sizes are fluid between mobile and desktop.
+- **Radii & shadows**: `rounded-control`, `rounded-card`, `shadow-card`, `shadow-elevated`, `shadow-focus-ring`.
+- **Container**: use `container` for a centered, padded layout with responsive max widths.
+
+### Theming
+
+The theme is resolved before first paint by the inline script in `index.html` (no flash) and managed at runtime by `ThemeProvider`:
+
+- First visit follows the OS preference via `prefers-color-scheme`.
+- `ThemeToggle` switches light/dark and persists the choice in `localStorage` under `lumora-theme`.
+- The choice survives reloads; `useTheme()` (`@/components/ui`) exposes `theme`, `setTheme`, and `toggleTheme`.
+
+Never use raw hex values in components - import tokens from `@/components/ui` or `@/lib/theme` and style with the utility classes above.
 
 ## Editor Integrations
 

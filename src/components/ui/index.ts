@@ -5,3 +5,6 @@
  * fetching, or domain state belongs here.
  */
 export { default as ErrorBoundary } from './ErrorBoundary'
+export { default as ThemeProvider } from './ThemeProvider'
+export { default as ThemeToggle } from './ThemeToggle'
+export { useTheme } from './useTheme'

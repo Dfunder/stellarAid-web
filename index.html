@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#4f46e5" />
+    <meta name="theme-color" content="#faf8f5" />
     <meta
       name="description"
       content="Lumora - transparent, borderless crowdfunding on the Stellar Network. Launch campaigns, donate in XLM and Stellar assets, and verify every contribution on-chain."
@@ -17,6 +17,27 @@
     />
     <meta name="twitter:card" content="summary" />
     <title>Lumora - Crowdfunding on Stellar</title>
+    <script>
+      // Apply the persisted theme (or the OS system preference on first visit)
+      // before first paint so the app never flashes the wrong colors (no FOUC).
+      ;(function () {
+        var stored = null
+        try {
+          stored = localStorage.getItem('lumora-theme')
+        } catch (err) {
+          stored = null
+        }
+        var theme =
+          stored === 'light' || stored === 'dark'
+            ? stored
+            : window.matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light'
+        document.documentElement.dataset.theme = theme
+        var meta = document.querySelector('meta[name="theme-color"]')
+        if (meta) meta.content = theme === 'dark' ? '#12100e' : '#faf8f5'
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

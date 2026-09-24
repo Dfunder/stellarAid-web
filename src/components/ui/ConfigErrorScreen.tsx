@@ -4,28 +4,9 @@
  */
 export default function ConfigErrorScreen({ message }: { message: string }) {
   return (
-    <main
-      style={{
-        maxWidth: '46rem',
-        margin: '4rem auto',
-        padding: '0 1.5rem',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        lineHeight: 1.5,
-      }}
-    >
-      <h1 style={{ fontSize: '1.25rem', margin: '0 0 0.5rem' }}>
-        Invalid environment configuration
-      </h1>
-      <pre
-        style={{
-          whiteSpace: 'pre-wrap',
-          background: '#fef2f2',
-          border: '1px solid #fecaca',
-          borderRadius: '0.5rem',
-          padding: '1rem',
-          overflowX: 'auto',
-        }}
-      >
+    <main className="mx-auto max-w-3xl px-6 py-16 text-foreground">
+      <h1 className="text-h2">Invalid environment configuration</h1>
+      <pre className="mt-4 overflow-x-auto whitespace-pre-wrap rounded-control border border-danger bg-danger/10 p-4 text-body">
         {message}
       </pre>
     </main>
