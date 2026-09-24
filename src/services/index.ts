@@ -3,4 +3,12 @@
  *
  * Feature-specific API calls live in `src/features/<feature>/services`.
  */
-export {}
+export {
+  ApiError,
+  getErrorMessage,
+  http,
+  isApiError,
+  setAuthTokenProvider,
+  setUnauthorizedHandler,
+} from './http'
+export type { AuthTokenProvider, Http, UnauthorizedHandler } from './http'
