@@ -1,5 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import '@fontsource-variable/inter'
+import '@fontsource-variable/sora'
+import '@/index.css'
 import ConfigErrorScreen from '@/components/ui/ConfigErrorScreen'
 import ErrorBoundary from '@/components/ui/ErrorBoundary'
 import App from '@/App'

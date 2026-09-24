@@ -1,13 +1,33 @@
+/**
+ * Global styles, fonts, and CSS reset.
+ *
+ * - Brand fonts are loaded from `@fontsource-variable/*` (self-hosted, font-display: swap)
+ *   and registered as `--font-sans` / `--font-display`.
+ * - A normalization reset removes browser margin/spacing inconsistencies while keeping
+ *   box sizing and media elements predictable.
+ * - Base background, foreground text, selection, and visible `:focus-visible` outlines
+ *   are defined once here from design tokens (see `src/index.css` token base).
+ * - `prefers-reduced-motion` disables animations, transitions, and smooth scroll.
+ */
+
 :root {
-  color-scheme: light dark;
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
-  line-height: 1.5;
+  color-scheme: light;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Font stacks */
+  --font-sans: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display:
+    'Sora Variable', 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Base color tokens (RGB triplets so Tailwind can apply `/ <alpha-value>`) */
+  --color-background: 250 248 245;
+  --color-foreground: 28 25 23;
+  --color-primary: 109 40 217;
+  --color-primary-contrast: 255 255 255;
+  --color-focus-ring: 124 58 237;
 }
 
 *,
@@ -25,4 +45,65 @@ body,
 body {
   margin: 0;
   min-width: 320px;
+  background-color: rgb(var(--color-background));
+  color: rgb(var(--color-foreground));
+  font-family: var(--font-sans);
+  line-height: 1.5;
+}
+
+img,
+svg,
+video,
+canvas,
+audio,
+iframe,
+embed,
+object {
+  display: block;
+  vertical-align: middle;
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  line-height: 1.2;
+}
+
+::selection {
+  background-color: rgb(var(--color-primary));
+  color: rgb(var(--color-primary-contrast));
+}
+
+:focus-visible {
+  outline: 2px solid rgb(var(--color-focus-ring));
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
