@@ -9,42 +9,6 @@ import type { Config } from 'tailwindcss'
  * dark themes switch automatically via `html[data-theme="dark"]`.
  */
 
-const brandPurple = {
-  50: '250 245 255',
-  100: '237 233 254',
-  200: '221 214 254',
-  300: '196 181 253',
-  400: '167 139 250',
-  500: '139 92 246',
-  600: '109 40 217',
-  700: '91 33 182',
-  800: '70 32 137',
-  900: '46 20 90',
-  950: '34 15 64',
-}
-
-const brandGold = {
-  100: '250 240 214',
-  300: '240 206 132',
-  400: '225 178 79',
-  500: '201 152 43',
-  600: '155 110 21',
-}
-
-const neutral = {
-  50: '250 250 249',
-  100: '245 245 244',
-  200: '231 229 228',
-  300: '214 211 209',
-  400: '168 162 158',
-  500: '120 113 108',
-  600: '87 83 78',
-  700: '68 64 60',
-  800: '41 37 36',
-  900: '28 25 23',
-  950: '12 10 9',
-}
-
 const rgb = (variable: string): string => `rgb(var(${variable}) / <alpha-value>)`
 
 const semantic = {
@@ -90,14 +54,7 @@ export default {
       },
     },
     fontFamily: {
-      sans: [
-        'Inter Variable',
-        'system-ui',
-        '-apple-system',
-        'Segoe UI',
-        'Roboto',
-        'sans-serif',
-      ],
+      sans: ['Inter Variable', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
       display: [
         'Sora Variable',
         'Inter Variable',
@@ -123,6 +80,30 @@ export default {
         card: '0 1px 2px rgb(0 0 0 / 0.05), 0 1px 3px rgb(0 0 0 / 0.06)',
         elevated: '0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.05)',
         'focus-ring': '0 0 0 3px rgb(var(--color-focus-ring) / 0.35)',
+      },
+      fontSize: {
+        display: [
+          'clamp(2.75rem, 1rem + 4.5vw, 4.5rem)',
+          { lineHeight: '1.05', letterSpacing: '-0.03em', fontWeight: '700' },
+        ],
+        h1: [
+          'clamp(2rem, 0.75rem + 3vw, 3rem)',
+          { lineHeight: '1.1', letterSpacing: '-0.02em', fontWeight: '700' },
+        ],
+        h2: [
+          'clamp(1.5rem, 0.5rem + 2vw, 2.25rem)',
+          { lineHeight: '1.15', letterSpacing: '-0.015em', fontWeight: '600' },
+        ],
+        h3: [
+          'clamp(1.25rem, 0.375rem + 1.5vw, 1.75rem)',
+          { lineHeight: '1.25', letterSpacing: '-0.01em', fontWeight: '600' },
+        ],
+        h4: ['1.25rem', { lineHeight: '1.3', fontWeight: '600' }],
+        h5: ['1.125rem', { lineHeight: '1.35', fontWeight: '600' }],
+        h6: ['1rem', { lineHeight: '1.4', fontWeight: '600' }],
+        body: ['1rem', { lineHeight: '1.6' }],
+        caption: ['0.875rem', { lineHeight: '1.5', letterSpacing: '0.01em' }],
+        'caption-sm': ['0.75rem', { lineHeight: '1.4', letterSpacing: '0.02em' }],
       },
     },
   },
