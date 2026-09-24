@@ -34,6 +34,18 @@ The app is served at `http://localhost:5173`.
 | `npm run format:check` | Check formatting without writing (CI-friendly) |
 | `npm run type-check`   | Type-check with `tsc` without emitting output  |
 
+## Environment Variables
+
+Runtime configuration is centralized in `src/config/env.ts` and validated with [Zod](https://zod.dev) at startup. All variables use the `VITE_` prefix and are defined in a `.env` file - copy `.env.example` to get started:
+
+| Variable               | Default                 | Description                             |
+| ---------------------- | ----------------------- | --------------------------------------- |
+| `VITE_API_URL`         | `http://localhost:4000` | Base URL of the Lumora backend API      |
+| `VITE_STELLAR_NETWORK` | `testnet`               | Stellar network: `testnet` or `mainnet` |
+| `VITE_APP_URL`         | `http://localhost:5173` | Public URL the web app is served from   |
+
+The development server refuses to start with a clear error message when any variable is missing or invalid. `.env` is git-ignored; only `.env.example` is committed. Never read `import.meta.env` directly outside `src/config/env.ts` - import `{ env }` from `@/config` instead.
+
 ## Editor Integrations
 
 VS Code: accept the recommended extensions when prompted (also pinned in `.vscode/extensions.json`):
