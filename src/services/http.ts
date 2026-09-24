@@ -1,4 +1,5 @@
 import axios, { AxiosError, type AxiosInstance, type AxiosRequestConfig } from 'axios'
+import { env } from '@/config'
 
 /** Supplies the bearer token attached to every request. */
 export type AuthTokenProvider = () => string | null | Promise<string | null>
@@ -123,7 +124,7 @@ function shouldRetry(error: AxiosError): boolean {
 
 function buildClient(): AxiosInstance {
   const client = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000',
+    baseURL: env.VITE_API_URL,
     timeout: REQUEST_TIMEOUT_MS,
     headers: { 'Content-Type': 'application/json' },
   })
