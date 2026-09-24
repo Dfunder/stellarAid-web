@@ -1,18 +1,31 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { setAuthTokenProvider } from '@/services'
-import type { AuthSession, AuthUser } from '../types'
+import { setAuthTokenProvider, setTokenRefresher, setUnauthorizedHandler } from '@/services'
+import type { User } from '@/types'
+import { authService } from '../services/authService'
+import type { AuthSession } from '../types'
 
 interface AuthState {
   accessToken: string | null
   refreshToken: string | null
-  user: AuthUser | null
+  user: User | null
   setSession: (session: AuthSession) => void
-  setUser: (user: AuthUser) => void
+  setTokens: (tokens: { accessToken: string; refreshToken: string | null }) => void
+  setUser: (user: User) => void
+  /** Logout: clears every token and the user, in memory and in storage. */
   clearSession: () => void
 }
 
-/** Auth session, persisted to localStorage so it survives reloads. */
+/**
+ * Auth session, persisted to localStorage so it survives reloads.
+ *
+ * Trade-off: localStorage is readable by any script on the origin, so an XSS
+ * bug could exfiltrate the tokens. We accept this for the MVP because the API
+ * issues bearer tokens (not cookies) and a reload-proof session is required.
+ * Mitigations: short-lived access tokens, refresh on 401, and a strict no-
+ * `dangerouslySetInnerHTML`/CSP policy. Moving the refresh token to an
+ * httpOnly cookie is the intended hardening once the API supports it.
+ */
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -20,6 +33,8 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
       user: null,
       setSession: ({ accessToken, refreshToken, user }) => set({ accessToken, refreshToken, user }),
+      setTokens: ({ accessToken, refreshToken }) =>
+        set((state) => ({ accessToken, refreshToken: refreshToken ?? state.refreshToken })),
       setUser: (user) => set({ user }),
       clearSession: () => set({ accessToken: null, refreshToken: null, user: null }),
     }),
@@ -31,3 +46,14 @@ export const useAuthStore = create<AuthState>()(
 )
 
 setAuthTokenProvider(() => useAuthStore.getState().accessToken)
+
+setTokenRefresher(async () => {
+  const { refreshToken, setTokens } = useAuthStore.getState()
+  if (!refreshToken) return null
+  const tokens = await authService.refresh(refreshToken)
+  setTokens(tokens)
+  return tokens.accessToken
+})
+
+// Refresh failed: drop the session. ProtectedRoute then redirects to /login?redirect=.
+setUnauthorizedHandler(() => useAuthStore.getState().clearSession())

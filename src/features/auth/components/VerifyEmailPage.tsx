@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { getErrorMessage, isApiError } from '@/services'
 import { authService } from '../services/authService'
 import { useAuthStore } from '../stores/useAuthStore'
@@ -7,7 +7,7 @@ import { DEFAULT_AUTHENTICATED_PATH } from '../utils'
 import { inputClass, linkClass, primaryButtonClass } from './formStyles'
 import ResendVerificationButton from './ResendVerificationButton'
 
-type VerifyStatus = 'verifying' | 'success' | 'already-verified' | 'expired' | 'error'
+type VerifyStatus = 'sent' | 'verifying' | 'success' | 'already-verified' | 'expired' | 'error'
 
 const SUCCESS_REDIRECT_DELAY_MS = 2000
 
@@ -16,12 +16,16 @@ export default function VerifyEmailPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token')
+  // Set by the registration form so the address never appears in the URL.
+  const sentTo = (useLocation().state as { email?: string } | null)?.email ?? null
   const user = useAuthStore((state) => state.user)
   const setUser = useAuthStore((state) => state.setUser)
 
-  const [status, setStatus] = useState<VerifyStatus>(token ? 'verifying' : 'expired')
+  const [status, setStatus] = useState<VerifyStatus>(
+    token ? 'verifying' : sentTo ? 'sent' : 'expired',
+  )
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [email, setEmail] = useState(user?.email ?? '')
+  const [email, setEmail] = useState(user?.email ?? sentTo ?? '')
   const requestedToken = useRef<string | null>(null)
 
   useEffect(() => {
@@ -56,6 +60,26 @@ export default function VerifyEmailPage() {
     )
     return () => clearTimeout(timer)
   }, [status, navigate])
+
+  if (status === 'sent' && sentTo) {
+    return (
+      <div role="status" aria-live="polite">
+        <h1 className="text-h2">Check your inbox</h1>
+        <p className="mt-2 text-body text-muted">
+          We sent a verification link to <span className="font-semibold">{sentTo}</span>. Open it to
+          activate your account.
+        </p>
+        <div className="mt-8 text-caption">
+          <ResendVerificationButton email={sentTo} />
+        </div>
+        <p className="mt-8 text-center text-caption text-muted">
+          <Link to="/login" className={linkClass}>
+            Back to sign in
+          </Link>
+        </p>
+      </div>
+    )
+  }
 
   if (status === 'verifying') {
     return (

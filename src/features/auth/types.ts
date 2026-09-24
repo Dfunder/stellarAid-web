@@ -1,17 +1,7 @@
-export interface AuthUser {
-  id: string
-  email: string
-  displayName?: string
-  emailVerified: boolean
-}
+import type { User } from '@/types'
 
 export interface AuthSession {
   accessToken: string
   refreshToken: string | null
-  user: AuthUser
-}
-
-export interface LoginCredentials {
-  email: string
-  password: string
+  user: User
 }

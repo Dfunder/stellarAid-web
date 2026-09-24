@@ -14,6 +14,10 @@ const envSchema = z.object({
   VITE_API_URL: z.url().default('http://localhost:4000'),
   VITE_STELLAR_NETWORK: stellarNetworkSchema.default('testnet'),
   VITE_APP_URL: z.url().default('http://localhost:5173'),
+  // Optional feature-flag overrides ("true"/"false"); anything else counts as unset.
+  VITE_FF_MESSAGING: z.stringbool().optional().catch(undefined),
+  VITE_FF_NOTIFICATIONS: z.stringbool().optional().catch(undefined),
+  VITE_FF_ADVANCED_FILTERS: z.stringbool().optional().catch(undefined),
 })
 
 export type StellarNetwork = z.infer<typeof stellarNetworkSchema>
@@ -21,16 +25,20 @@ export type AppEnv = z.infer<typeof envSchema>
 
 const REQUIRED_KEYS = ['VITE_API_URL', 'VITE_STELLAR_NETWORK', 'VITE_APP_URL'] as const
 type EnvKey = (typeof REQUIRED_KEYS)[number]
+type FlagEnvKey = 'VITE_FF_MESSAGING' | 'VITE_FF_NOTIFICATIONS' | 'VITE_FF_ADVANCED_FILTERS'
 
 /**
  * Single access point for the raw `import.meta.env` values. No other module in
  * the app should touch `import.meta.env` directly.
  */
-function readRawEnv(): Partial<Record<EnvKey, string | undefined>> {
+function readRawEnv(): Partial<Record<EnvKey | FlagEnvKey, string | undefined>> {
   return {
     VITE_API_URL: import.meta.env.VITE_API_URL,
     VITE_STELLAR_NETWORK: import.meta.env.VITE_STELLAR_NETWORK,
     VITE_APP_URL: import.meta.env.VITE_APP_URL,
+    VITE_FF_MESSAGING: import.meta.env.VITE_FF_MESSAGING,
+    VITE_FF_NOTIFICATIONS: import.meta.env.VITE_FF_NOTIFICATIONS,
+    VITE_FF_ADVANCED_FILTERS: import.meta.env.VITE_FF_ADVANCED_FILTERS,
   }
 }
 
