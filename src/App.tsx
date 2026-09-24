@@ -1,6 +1,47 @@
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import ThemeToggle from '@/components/ui/ThemeToggle'
+import {
+  AuthLayout,
+  ForgotPasswordPage,
+  GuestRoute,
+  LoginPage,
+  ProtectedRoute,
+  RegisterPage,
+  ResetPasswordPage,
+  VerifyEmailPage,
+} from '@/features/auth'
 
 export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route element={<AuthLayout />}>
+          <Route element={<GuestRoute />}>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+          </Route>
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+        </Route>
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  )
+}
+
+function Dashboard() {
+  return (
+    <main className="container min-h-screen bg-background py-16 text-foreground">
+      <h1 className="text-h2">Dashboard</h1>
+    </main>
+  )
+}
+
+function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <main className="container">
