@@ -1,33 +1,75 @@
-/**
- * Global styles, fonts, and CSS reset.
- *
- * - Brand fonts are loaded from `@fontsource-variable/*` (self-hosted, font-display: swap)
- *   and registered as `--font-sans` / `--font-display`.
- * - A normalization reset removes browser margin/spacing inconsistencies while keeping
- *   box sizing and media elements predictable.
- * - Base background, foreground text, selection, and visible `:focus-visible` outlines
- *   are defined once here from design tokens (see `src/index.css` token base).
- * - `prefers-reduced-motion` disables animations, transitions, and smooth scroll.
- */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  color-scheme: light;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  :root {
+    color-scheme: light;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 
-  /* Font stacks */
-  --font-sans: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-display:
-    'Sora Variable', 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    /* Font stacks */
+    --font-sans: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-display:
+      'Sora Variable', 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
-  /* Base color tokens (RGB triplets so Tailwind can apply `/ <alpha-value>`) */
-  --color-background: 250 248 245;
-  --color-foreground: 28 25 23;
-  --color-primary: 109 40 217;
-  --color-primary-contrast: 255 255 255;
-  --color-focus-ring: 124 58 237;
+    /* Brand palette - purple */
+    --brand-purple-50: 250 245 255;
+    --brand-purple-100: 237 233 254;
+    --brand-purple-200: 221 214 254;
+    --brand-purple-300: 196 181 253;
+    --brand-purple-400: 167 139 250;
+    --brand-purple-500: 139 92 246;
+    --brand-purple-600: 109 40 217;
+    --brand-purple-700: 91 33 182;
+    --brand-purple-800: 70 32 137;
+    --brand-purple-900: 46 20 90;
+    --brand-purple-950: 34 15 64;
+
+    /* Brand palette - gold */
+    --brand-gold-50: 253 250 237;
+    --brand-gold-100: 250 240 214;
+    --brand-gold-200: 245 230 180;
+    --brand-gold-300: 240 206 132;
+    --brand-gold-400: 225 178 79;
+    --brand-gold-500: 201 152 43;
+    --brand-gold-600: 155 110 21;
+    --brand-gold-700: 130 92 14;
+    --brand-gold-800: 106 76 13;
+    --brand-gold-900: 87 62 12;
+    --brand-gold-950: 53 38 7;
+
+    /* Brand palette - neutrals */
+    --neutral-50: 250 250 249;
+    --neutral-100: 245 245 244;
+    --neutral-200: 231 229 228;
+    --neutral-300: 214 211 209;
+    --neutral-400: 168 162 158;
+    --neutral-500: 120 113 108;
+    --neutral-600: 87 83 78;
+    --neutral-700: 68 64 60;
+    --neutral-800: 41 37 36;
+    --neutral-900: 28 25 23;
+    --neutral-950: 12 10 9;
+
+    /* Semantic tokens - light */
+    --color-background: 250 248 245;
+    --color-surface: 255 255 255;
+    --color-surface-muted: 245 240 235;
+    --color-foreground: 28 25 23;
+    --color-muted: 87 83 78;
+    --color-line: 231 222 210;
+    --color-primary: 109 40 217;
+    --color-primary-strong: 91 33 182;
+    --color-primary-contrast: 255 255 255;
+    --color-gold: 201 152 43;
+    --color-success: 21 128 61;
+    --color-warning: 180 83 9;
+    --color-danger: 185 28 28;
+    --color-focus-ring: 124 58 237;
+  }
 }
 
 *,
