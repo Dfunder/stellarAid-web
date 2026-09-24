@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import ConfigErrorScreen from '@/components/ui/ConfigErrorScreen'
+import ErrorBoundary from '@/components/ui/ErrorBoundary'
 import App from '@/App'
 import { configError } from '@/config'
 
@@ -16,7 +17,9 @@ if (configError) {
 } else {
   createRoot(root).render(
     <StrictMode>
-      <App />
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
     </StrictMode>,
   )
 }
