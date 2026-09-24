@@ -80,6 +80,9 @@ Rules:
 - Props in, markup and styles out.
 - No API calls, no stores, no business rules, no feature imports.
 - If a component needs domain data or logic, it belongs in a feature folder; only its generic building blocks (buttons, inputs, modals) live in `ui/`.
+- Design-system infrastructure also lives here: `ThemeProvider`/`useTheme`/`ThemeToggle` (theming) and `ErrorBoundary` (recovery). Token definitions live in `tailwind.config.ts` + `src/index.css`; theme helpers that do not touch React are in `src/lib/theme.ts`.
+
+All styling must use design tokens (see the README "Design System & Theming" section) - never arbitrary hex values.
 
 ## Where Does New Code Go?
 
