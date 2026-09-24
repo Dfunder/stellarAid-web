@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { QueryClientProvider } from '@tanstack/react-query'
 import '@fontsource-variable/inter'
 import '@fontsource-variable/sora'
 import '@/index.css'
@@ -8,6 +9,8 @@ import ErrorBoundary from '@/components/ui/ErrorBoundary'
 import ThemeProvider from '@/components/ui/ThemeProvider'
 import App from '@/App'
 import { configError } from '@/config'
+import { AuthProvider } from '@/features/auth'
+import { queryClient } from '@/stores'
 
 const root = document.getElementById('root')
 if (!root) throw new Error('Root element #root was not found')
@@ -24,9 +27,13 @@ if (configError) {
   createRoot(root).render(
     <StrictMode>
       <ThemeProvider>
-        <ErrorBoundary>
-          <App />
-        </ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <ErrorBoundary>
+            <AuthProvider>
+              <App />
+            </AuthProvider>
+          </ErrorBoundary>
+        </QueryClientProvider>
       </ThemeProvider>
     </StrictMode>,
   )
