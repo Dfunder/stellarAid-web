@@ -3,4 +3,5 @@
  *
  * Feature-specific hooks live in `src/features/<feature>/hooks`.
  */
-export { useFeatureFlag } from './useFeatureFlag'
+export { useCopyToClipboard } from './useCopyToClipboard'
+export type { CopyToClipboard } from './useCopyToClipboard'
