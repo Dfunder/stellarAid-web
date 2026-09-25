@@ -9,6 +9,7 @@ export {
   http,
   isApiError,
   setAuthTokenProvider,
+  setTokenRefresher,
   setUnauthorizedHandler,
 } from './http'
-export type { AuthTokenProvider, Http, UnauthorizedHandler } from './http'
+export type { AuthTokenProvider, Http, TokenRefresher, UnauthorizedHandler } from './http'

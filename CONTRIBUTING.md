@@ -20,6 +20,7 @@ Every change must pass these checks locally:
 npm run lint         # ESLint - zero errors
 npm run format:check # Prettier - no unformatted files
 npm run type-check   # TypeScript - strict, no errors
+npm run test         # Unit tests (Vitest)
 npm run build        # Production build
 ```
 
@@ -107,6 +108,28 @@ Anything that does not fit a documented location needs this document updated fir
 - [ ] Imports use the `@/` alias; no deep relative chains (`../../..`)
 - [ ] Cross-feature imports use feature barrels only
 - [ ] `npm run lint`, `npm run format:check` and `npm run type-check` pass
+
+## Analytics Events
+
+Track product events only through `analytics.track(event, props)` from `@/lib` - never call a vendor SDK from components. A vendor is plugged in once via `analytics.setProvider(...)`; until then a no-op provider is used. In development every event is logged to the console as `[analytics]`.
+
+- Event names are `snake_case` and follow `<object>_<action>` (e.g. `artwork_view`, `checkout_start`), or a single verb for account-level actions (`signup`, `login`).
+- New events must be added to the `AnalyticsEvent` union in `src/lib/analytics.ts`.
+- Props are flat primitives. Never send PII (emails, wallet addresses, names, tokens); use opaque IDs instead. Keys/values that look like PII are stripped as a safety net.
+
+## Feature Flags
+
+Gate incomplete or risky features with `useFeatureFlag('<flag>')` from `@/hooks` (or `isFeatureEnabled` outside React). Flags are typed: the only valid names are the keys of `FLAG_DEFAULTS` in `src/config/featureFlags.ts`. Every flag defaults to `false`, so missing config hides the feature. Overrides come from `VITE_FF_*` env vars and the remote config stub (remote wins).
+
+Lifecycle:
+
+1. **Add** - add the key to `FLAG_DEFAULTS` (default `false`) plus its `VITE_FF_*` env override, and wrap the new UI in the flag check.
+2. **Ship** - turn it on via env/remote config; once stable for everyone, schedule removal.
+3. **Remove** - delete the key and env var. TypeScript then flags every remaining `useFeatureFlag('<flag>')` call; delete those checks and the disabled code path in the same PR.
+
+## Auth Tokens
+
+Access and refresh tokens are persisted by `useAuthStore` in `localStorage` so sessions survive reloads. Trade-off: any script running on the origin can read them, so an XSS bug could leak them. This is accepted for the MVP because the API uses bearer tokens; mitigations are short-lived access tokens, transparent refresh on 401 and never rendering untrusted HTML. Move the refresh token to an httpOnly cookie once the API supports it. Do not store tokens anywhere else.
 
 ## Branches & Commits
 

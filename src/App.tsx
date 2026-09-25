@@ -1,28 +1,46 @@
-import { BrowserRouter, Link, Outlet, Route, Routes, useNavigate } from 'react-router-dom'
-import { Button, ThemeToggle } from '@/components/ui'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import ThemeToggle from '@/components/ui/ThemeToggle'
 import {
-  ConnectWalletButton,
+  AuthLayout,
   ForgotPasswordPage,
-  RequireAuth,
+  GuestRoute,
+  LoginPage,
+  ProtectedRoute,
+  RegisterPage,
   ResetPasswordPage,
-  SignInPage,
-  useAuth,
-  WalletSettingsPage,
+  VerifyEmailPage,
 } from '@/features/auth'
 
-const NAV_LINK_CLASSES =
-  'inline-flex items-center rounded-control px-3 py-2 text-caption-sm font-semibold text-muted hover:bg-surface-muted hover:text-foreground focus-visible:shadow-focus-ring'
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route element={<AuthLayout />}>
+          <Route element={<GuestRoute />}>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+          </Route>
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+        </Route>
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  )
+}
 
-/** Shared chrome for every route: navbar with the wallet + session controls. */
-function AppShell() {
-  const navigate = useNavigate()
-  const { user, isAuthenticated, logout } = useAuth()
+function Dashboard() {
+  return (
+    <main className="container min-h-screen bg-background py-16 text-foreground">
+      <h1 className="text-h2">Dashboard</h1>
+    </main>
+  )
+}
 
-  const handleLogout = async (): Promise<void> => {
-    await logout()
-    navigate('/', { replace: true })
-  }
-
+function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-line">

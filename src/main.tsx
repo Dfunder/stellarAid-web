@@ -24,6 +24,7 @@ if (configError) {
     </StrictMode>,
   )
 } else {
+  void loadRemoteFeatureFlags()
   createRoot(root).render(
     <StrictMode>
       <ThemeProvider>
