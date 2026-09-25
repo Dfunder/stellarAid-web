@@ -3,4 +3,4 @@
  *
  * Feature-specific hooks live in `src/features/<feature>/hooks`.
  */
-export {}
+export { useFeatureFlag } from './useFeatureFlag'
