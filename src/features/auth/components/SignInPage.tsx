@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Button, Input } from '@/components/ui'
 import { useAuth } from '../hooks/useAuth'
 import { emailSchema } from '../utils'
@@ -13,6 +13,7 @@ interface NavigationState {
 export default function SignInPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const [searchParams] = useSearchParams()
   const navigationState = (location.state ?? {}) as NavigationState
   const { login, isAuthenticated, isLoading, error: authError } = useAuth()
 
@@ -21,7 +22,7 @@ export default function SignInPage() {
   const [emailError, setEmailError] = useState<string | null>(null)
 
   const notice = navigationState.notice ?? null
-  const redirectTo = navigationState.from ?? '/'
+  const redirectTo = navigationState.from ?? searchParams.get('redirect') ?? '/'
 
   useEffect(() => {
     if (isAuthenticated) navigate(redirectTo, { replace: true })

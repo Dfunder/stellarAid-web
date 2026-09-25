@@ -1,14 +1,14 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { setAuthTokenProvider, setTokenRefresher, setUnauthorizedHandler } from '@/services'
-import type { User } from '@/types'
-import { authService } from '../services/authService'
-import type { AuthSession } from '../types'
+import { authApi } from '../services/authApi'
+import type { AuthSession, User } from '../types'
 
 interface AuthState {
   accessToken: string | null
   refreshToken: string | null
   user: User | null
+  status: 'loading' | 'authenticated' | 'unauthenticated'
   setSession: (session: AuthSession) => void
   setTokens: (tokens: { accessToken: string; refreshToken: string | null }) => void
   setUser: (user: User) => void
@@ -32,11 +32,19 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
       refreshToken: null,
       user: null,
-      setSession: ({ accessToken, refreshToken, user }) => set({ accessToken, refreshToken, user }),
+      status: 'unauthenticated',
+      setSession: ({ tokens, user }) =>
+        set({
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          user,
+          status: 'authenticated',
+        }),
       setTokens: ({ accessToken, refreshToken }) =>
         set((state) => ({ accessToken, refreshToken: refreshToken ?? state.refreshToken })),
-      setUser: (user) => set({ user }),
-      clearSession: () => set({ accessToken: null, refreshToken: null, user: null }),
+      setUser: (user) => set({ user, status: 'authenticated' }),
+      clearSession: () =>
+        set({ accessToken: null, refreshToken: null, user: null, status: 'unauthenticated' }),
     }),
     {
       name: 'lumora-auth',
@@ -50,7 +58,7 @@ setAuthTokenProvider(() => useAuthStore.getState().accessToken)
 setTokenRefresher(async () => {
   const { refreshToken, setTokens } = useAuthStore.getState()
   if (!refreshToken) return null
-  const tokens = await authService.refresh(refreshToken)
+  const { tokens } = await authApi.refresh(refreshToken)
   setTokens(tokens)
   return tokens.accessToken
 })

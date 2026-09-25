@@ -154,3 +154,18 @@ export interface AuthTokensDto {
 export interface AuthSessionDto extends AuthTokensDto {
   user: UserDto
 }
+
+/** Error envelope returned by the API for failed requests. */
+export interface ApiErrorDto {
+  code?: string
+  message?: string
+  error?: string
+  errors?:
+    | Record<string, string>
+    | Array<{
+        field?: string
+        path?: string | string[]
+        message?: string
+      }>
+  requestId?: string
+}

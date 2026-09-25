@@ -1,6 +1,14 @@
 import { AxiosError, AxiosHeaders, type AxiosAdapter } from 'axios'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { http, setAuthTokenProvider, setTokenRefresher, setUnauthorizedHandler } from './http'
+import {
+  getApiErrorMessage,
+  getErrorMessage,
+  http,
+  isApiError,
+  setAuthTokenProvider,
+  setTokenRefresher,
+  setUnauthorizedHandler,
+} from './http'
 
 let token: string | null
 
@@ -45,5 +53,47 @@ describe('http token refresh', () => {
 
     await expect(http.get('/me', { adapter })).rejects.toMatchObject({ status: 401 })
     expect(onUnauthorized).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('centralized API errors', () => {
+  it('maps catalog codes without exposing backend messages', () => {
+    expect(getApiErrorMessage('AUTH_INVALID_CREDENTIALS', 401)).toBe(
+      'The email or password is incorrect.',
+    )
+    expect(getErrorMessage(new Error('database connection string'))).toBe(
+      'An unexpected error occurred.',
+    )
+  })
+
+  it('normalizes validation fields and preserves request context', async () => {
+    const validationAdapter: AxiosAdapter = async (config) => {
+      throw new AxiosError('technical backend detail', 'ERR_BAD_REQUEST', config, null, {
+        data: {
+          code: 'VALIDATION_FAILED',
+          message: 'raw backend detail',
+          requestId: 'req-123',
+          errors: [{ path: ['email'], message: 'Enter a valid email.' }],
+        },
+        status: 422,
+        statusText: 'Unprocessable Entity',
+        headers: {},
+        config,
+      })
+    }
+
+    try {
+      await http.post('/register', {}, { adapter: validationAdapter })
+      expect.fail('request should reject')
+    } catch (error) {
+      expect(isApiError(error)).toBe(true)
+      expect(error).toMatchObject({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        fieldErrors: { email: 'Enter a valid email.' },
+        requestId: 'req-123',
+        message: 'Check the highlighted fields and try again.',
+      })
+    }
   })
 })

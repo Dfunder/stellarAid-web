@@ -5,6 +5,7 @@
  */
 export {
   ApiError,
+  getApiErrorMessage,
   getErrorMessage,
   http,
   isApiError,
