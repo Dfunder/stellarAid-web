@@ -108,6 +108,14 @@ Anything that does not fit a documented location needs this document updated fir
 - [ ] Cross-feature imports use feature barrels only
 - [ ] `npm run lint`, `npm run format:check` and `npm run type-check` pass
 
+## Analytics Events
+
+Track product events only through `analytics.track(event, props)` from `@/lib` - never call a vendor SDK from components. A vendor is plugged in once via `analytics.setProvider(...)`; until then a no-op provider is used. In development every event is logged to the console as `[analytics]`.
+
+- Event names are `snake_case` and follow `<object>_<action>` (e.g. `artwork_view`, `checkout_start`), or a single verb for account-level actions (`signup`, `login`).
+- New events must be added to the `AnalyticsEvent` union in `src/lib/analytics.ts`.
+- Props are flat primitives. Never send PII (emails, wallet addresses, names, tokens); use opaque IDs instead. Keys/values that look like PII are stripped as a safety net.
+
 ## Branches & Commits
 
 - Branch names: `feat/<short-description>`, `fix/<short-description>`, `chore/<short-description>`
