@@ -319,6 +319,22 @@ function AppRoutes() {
             </RequireAuth>
           }
         />
+        <Route
+          path="transactions"
+          element={
+            <RequireAuth>
+              <TransactionHistoryPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="earnings/withdraw"
+          element={
+            <RequireAuth>
+              <ArtistWithdrawal />
+            </RequireAuth>
+          }
+        />
 
         {/* Artist Route */}
         <Route element={<ArtistRoute />}>
