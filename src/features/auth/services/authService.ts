@@ -5,18 +5,16 @@ import {
   type AuthTokensDto,
   type LoginRequestDto,
   type RegisterRequestDto,
-  type User,
   type UserDto,
 } from '@/types'
-import type { AuthSession } from '../types'
+import type { AuthSession, User } from '../types'
 
 export const authService = {
   login: async (credentials: LoginRequestDto): Promise<AuthSession> => {
     const dto = await http.post<AuthSessionDto>('/auth/login', credentials)
     return {
-      accessToken: dto.accessToken,
-      refreshToken: dto.refreshToken ?? null,
-      user: mapUser(dto.user),
+      tokens: { accessToken: dto.accessToken, refreshToken: dto.refreshToken ?? '' },
+      user: { ...mapUser(dto.user), publicKey: null, createdAt: new Date().toISOString() },
     }
   },
 
@@ -42,7 +40,9 @@ export const authService = {
       { token },
       { skipRetry: true },
     )
-    return dto.user ? mapUser(dto.user) : null
+    return dto.user
+      ? { ...mapUser(dto.user), publicKey: null, createdAt: new Date().toISOString() }
+      : null
   },
 
   resendVerification: async (email: string): Promise<void> => {

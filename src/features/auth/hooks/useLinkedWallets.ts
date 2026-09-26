@@ -1,12 +1,14 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { ApiError, getErrorMessage } from '@/services'
+import { invalidateQueriesFor } from '@/stores'
 import { walletApi } from '../services/walletApi'
 import { signWithConnectedWallet } from '../services/wallets'
 import { getWalletConnection } from '../stores/walletStore'
+import { authKeys } from '../queryKeys'
 import type { LinkedWallet } from '../types'
 
 /** Cache key for the signed-in user's linked wallets. */
-export const linkedWalletsKey = ['linked-wallets'] as const
+export const linkedWalletsKey = authKeys.linkedWallets()
 
 const DUPLICATE_ADDRESS_STATUS = 409
 
@@ -32,8 +34,6 @@ export function useLinkedWallets() {
  * The backend verifies the signature before storing anything.
  */
 export function useLinkWallet() {
-  const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: async (): Promise<LinkedWallet> => {
       const connection = getWalletConnection()
@@ -52,32 +52,28 @@ export function useLinkWallet() {
       }
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: linkedWalletsKey })
+      void invalidateQueriesFor(linkedWalletsKey)
     },
   })
 }
 
 /** Removes a linked address after the user confirms. */
 export function useUnlinkWallet() {
-  const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: (walletId: string) => walletApi.unlink(walletId),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: linkedWalletsKey })
+      void invalidateQueriesFor(linkedWalletsKey)
     },
   })
 }
 
 /** Toggles whether the address is shown on the public artist profile. */
 export function useSetWalletVisibility() {
-  const queryClient = useQueryClient()
-
   return useMutation({
     mutationFn: ({ walletId, isPublic }: { walletId: string; isPublic: boolean }) =>
       walletApi.setVisibility(walletId, isPublic),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: linkedWalletsKey })
+      void invalidateQueriesFor(linkedWalletsKey)
     },
   })
 }

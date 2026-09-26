@@ -5,6 +5,7 @@
  * This barrel is the feature's public API; everything else stays private.
  */
 export { default as AccountMenu } from './components/AccountMenu'
+export { default as ArtistRoute } from './components/ArtistRoute'
 export { default as AuthLayout } from './components/AuthLayout'
 export { default as AuthLoader } from './components/AuthLoader'
 export { default as AuthProvider } from './components/AuthProvider'
@@ -38,6 +39,8 @@ export { useWallet } from './hooks/useWallet'
 export type { UseWallet, WalletOption } from './hooks/useWallet'
 export { useWalletAuth } from './hooks/useWalletAuth'
 export type { UseWalletAuth, WalletAuthOptions } from './hooks/useWalletAuth'
+
+export { authKeys } from './queryKeys'
 
 export { authApi } from './services/authApi'
 export { authService } from './services/authService'

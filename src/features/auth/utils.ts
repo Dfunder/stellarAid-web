@@ -1,5 +1,11 @@
 import { z } from 'zod'
 
+export const DEFAULT_AUTHENTICATED_PATH = '/dashboard'
+
+export function safeRedirect(value: string | null): string {
+  return value?.startsWith('/') && !value.startsWith('//') ? value : DEFAULT_AUTHENTICATED_PATH
+}
+
 export const MIN_PASSWORD_LENGTH = 8
 
 /** Password rules enforced by the reset form (and any future sign-up form). */

@@ -4,6 +4,7 @@ import { authApi } from '../services/authApi'
 import { endSession } from '../services/session'
 import { authStore, getAuthState, subscribeAuth } from '../stores/authStore'
 import { writeTokens } from '../stores/tokenStore'
+import { useAuthStore } from '../stores/useAuthStore'
 import type { LoginCredentials, User } from '../types'
 
 export interface UseAuth {
@@ -25,6 +26,7 @@ export function useAuth(): UseAuth {
     try {
       const session = await authApi.login(credentials)
       writeTokens(session.tokens)
+      useAuthStore.getState().setSession(session)
       authStore.setSession(session.user)
       return session.user
     } catch (error) {

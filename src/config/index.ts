@@ -10,3 +10,9 @@ export {
   subscribeToFeatureFlags,
 } from './featureFlags'
 export type { FeatureFlag, FeatureFlags } from './featureFlags'
+export {
+  activeNetworkPassphrase,
+  activeStellarNetwork,
+  STELLAR_NETWORK_LABELS,
+  stellarAccountExplorerUrl,
+} from './stellar'

@@ -1,13 +1,14 @@
 import { BrowserRouter, Link, Outlet, Route, Routes, useNavigate } from 'react-router-dom'
 import { Button, ThemeToggle } from '@/components/ui'
-import { useUiStore } from '@/stores'
 import {
   AccountMenu,
+  ArtistRoute,
   AuthLayout,
   ConnectWalletButton,
   ForgotPasswordPage,
   GuestRoute,
   LoginPage,
+  ProtectedRoute,
   RegisterPage,
   RequireAuth,
   ResetPasswordPage,
@@ -15,8 +16,8 @@ import {
   VerifyEmailPage,
   WalletSettingsPage,
 } from '@/features/auth'
-import ArtistRoute from '@/features/auth/components/ArtistRoute'
 import { ArtistProfilePage, ProfileEditPage } from '@/features/profile'
+import { useUiStore } from '@/stores'
 
 const NAV_LINK_CLASSES =
   'text-caption font-semibold text-muted transition-colors hover:text-foreground'
@@ -57,6 +58,7 @@ function AppShell() {
             >
               Lumora
             </Link>
+
             <nav className="hidden sm:flex items-center gap-4">
               <Link to="/artists/elena_art" className={NAV_LINK_CLASSES}>
                 Featured Artist
@@ -66,8 +68,10 @@ function AppShell() {
               </Link>
             </nav>
           </div>
+
           <div className="flex flex-wrap items-center gap-2.5">
             <ConnectWalletButton />
+
             {isAuthenticated ? (
               <AccountMenu />
             ) : (
@@ -75,13 +79,16 @@ function AppShell() {
                 Sign in
               </Button>
             )}
+
             <ThemeToggle />
           </div>
         </div>
       </header>
+
       <main className="flex-1">
         <Outlet />
       </main>
+
       <footer className="border-t border-line py-8 text-center text-caption-sm text-muted bg-surface/40">
         <div className="container flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>Lumora — transparent, borderless crowdfunding and commissions on Stellar.</p>
@@ -92,6 +99,7 @@ function AppShell() {
           </div>
         </div>
       </footer>
+
       <ToastViewport />
     </div>
   )
@@ -125,6 +133,7 @@ function Dashboard() {
           </Link>
         </div>
       </div>
+
       <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-card border border-line bg-surface p-6 shadow-card">
           <span className="text-caption-sm text-muted">Escrow Balance</span>
@@ -238,65 +247,76 @@ function StyleGuideHome() {
   )
 }
 
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route element={<AppShell />}>
+        <Route index element={<StyleGuideHome />} />
+
+        {/* Auth Routes */}
+        <Route element={<AuthLayout />}>
+          <Route element={<GuestRoute />}>
+            <Route path="login" element={<LoginPage />} />
+            <Route path="register" element={<RegisterPage />} />
+            <Route path="forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="reset-password" element={<ResetPasswordPage />} />
+          </Route>
+          <Route path="verify-email" element={<VerifyEmailPage />} />
+        </Route>
+
+        {/* Canonical Public Artist Profile Page (#676) */}
+        <Route path="artists/:username" element={<ArtistProfilePage />} />
+
+        {/* Protected Routes (#677 & #675) */}
+        <Route
+          path="profile/edit"
+          element={
+            <RequireAuth>
+              <ProfileEditPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="settings/profile"
+          element={
+            <RequireAuth>
+              <ProfileEditPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="settings/wallets"
+          element={
+            <RequireAuth>
+              <WalletSettingsPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="dashboard"
+          element={
+            <RequireAuth>
+              <Dashboard />
+            </RequireAuth>
+          }
+        />
+
+        {/* Artist Route */}
+        <Route element={<ArtistRoute />}>
+          <Route path="artist" element={<Dashboard />} />
+        </Route>
+
+        {/* 404 Route */}
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+    </Routes>
+  )
+}
+
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route element={<AppShell />}>
-          <Route index element={<StyleGuideHome />} />
-
-          {/* Auth Routes */}
-          <Route element={<AuthLayout />}>
-            <Route element={<GuestRoute />}>
-              <Route path="login" element={<LoginPage />} />
-              <Route path="register" element={<RegisterPage />} />
-              <Route path="forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="reset-password" element={<ResetPasswordPage />} />
-            </Route>
-            <Route path="verify-email" element={<VerifyEmailPage />} />
-          </Route>
-
-          {/* Canonical Public Artist Profile Page (#676) */}
-          <Route path="artists/:username" element={<ArtistProfilePage />} />
-
-          {/* Protected Routes (#677 & #675) */}
-          <Route
-            path="profile/edit"
-            element={
-              <RequireAuth>
-                <ProfileEditPage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="settings/profile"
-            element={
-              <RequireAuth>
-                <ProfileEditPage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="settings/wallets"
-            element={
-              <RequireAuth>
-                <WalletSettingsPage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="dashboard"
-            element={
-              <RequireAuth>
-                <Dashboard />
-              </RequireAuth>
-            }
-          />
-
-          {/* 404 Route */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Route>
-      </Routes>
+      <AppRoutes />
     </BrowserRouter>
   )
 }
