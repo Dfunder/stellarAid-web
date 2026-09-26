@@ -17,6 +17,7 @@ import {
   WalletSettingsPage,
 } from '@/features/auth'
 import { ArtistProfilePage, ProfileEditPage } from '@/features/profile'
+import { PurchasesPage, OrderConfirmationScreen } from '@/features/orders'
 import { TransactionHistoryPage } from '@/features/transactions'
 import { ArtistWithdrawal } from '@/features/portfolio'
 import { useUiStore } from '@/stores'
@@ -278,27 +279,43 @@ function AppRoutes() {
             </RequireAuth>
           }
         />
-        <Route
-          path="settings/profile"
-          element={
-            <RequireAuth>
-              <ProfileEditPage />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="settings/wallets"
-          element={
-            <RequireAuth>
-              <WalletSettingsPage />
-            </RequireAuth>
-          }
-        />
-        <Route
+<Route
           path="dashboard"
           element={
             <RequireAuth>
               <Dashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="transactions"
+          element={
+            <RequireAuth>
+              <TransactionHistoryPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="earnings/withdraw"
+          element={
+            <RequireAuth>
+              <ArtistWithdrawal />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="purchases"
+          element={
+            <RequireAuth>
+              <PurchasesPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="order/confirmation"
+          element={
+            <RequireAuth>
+              <OrderConfirmationScreen />
             </RequireAuth>
           }
         />
