@@ -1,5 +1,7 @@
 import axios, { AxiosError, type AxiosInstance, type AxiosRequestConfig } from 'axios'
 import { env } from '@/config'
+import type { ApiErrorDto } from '@/types/api'
+import { useUiStore } from '@/stores/useUiStore'
 
 /** Supplies the bearer token attached to every request. */
 export type AuthTokenProvider = () => string | null | Promise<string | null>
@@ -74,18 +76,21 @@ export class ApiError extends Error {
   readonly code: string
   /** Per-field validation messages sent by the server, keyed by field name. */
   readonly fieldErrors: Record<string, string>
+  readonly requestId: string | null
 
   constructor(
     status: number | null,
     code: string,
     message: string,
     fieldErrors: Record<string, string> = {},
+    requestId: string | null = null,
   ) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.code = code
     this.fieldErrors = fieldErrors
+    this.requestId = requestId
   }
 }
 
@@ -99,31 +104,10 @@ export function isApiError(error: unknown): error is ApiError {
 
 /** Maps any thrown value to a user-readable error message. */
 export function getErrorMessage(error: unknown): string {
-  if (error instanceof ApiError || error instanceof Error) {
+  if (error instanceof ApiError) {
     return error.message
   }
   return 'An unexpected error occurred.'
-}
-
-function defaultStatusMessage(status: number): string {
-  switch (status) {
-    case 400:
-      return 'The request was invalid.'
-    case 401:
-      return 'You need to sign in to continue.'
-    case 403:
-      return 'You do not have permission to do that.'
-    case 404:
-      return 'That resource could not be found.'
-    case 409:
-      return 'The request conflicts with the current state of the server.'
-    case 422:
-      return 'The server could not process the provided data.'
-    case 500:
-      return 'Something went wrong on our end. Please try again later.'
-    default:
-      return 'The request could not be completed.'
-  }
 }
 
 type FieldErrorsDto =
@@ -143,34 +127,73 @@ function parseFieldErrors(errors: FieldErrorsDto | undefined): Record<string, st
   return result
 }
 
+const API_ERROR_MESSAGES: Record<string, string> = {
+  AUTH_INVALID_CREDENTIALS: 'The email or password is incorrect.',
+  AUTH_EMAIL_NOT_VERIFIED: 'Verify your email address before signing in.',
+  AUTH_TOKEN_EXPIRED: 'Your session has expired. Please sign in again.',
+  AUTH_FORBIDDEN: 'You do not have permission to do that.',
+  RESOURCE_NOT_FOUND: 'That resource could not be found.',
+  RESOURCE_CONFLICT: 'That change conflicts with the current state.',
+  VALIDATION_FAILED: 'Check the highlighted fields and try again.',
+  RATE_LIMITED: 'Too many requests. Please wait a moment and try again.',
+  INTERNAL_ERROR: 'Something went wrong on our end. Please try again later.',
+  NETWORK_ERROR: 'Unable to reach the server. Please check your connection and try again.',
+  TIMEOUT: 'The request timed out. Please try again.',
+}
+
+export function getApiErrorMessage(code: string, status: number | null): string {
+  const mapped = API_ERROR_MESSAGES[code]
+  return (
+    mapped ??
+    (status === 401
+      ? API_ERROR_MESSAGES.AUTH_TOKEN_EXPIRED
+      : status === 403
+        ? API_ERROR_MESSAGES.AUTH_FORBIDDEN
+        : status === 404
+          ? API_ERROR_MESSAGES.RESOURCE_NOT_FOUND
+          : status === 409
+            ? API_ERROR_MESSAGES.RESOURCE_CONFLICT
+            : status === 422
+              ? API_ERROR_MESSAGES.VALIDATION_FAILED
+              : status !== null && status >= 500
+                ? API_ERROR_MESSAGES.INTERNAL_ERROR
+                : 'The request could not be completed.') ??
+    'The request could not be completed.'
+  )
+}
+
 function normalizeError(error: AxiosError): ApiError {
   const response = error.response
 
   if (response) {
-    const data = response.data as
-      { message?: string; error?: string; errors?: FieldErrorsDto } | undefined
-    const message = (data?.message ?? data?.error) || defaultStatusMessage(response.status)
+    const data = response.data as ApiErrorDto | undefined
+    const code = data?.code ?? (response.status === 422 ? 'VALIDATION_FAILED' : 'HTTP_ERROR')
     return new ApiError(
       response.status,
-      response.statusText || 'REQUEST_FAILED',
-      message,
+      code,
+      getApiErrorMessage(code, response.status),
       parseFieldErrors(data?.errors),
+      data?.requestId ?? null,
     )
   }
 
   if (error.code === 'ECONNABORTED') {
-    return new ApiError(
-      null,
-      'TIMEOUT',
-      'The request timed out. Please check your connection and try again.',
-    )
+    return new ApiError(null, 'TIMEOUT', getApiErrorMessage('TIMEOUT', null))
   }
 
-  return new ApiError(
-    null,
-    'NETWORK_ERROR',
-    'Unable to reach the server. Please check your connection and try again.',
-  )
+  return new ApiError(null, 'NETWORK_ERROR', getApiErrorMessage('NETWORK_ERROR', null))
+}
+
+function reportUnexpectedError(error: ApiError, request: AxiosRequestConfig | undefined): void {
+  if (!(error.code in API_ERROR_MESSAGES)) {
+    console.error('Unexpected API error', {
+      code: error.code,
+      status: error.status,
+      requestId: error.requestId,
+      method: request?.method,
+      url: request?.url,
+    })
+  }
 }
 
 function shouldRetry(error: AxiosError): boolean {
@@ -233,7 +256,10 @@ function buildClient(): AxiosInstance {
         return client(config)
       }
 
-      return Promise.reject(normalizeError(error))
+      const normalized = normalizeError(error)
+      reportUnexpectedError(normalized, config)
+      if (normalized.status !== 422) useUiStore.getState().pushToast(normalized.message, 'error')
+      return Promise.reject(normalized)
     },
   )
 

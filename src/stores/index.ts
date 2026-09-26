@@ -3,4 +3,5 @@
  *
  * Feature-scoped stores live in `src/features/<feature>/stores`.
  */
-export { queryClient } from './queryClient'
+export { invalidateQueriesFor, queryClient } from './queryClient'
+export { useUiStore } from './useUiStore'

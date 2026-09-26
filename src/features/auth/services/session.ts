@@ -1,6 +1,7 @@
 import { ApiError, getErrorMessage, setAuthTokenProvider, setUnauthorizedHandler } from '@/services'
 import { queryClient } from '@/stores'
 import { authStore } from '../stores/authStore'
+import { useAuthStore } from '../stores/useAuthStore'
 import { clearTokens, getAccessToken, readTokens, writeTokens } from '../stores/tokenStore'
 import { decodeJwtExpiry } from '../utils'
 import { authApi } from './authApi'
@@ -21,6 +22,7 @@ async function loadProfile(): Promise<ProfileResult> {
   try {
     const { user } = await authApi.me()
     authStore.setSession(user)
+    useAuthStore.getState().setUser(user)
     return 'ok'
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) return 'unauthorized'
@@ -38,6 +40,7 @@ async function performRefresh(): Promise<boolean> {
   try {
     const { tokens: next } = await authApi.refresh(tokens.refreshToken)
     writeTokens(next)
+    useAuthStore.getState().setTokens(next)
     return true
   } catch {
     // The refresh token is expired, revoked or unreachable - the caller decides.
@@ -60,6 +63,7 @@ export function refreshSession(): Promise<boolean> {
 export function clearSessionState(): void {
   clearTokens()
   authStore.clearSession()
+  useAuthStore.getState().clearSession()
   queryClient.clear()
 }
 

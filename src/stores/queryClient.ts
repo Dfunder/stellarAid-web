@@ -26,3 +26,8 @@ export const queryClient = new QueryClient({
     },
   },
 })
+
+/** Mutation convention: invalidate through a feature factory key, never a string literal. */
+export function invalidateQueriesFor(queryKey: readonly unknown[]): Promise<void> {
+  return queryClient.invalidateQueries({ queryKey })
+}

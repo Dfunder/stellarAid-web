@@ -8,7 +8,7 @@ import ConfigErrorScreen from '@/components/ui/ConfigErrorScreen'
 import ErrorBoundary from '@/components/ui/ErrorBoundary'
 import ThemeProvider from '@/components/ui/ThemeProvider'
 import App from '@/App'
-import { configError } from '@/config'
+import { configError, loadRemoteFeatureFlags } from '@/config'
 import { AuthProvider } from '@/features/auth'
 import { queryClient } from '@/stores'
 
