@@ -18,6 +18,10 @@ import {
 } from '@/features/auth'
 import { ArtistProfilePage, ProfileEditPage } from '@/features/profile'
 import { CheckoutPage, MyListingsDashboard, EditListing, LicenseTermsField, DeliverableUpload, MultiAssetPricingInput, MultiStepListingWizard, CreateArtworkListingForm } from '@/features/marketplace'
+import { PurchasesPage, OrderConfirmationScreen } from '@/features/orders'
+import { TransactionHistoryPage } from '@/features/transactions'
+import { ArtistWithdrawal } from '@/features/portfolio'
+import { PaymentResultScreen } from '@/features/payments'
 import { CheckoutPage, MyListingsDashboard, EditListing, LicenseTermsField } from '@/features/marketplace'
 import { PurchasesPage, OrderConfirmationScreen } from '@/features/orders'
 import { TransactionHistoryPage } from '@/features/transactions'
@@ -454,6 +458,78 @@ function AppRoutes() {
           element={
             <RequireAuth>
               <CreateArtworkListingForm />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="transactions"
+          element={
+            <RequireAuth>
+              <TransactionHistoryPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="earnings/withdraw"
+          element={
+            <RequireAuth>
+              <ArtistWithdrawal />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="purchases"
+          element={
+            <RequireAuth>
+              <PurchasesPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="order/confirmation"
+          element={
+            <RequireAuth>
+              <OrderConfirmationScreen />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="checkout/:artworkId"
+          element={
+            <RequireAuth>
+              <CheckoutPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="artist/listings"
+          element={
+            <RequireAuth>
+              <MyListingsDashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="artist/listings/:listingId/edit"
+          element={
+            <RequireAuth>
+              <EditListing />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="artist/listings/new"
+          element={
+            <RequireAuth>
+              <CreateArtworkListingForm />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="payment/result"
+          element={
+            <RequireAuth>
+              <PaymentResultScreen />
             </RequireAuth>
           }
         />
