@@ -17,6 +17,7 @@ import {
   WalletSettingsPage,
 } from '@/features/auth'
 import { ArtistProfilePage, ProfileEditPage } from '@/features/profile'
+import { CheckoutPage, MyListingsDashboard, EditListing, LicenseTermsField } from '@/features/marketplace'
 import { PurchasesPage, OrderConfirmationScreen } from '@/features/orders'
 import { TransactionHistoryPage } from '@/features/transactions'
 import { ArtistWithdrawal } from '@/features/portfolio'
@@ -332,6 +333,62 @@ function AppRoutes() {
           element={
             <RequireAuth>
               <ArtistWithdrawal />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="transactions"
+          element={
+            <RequireAuth>
+              <TransactionHistoryPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="earnings/withdraw"
+          element={
+            <RequireAuth>
+              <ArtistWithdrawal />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="purchases"
+          element={
+            <RequireAuth>
+              <PurchasesPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="order/confirmation"
+          element={
+            <RequireAuth>
+              <OrderConfirmationScreen />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="checkout/:artworkId"
+          element={
+            <RequireAuth>
+              <CheckoutPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="artist/listings"
+          element={
+            <RequireAuth>
+              <MyListingsDashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="artist/listings/:listingId/edit"
+          element={
+            <RequireAuth>
+              <EditListing />
             </RequireAuth>
           }
         />
