@@ -3,13 +3,29 @@ import type { StellarNetwork } from '@/config'
 /** Roles a user can hold; mirrors the backend's role enum. */
 export type UserRole = 'client' | 'artist' | 'admin'
 
+export interface UserSocials {
+  twitter?: string
+  github?: string
+  instagram?: string
+  discord?: string
+  artstation?: string
+}
+
 /** The signed-in user's profile, as returned by `/auth/me`. */
 export interface User {
   id: string
   email: string
   name: string
+  username?: string
   role: UserRole
   emailVerified: boolean
+  avatarUrl?: string | null
+  coverUrl?: string | null
+  bio?: string
+  location?: string
+  website?: string
+  socials?: UserSocials
+  skills?: string[]
   /** Primary linked Stellar address, or `null` when none is linked yet. */
   publicKey: string | null
   createdAt: string
@@ -35,6 +51,28 @@ export interface LoginCredentials {
 export interface ResetPasswordPayload {
   token: string
   password: string
+}
+
+export interface WalletNonceResponse {
+  nonce: string
+  challenge: string
+  expiresAt: string
+}
+
+export interface WalletLoginPayload {
+  publicKey: string
+  signature: string
+  nonce: string
+}
+
+export interface WalletRegisterPayload {
+  publicKey: string
+  signature: string
+  nonce: string
+  name?: string
+  username?: string
+  email?: string
+  role?: UserRole
 }
 
 /**

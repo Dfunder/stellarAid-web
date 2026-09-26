@@ -5,6 +5,9 @@ import type {
   LoginCredentials,
   ResetPasswordPayload,
   User,
+  WalletLoginPayload,
+  WalletNonceResponse,
+  WalletRegisterPayload,
 } from '../types'
 
 /**
@@ -16,6 +19,25 @@ import type {
 export const authApi = {
   login(credentials: LoginCredentials): Promise<AuthSession> {
     return http.post<AuthSession>('/auth/login', credentials, { skipRetry: true })
+  },
+
+  /** Requests a cryptographic nonce for signing with the connected wallet. */
+  requestWalletNonce(publicKey: string): Promise<WalletNonceResponse> {
+    return http.post<WalletNonceResponse>(
+      '/auth/wallet/nonce',
+      { publicKey },
+      { skipRetry: true },
+    )
+  },
+
+  /** Submits the wallet signature and nonce in exchange for a full JWT session. */
+  loginWithWallet(payload: WalletLoginPayload): Promise<AuthSession> {
+    return http.post<AuthSession>('/auth/wallet/login', payload, { skipRetry: true })
+  },
+
+  /** Registers a new user account tied to the connected wallet address. */
+  registerWithWallet(payload: WalletRegisterPayload): Promise<AuthSession> {
+    return http.post<AuthSession>('/auth/wallet/register', payload, { skipRetry: true })
   },
 
   /** Profile of the current bearer token; the session bootstrap's source of truth. */

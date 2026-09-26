@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button, Input } from '@/components/ui'
 import { useAuth } from '../hooks/useAuth'
 import { emailSchema } from '../utils'
+import WalletAuthModal from './WalletAuthModal'
 
 /** Passed through navigation from the reset flow and the route guard. */
 interface NavigationState {
@@ -19,6 +20,7 @@ export default function SignInPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [emailError, setEmailError] = useState<string | null>(null)
+  const [isWalletModalOpen, setWalletModalOpen] = useState(false)
 
   const notice = navigationState.notice ?? null
   const redirectTo = navigationState.from ?? '/'
@@ -26,6 +28,10 @@ export default function SignInPage() {
   useEffect(() => {
     if (isAuthenticated) navigate(redirectTo, { replace: true })
   }, [isAuthenticated, navigate, redirectTo])
+
+  const handleWalletSuccess = () => {
+    navigate(redirectTo, { replace: true })
+  }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault()
@@ -71,7 +77,29 @@ export default function SignInPage() {
           </p>
         ) : null}
 
-        <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4" noValidate>
+        <div className="mt-6">
+          <Button
+            variant="secondary"
+            className="w-full justify-center gap-2"
+            onClick={() => setWalletModalOpen(true)}
+          >
+            <svg className="h-5 w-5 text-gold" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
+            </svg>
+            Sign in with Stellar Wallet
+          </Button>
+        </div>
+
+        <div className="relative my-6 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-line" />
+          </div>
+          <div className="relative bg-surface px-4 text-caption text-muted">
+            or continue with email
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
           <Input
             label="Email"
             type="email"
@@ -100,6 +128,12 @@ export default function SignInPage() {
             Forgot your password?
           </Link>
         </p>
+
+        <WalletAuthModal
+          isOpen={isWalletModalOpen}
+          onClose={() => setWalletModalOpen(false)}
+          onSuccess={handleWalletSuccess}
+        />
       </div>
     </div>
   )

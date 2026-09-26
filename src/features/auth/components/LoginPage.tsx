@@ -7,6 +7,7 @@ import { useAuthStore } from '../stores/useAuthStore'
 import { safeRedirect } from '../utils'
 import { inputClass, linkClass, primaryButtonClass } from './formStyles'
 import ResendVerificationButton from './ResendVerificationButton'
+import WalletAuthModal from './WalletAuthModal'
 
 const INVALID_CREDENTIALS = 'Invalid email or password.'
 
@@ -21,6 +22,12 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null)
+  const [isWalletModalOpen, setWalletModalOpen] = useState(false)
+
+  const handleWalletLoginSuccess = () => {
+    analytics.track('login', { method: 'wallet' })
+    navigate(safeRedirect(searchParams.get('redirect')), { replace: true })
+  }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -52,7 +59,30 @@ export default function LoginPage() {
       <h1 className="text-h2">Sign in</h1>
       <p className="mt-2 text-body text-muted">Welcome back to Lumora.</p>
 
-      <form onSubmit={handleSubmit} noValidate className="mt-8 flex flex-col gap-5">
+      {/* Wallet Login CTA */}
+      <div className="mt-6">
+        <button
+          type="button"
+          onClick={() => setWalletModalOpen(true)}
+          className="flex w-full items-center justify-center gap-3 rounded-control border border-line bg-surface p-3 text-body font-semibold text-foreground shadow-card transition-colors hover:bg-surface-muted focus-visible:shadow-focus-ring"
+        >
+          <svg className="h-5 w-5 text-gold" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
+          </svg>
+          Sign in with Stellar Wallet
+        </button>
+      </div>
+
+      <div className="relative my-6 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-line" />
+        </div>
+        <div className="relative bg-surface px-4 text-caption text-muted">
+          or sign in with email
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
         {error && (
           <p
             role="alert"
@@ -131,6 +161,12 @@ export default function LoginPage() {
           Create an account
         </Link>
       </p>
+
+      <WalletAuthModal
+        isOpen={isWalletModalOpen}
+        onClose={() => setWalletModalOpen(false)}
+        onSuccess={handleWalletLoginSuccess}
+      />
     </div>
   )
 }
