@@ -17,6 +17,8 @@ import {
   WalletSettingsPage,
 } from '@/features/auth'
 import { ArtistProfilePage, ProfileEditPage } from '@/features/profile'
+import { TransactionHistoryPage } from '@/features/transactions'
+import { ArtistWithdrawal } from '@/features/portfolio'
 import { useUiStore } from '@/stores'
 
 const NAV_LINK_CLASSES =
@@ -297,6 +299,22 @@ function AppRoutes() {
           element={
             <RequireAuth>
               <Dashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="transactions"
+          element={
+            <RequireAuth>
+              <TransactionHistoryPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="earnings/withdraw"
+          element={
+            <RequireAuth>
+              <ArtistWithdrawal />
             </RequireAuth>
           }
         />
