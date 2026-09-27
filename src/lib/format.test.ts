@@ -6,8 +6,8 @@ describe('truncateMiddle', () => {
     expect(truncateMiddle('GC4PQ', 6, 4)).toBe('GC4PQ')
   })
 
-  it('returns short Stellar keys unchanged', () => {
-    expect(truncateMiddle('GABC12WXYZ89')).toBe('GABC12WXYZ89')
+  it('returns a value exactly at head + tail unchanged', () => {
+    expect(truncateMiddle('GABC12WXYZ')).toBe('GABC12WXYZ')
   })
 
   it('truncates the middle of a long value', () => {
@@ -15,7 +15,7 @@ describe('truncateMiddle', () => {
   })
 
   it('honours custom head and tail lengths', () => {
-    expect(truncateMiddle('GABCDEF0123456789WXYZ', 10, 8)).toBe('GABCDEF012\u2026FG0123WXYZ')
+    expect(truncateMiddle('GABCDEF0123456789WXYZ', 10, 8)).toBe('GABCDEF012\u20266789WXYZ')
   })
 
   it('never produces overlapping output for inputs shorter than head + tail', () => {
@@ -40,7 +40,10 @@ describe('formatDate', () => {
   })
 
   it('forwards caller-provided options over the defaults', () => {
-    const expected = new Date(iso).toLocaleDateString(undefined, { ...defaultOptions, year: '2-digit' })
+    const expected = new Date(iso).toLocaleDateString(undefined, {
+      ...defaultOptions,
+      year: '2-digit',
+    })
     expect(formatDate(iso, { year: '2-digit' })).toBe(expected)
   })
 
