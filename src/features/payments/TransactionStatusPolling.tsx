@@ -68,7 +68,7 @@ export default function TransactionStatusPolling({
   const { data, isPending, isError, error, refetch } = useQuery({
     queryKey: ['txStatus', txHash],
     queryFn: async (): Promise<TransactionStatusData> => {
-      const response = await http.get<{ status: TransactionStatusData }>(`/transactions/${txHash}/status`)
+      const response = await http.get<{ status: TransactionStatusData }>(`/transactions/${encodeURIComponent(txHash)}/status`)
       return response.status
     },
     enabled: !!txHash,

@@ -42,7 +42,7 @@ export default function ExplorerLink({
   const { copy, isCopied } = useCopyToClipboard()
 
   const displayValue = isExpanded ? value : truncate(value)
-  const href = `${EXPLORER_ROOTS[network][type]}/${value}`
+  const href = `${EXPLORER_ROOTS[network][type]}/${encodeURIComponent(value)}`
 
   return (
     <span className={`inline-flex items-center gap-1.5 ${className}`}>

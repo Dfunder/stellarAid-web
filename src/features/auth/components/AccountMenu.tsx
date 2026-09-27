@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCopyToClipboard } from '@/hooks'
 import { truncateMiddle } from '@/lib'
+import { safeExternalUrl } from '@/lib/url'
 import { useAuth } from '../hooks/useAuth'
 import { useWallet } from '../hooks/useWallet'
 
@@ -110,6 +111,7 @@ export default function AccountMenu() {
   const profileHandle = user.username || user.id
   const displayName = user.name || 'Lumora Creator'
   const initials = getInitials(user.name, user.email)
+  const safeAvatar = user.avatarUrl ? safeExternalUrl(user.avatarUrl) : null
 
   return (
     <div
@@ -128,9 +130,9 @@ export default function AccountMenu() {
         onClick={() => setIsOpen((prev) => !prev)}
         className="flex items-center gap-2.5 rounded-control border border-line/60 bg-surface px-2.5 py-1.5 text-body text-foreground shadow-card transition hover:border-line hover:bg-surface-muted focus-visible:shadow-focus-ring"
       >
-        {user.avatarUrl ? (
+        {safeAvatar ? (
           <img
-            src={user.avatarUrl}
+            src={safeAvatar}
             alt={displayName}
             className="h-7 w-7 rounded-full object-cover border border-line"
           />
@@ -165,9 +167,9 @@ export default function AccountMenu() {
           {/* User Header Section */}
           <div className="border-b border-line px-3 py-3">
             <div className="flex items-center gap-3">
-              {user.avatarUrl ? (
+              {safeAvatar ? (
                 <img
-                  src={user.avatarUrl}
+                  src={safeAvatar}
                   alt={displayName}
                   className="h-10 w-10 rounded-full object-cover border border-line"
                 />

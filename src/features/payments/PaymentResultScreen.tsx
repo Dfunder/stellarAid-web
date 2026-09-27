@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { formatDate } from '@/lib'
+import { safeExternalUrl } from '@/lib/url'
 
 interface PaymentResultData {
   id: string
@@ -10,6 +11,7 @@ interface PaymentResultData {
   artworkTitle: string
   artworkThumbnail?: string
   sellerName: string
+  sellerUsername: string
   amount: string
   asset: string
   platformFee: string
@@ -72,7 +74,7 @@ export default function PaymentResultScreen() {
     queryKey: ['paymentResult', sessionId],
     queryFn: async (): Promise<PaymentResultData> => {
       if (!sessionId) throw new Error('No session ID')
-      const response = await http.get<{ result: PaymentResultData }>(`/payments/result/${sessionId}`)
+      const response = await http.get<{ result: PaymentResultData }>(`/payments/result/${encodeURIComponent(sessionId)}`)
       return response.result
     },
     enabled: !!sessionId,
@@ -194,20 +196,30 @@ export default function PaymentResultScreen() {
                   <h3 className="text-caption-sm font-semibold text-foreground">Your Deliverables</h3>
                   <p className="mt-1 text-caption text-muted">Download links expire on {formatDate(result.deliverables[0].expiresAt)}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {result.deliverables.map((d) => (
-                      <Button key={d.id} size="sm" variant="secondary" asChild>
-                        <a href={d.url} target="_blank" rel="noreferrer">
-                          Download {d.name}
-                        </a>
-                      </Button>
-                    ))}
+                    {result.deliverables.map((d) => {
+                      const safeUrl = safeExternalUrl(d.url)
+                      if (!safeUrl) {
+                        return (
+                          <span key={d.id} className="inline-flex items-center rounded-control bg-surface-muted px-3 py-2 text-caption-sm text-muted">
+                            {d.name} — unavailable
+                          </span>
+                        )
+                      }
+                      return (
+                        <Button key={d.id} size="sm" variant="secondary" asChild>
+                          <a href={safeUrl} target="_blank" rel="noreferrer">
+                            Download {d.name}
+                          </a>
+                        </Button>
+                      )
+                    })}
                   </div>
                 </div>
               )}
 
               <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
                 <Button asChild>
-                  <a href={`/artists/${result.sellerName.toLowerCase().replace(/\s+/g, '_')}`}>View Seller Profile</a>
+                  <a href={`/artists/${encodeURIComponent(result.sellerUsername)}`}>View Seller Profile</a>
                 </Button>
                 <Button variant="secondary" asChild>
                   <a href="/orders/purchases">View All Purchases</a>
