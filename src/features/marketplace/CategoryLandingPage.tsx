@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Button, Skeleton } from '@/components/ui'
+import { Button, Skeleton, SkeletonText, SkeletonGrid } from '@/components/ui'
 import { http } from '@/services'
 import { formatDate } from '@/lib'
 

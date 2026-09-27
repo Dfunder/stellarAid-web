@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Button, Skeleton } from '@/components/ui'
+import { Button, Skeleton, SkeletonText, SkeletonCard } from '@/components/ui'
 import { http } from '@/services'
 
 interface ArtworkCard {
