@@ -12,6 +12,12 @@ npm install
 npm run dev
 ```
 
+> **Lockfile mismatch on `npm ci`?** If a fresh clone fails with `npm ci` errors like
+> `Missing: <pkg> from lock file`, the lockfile is out of sync with `package.json`.
+> Do **not** delete `package-lock.json` — run `npm install` (which regenerates it),
+> review the `package-lock.json` diff, commit it together with the dependency change,
+> and re-verify with `npm ci`.
+
 ## Before You Push
 
 Every change must pass these checks locally:
