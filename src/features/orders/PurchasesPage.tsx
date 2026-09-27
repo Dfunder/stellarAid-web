@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { formatDate } from '@/lib'
@@ -48,7 +48,7 @@ export default function PurchasesPage() {
   const [page, setPage] = useState(1)
   const pageSize = 10
 
-  const { data, isPending, isError, error, refetch } = useQuery({
+  const { data, isPending, isError, error, refetch, isFetching } = useQuery({
     queryKey: orderKeys.list({ status: statusFilter, page, pageSize }),
     queryFn: async (): Promise<{ orders: Order[]; total: number }> => {
       const params = new URLSearchParams()
@@ -58,6 +58,7 @@ export default function PurchasesPage() {
       const response = await http.get<{ orders: Order[]; total: number }>(`/orders/purchases?${params}`)
       return response
     },
+    placeholderData: keepPreviousData,
   })
 
   const orders = data?.orders ?? []
@@ -115,6 +116,12 @@ export default function PurchasesPage() {
           </select>
         </div>
       </div>
+
+      {isFetching && orders.length > 0 && (
+        <p className="mb-2 text-center text-caption-xs text-muted animate-pulse" role="status">
+          Updating results…
+        </p>
+      )}
 
       {orders.length === 0 ? (
         <div className="rounded-card border border-line bg-surface p-12 shadow-card text-center">

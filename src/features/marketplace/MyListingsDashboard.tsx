@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { Button, ExplorerLink, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
@@ -39,7 +39,7 @@ export default function MyListingsDashboard() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [pendingAction, setPendingAction] = useState<{ type: 'unpublish' | 'delete'; listing: Listing } | null>(null)
 
-  const { data, isPending, isError, error, refetch } = useQuery({
+  const { data, isPending, isError, error, refetch, isFetching } = useQuery({
     queryKey: ['myListings', user?.id, statusFilter],
     queryFn: async (): Promise<Listing[]> => {
       const params = new URLSearchParams()
@@ -48,6 +48,7 @@ export default function MyListingsDashboard() {
       return response.listings
     },
     enabled: !!user,
+    placeholderData: keepPreviousData,
   })
 
   const listings = data ?? []
@@ -135,6 +136,11 @@ export default function MyListingsDashboard() {
 
   return (
     <div className="container py-8">
+      {isFetching && data && data.length > 0 && (
+        <p className="mb-2 text-center text-caption-xs text-muted animate-pulse" role="status">
+          Updating listings…
+        </p>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-h2">My Listings</h1>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { Button, Skeleton } from '@/components/ui'
 import { http } from '@/services'
 import { formatDate } from '@/lib'
@@ -47,7 +47,7 @@ export default function CategoryLandingPage({ slug }: CategoryLandingPageProps) 
     enabled: !!slug,
   })
 
-  const { data: artworks, isPending: artworksPending } = useQuery({
+  const { data: artworks, isPending: artworksPending, isFetching: artworksFetching } = useQuery({
     queryKey: ['categoryArtworks', slug, subCategoryFilter],
     queryFn: async (): Promise<CategoryArtwork[]> => {
       const params = new URLSearchParams()
@@ -56,6 +56,7 @@ export default function CategoryLandingPage({ slug }: CategoryLandingPageProps) 
       return response.artworks
     },
     enabled: !!slug,
+    placeholderData: keepPreviousData,
   })
 
   if (categoryPending) {
@@ -165,7 +166,7 @@ export default function CategoryLandingPage({ slug }: CategoryLandingPageProps) 
       )}
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" role="list">
-        {artworksPending ? (
+        {artworksPending && !artworks ? (
           Array.from({ length: 8 }, (_, i) => <article key={i} role="listitem">{renderSkeleton()}</article>)
         ) : artworks?.length === 0 ? (
           <div className="col-span-full flex flex-col items-center gap-3 py-12 text-muted">
@@ -179,6 +180,11 @@ export default function CategoryLandingPage({ slug }: CategoryLandingPageProps) 
           artworks?.map((artwork) => (
             <article key={artwork.id} role="listitem">{renderCard(artwork)}</article>
           ))
+        )}
+        {artworksFetching && artworks && (
+          <p className="col-span-full text-center text-caption-xs text-muted animate-pulse" role="status">
+            Updating…
+          </p>
         )}
       </div>
     </div>
