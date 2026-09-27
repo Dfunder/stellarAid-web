@@ -28,12 +28,14 @@ The app is served at `http://localhost:5173`.
 | Script                 | Description                                    |
 | ---------------------- | ---------------------------------------------- |
 | `npm run dev`          | Start the Vite dev server with HMR             |
-| `npm run build`        | Type-check and build the production bundle     |
+| `npm run build`        | Type-check (via `tsc -b`) and build the bundle |
 | `npm run preview`      | Serve the production build locally             |
 | `npm run lint`         | Lint the codebase with ESLint                  |
 | `npm run format`       | Format the codebase with Prettier              |
 | `npm run format:check` | Check formatting without writing (CI-friendly) |
-| `npm run type-check`   | Type-check with `tsc` without emitting output  |
+| `npm run type-check`   | Project-references build via `tsc -b`          |
+| `npm run test`         | Run the unit tests (Vitest)                    |
+| `npm run prepare`      | Install the Husky Git hooks                    |
 
 ## Environment Variables
 
