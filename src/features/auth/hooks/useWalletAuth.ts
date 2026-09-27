@@ -70,7 +70,7 @@ export function useWalletAuth(): UseWalletAuth {
         let nonceData
         try {
           nonceData = await authApi.requestWalletNonce(connection.publicKey)
-        } catch (nonceError) {
+        } catch {
           // If the backend endpoint is not reachable or returns a fallback format
           const fallbackNonce = `lumora-auth-nonce-${connection.publicKey.slice(0, 8)}-${Date.now()}`
           nonceData = {

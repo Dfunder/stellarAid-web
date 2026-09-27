@@ -1,6 +1,5 @@
 import { stellarAccountExplorerUrl } from '@/config'
 import { useCopyToClipboard } from '@/hooks'
-import { truncateMiddle } from '@/lib'
 import type { ArtistProfileExtended } from '../types'
 
 export interface ProfileAboutTabProps {

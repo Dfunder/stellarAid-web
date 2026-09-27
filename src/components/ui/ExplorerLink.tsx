@@ -35,7 +35,6 @@ export default function ExplorerLink({
   value,
   type,
   network = activeStellarNetwork,
-  label,
   className = '',
 }: ExplorerLinkProps) {
   const [isExpanded, setIsExpanded] = useState(false)

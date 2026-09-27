@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, ExplorerLink, Modal, Spinner } from '@/components/ui'
+import { Button, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { formatDate } from '@/lib'
@@ -292,6 +292,37 @@ export default function MyListingsDashboard() {
           </>
         )}
       </div>
+
+      <Modal
+        isOpen={pendingAction !== null}
+        onClose={() => setPendingAction(null)}
+        title={pendingAction?.type === 'delete' ? 'Delete Listing' : 'Unpublish Listing'}
+      >
+        <div className="flex flex-col gap-4">
+          <p className="text-caption text-muted">
+            {pendingAction?.type === 'delete'
+              ? `Delete "${pendingAction?.listing.title}"? This cannot be undone.`
+              : `Unpublish "${pendingAction?.listing.title}"?`}
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button size="sm" variant="ghost" onClick={() => setPendingAction(null)}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              variant={pendingAction?.type === 'delete' ? 'danger' : 'secondary'}
+              isLoading={pendingAction?.type === 'delete' ? deleteMutation.isPending : unpublishMutation.isPending}
+              onClick={() => {
+                if (pendingAction) {
+                  void handleConfirmAction()
+                }
+              }}
+            >
+              {pendingAction?.type === 'delete' ? 'Delete' : 'Unpublish'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

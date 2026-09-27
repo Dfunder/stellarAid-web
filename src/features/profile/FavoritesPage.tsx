@@ -47,7 +47,6 @@ export function useFavorites() {
   const { user, isAuthenticated } = useAuth()
   const queryClient = useQueryClient()
   const [guestFavorites, setGuestFavoritesState] = useState<FavoriteItem[]>(() => getGuestFavorites())
-  const [isLoaded, setIsLoaded] = useState(false)
 
   // Load server favorites when authenticated
   const { data: serverFavorites, isPending } = useQuery({

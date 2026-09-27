@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
@@ -65,7 +65,7 @@ export default function TransactionStatusPolling({
   const [requiredConfirmations, setRequiredConfirmations] = useState(initialStatus?.requiredConfirmations ?? 1)
   const [failureReason, setFailureReason] = useState<string | null>(null)
 
-  const { data, isPending, isError, error, refetch } = useQuery({
+  const { data, isPending, refetch } = useQuery({
     queryKey: ['txStatus', txHash],
     queryFn: async (): Promise<TransactionStatusData> => {
       const response = await http.get<{ status: TransactionStatusData }>(`/transactions/${txHash}/status`)

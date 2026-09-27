@@ -107,7 +107,6 @@ export default function OrderConfirmationScreen() {
   }
 
   const isSuccess = order.status === 'confirmed'
-  const isFailed = order.status === 'failed'
   const isConfirming = order.status === 'confirming'
 
   return (

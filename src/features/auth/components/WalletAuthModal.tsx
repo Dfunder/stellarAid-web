@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react'
 import { Button, Modal, Spinner } from '@/components/ui'
-import { truncateMiddle } from '@/lib'
 import { useWallet } from '../hooks/useWallet'
 import { useWalletAuth } from '../hooks/useWalletAuth'
 import type { User } from '../types'
