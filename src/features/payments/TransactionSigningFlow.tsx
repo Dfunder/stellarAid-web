@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
+import { truncateMiddle } from '@/lib'
 import { useWallet } from '@/features/auth/hooks/useWallet'
 import { signWithConnectedWallet } from '@/features/auth/services/wallets'
 import { getWalletConnection } from '@/features/auth/stores/walletStore'
@@ -154,11 +155,11 @@ export default function TransactionSigningFlow({
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted">TX Hash (predicted)</dt>
-                <dd className="font-mono text-caption-xs">{txHash?.slice(0, 16)}…{txHash?.slice(-8)}</dd>
+                <dd className="font-mono text-caption-xs">{txHash ? truncateMiddle(txHash, 16, 8) : ''}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted">From</dt>
-                <dd className="font-mono text-caption-xs">{publicKey?.slice(0, 10)}…{publicKey?.slice(-8)}</dd>
+                <dd className="font-mono text-caption-xs">{publicKey ? truncateMiddle(publicKey, 10, 8) : ''}</dd>
               </div>
             </dl>
           </div>
