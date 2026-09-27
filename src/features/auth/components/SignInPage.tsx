@@ -2,20 +2,24 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Button, Input } from '@/components/ui'
 import { useAuth } from '../hooks/useAuth'
-import { emailSchema } from '../utils'
+import { emailSchema, safeRedirect } from '../utils'
 import WalletAuthModal from './WalletAuthModal'
 
-/** Passed through navigation from the reset flow and the route guard. */
-interface NavigationState {
-  from?: string
-  notice?: string
+/** Reads only the string fields we expect from router state; everything else is ignored. */
+function readNavigationState(state: unknown): { from?: string; notice?: string } {
+  if (typeof state !== 'object' || state === null) return {}
+  const record = state as Record<string, unknown>
+  return {
+    from: typeof record.from === 'string' ? record.from : undefined,
+    notice: typeof record.notice === 'string' ? record.notice : undefined,
+  }
 }
 
 export default function SignInPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams] = useSearchParams()
-  const navigationState = (location.state ?? {}) as NavigationState
+  const navigationState = readNavigationState(location.state)
   const { login, isAuthenticated, isLoading, error: authError } = useAuth()
 
   const [email, setEmail] = useState('')
@@ -24,7 +28,7 @@ export default function SignInPage() {
   const [isWalletModalOpen, setWalletModalOpen] = useState(false)
 
   const notice = navigationState.notice ?? null
-  const redirectTo = navigationState.from ?? searchParams.get('redirect') ?? '/'
+  const redirectTo = safeRedirect(navigationState.from ?? searchParams.get('redirect'))
 
   useEffect(() => {
     if (isAuthenticated) navigate(redirectTo, { replace: true })

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { analytics } from '@/lib'
 import { getErrorMessage, isApiError } from '@/services'
 import { authService } from '../services/authService'
@@ -13,6 +13,7 @@ const INVALID_CREDENTIALS = 'Invalid email or password.'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const setSession = useAuthStore((state) => state.setSession)
 
@@ -24,9 +25,14 @@ export default function LoginPage() {
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null)
   const [isWalletModalOpen, setWalletModalOpen] = useState(false)
 
+  const redirectTarget = (): string => {
+    const fromState = (location.state as Record<string, unknown> | null)?.from
+    return safeRedirect(typeof fromState === 'string' ? fromState : searchParams.get('redirect'))
+  }
+
   const handleWalletLoginSuccess = () => {
     analytics.track('login', { method: 'wallet' })
-    navigate(safeRedirect(searchParams.get('redirect')), { replace: true })
+    navigate(redirectTarget(), { replace: true })
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -38,7 +44,7 @@ export default function LoginPage() {
       const session = await authService.login({ email: email.trim(), password })
       setSession(session)
       analytics.track('login', { method: 'password' })
-      navigate(safeRedirect(searchParams.get('redirect')), { replace: true })
+      navigate(redirectTarget(), { replace: true })
     } catch (err) {
       const status = isApiError(err) ? err.status : null
       if (status === 403) {

@@ -2,8 +2,42 @@ import { z } from 'zod'
 
 export const DEFAULT_AUTHENTICATED_PATH = '/dashboard'
 
+/**
+ * Narrows an untrusted redirect target (query param or router state) to a safe
+ * internal path. Rejects protocol-relative and escaped-backslash bypasses
+ * (`//evil.com`, `/\evil.com`, `/%09/evil.com`) and anything that is not a
+ * single leading-slash path on this origin. Browser URL parsing rejects a
+ * backslash at the start of a host, so we normalize `\` -> `/` before checking.
+ */
 export function safeRedirect(value: string | null): string {
-  return value?.startsWith('/') && !value.startsWith('//') ? value : DEFAULT_AUTHENTICATED_PATH
+  if (!value) return DEFAULT_AUTHENTICATED_PATH
+  if (!value.startsWith('/')) return DEFAULT_AUTHENTICATED_PATH
+
+  const withForwardSlashes = value.replace(/\\/g, '/')
+  if (withForwardSlashes.startsWith('//')) return DEFAULT_AUTHENTICATED_PATH
+  if (hasControlCharacters(value)) return DEFAULT_AUTHENTICATED_PATH
+
+  if (typeof window !== 'undefined') {
+    try {
+      const target = new URL(withForwardSlashes, window.location.origin)
+      if (target.origin !== window.location.origin) return DEFAULT_AUTHENTICATED_PATH
+    } catch {
+      // Malformed URL (e.g. a lone `%`): treat as unsafe.
+      return DEFAULT_AUTHENTICATED_PATH
+    }
+  }
+
+  return withForwardSlashes
+}
+
+/** Control chars in the raw value OR after percent-decoding (e.g. `/%09/`). */
+function hasControlCharacters(value: string): boolean {
+  if (/\t|\u0000-\u001F|\u007F/.test(value)) return true
+  try {
+    return /\t|\u0000-\u001F|\u007F/.test(decodeURIComponent(value))
+  } catch {
+    return false
+  }
 }
 
 export const MIN_PASSWORD_LENGTH = 8
