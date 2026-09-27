@@ -431,12 +431,24 @@ export default function MultiStepListingWizard({
 
       <Modal
         isOpen={createMutation.isError || updateMutation.isError || saveDraftMutation.isError || updateDraftMutation.isError}
-        onClose={() => {}}
+        onClose={() => {
+          createMutation.reset()
+          updateMutation.reset()
+          saveDraftMutation.reset()
+          updateDraftMutation.reset()
+          setErrors({})
+        }}
         title="Error"
         description={createMutation.error?.message ?? updateMutation.error?.message ?? saveDraftMutation.error?.message ?? updateDraftMutation.error?.message ?? 'An error occurred'}
       >
         <div className="mt-6 flex justify-end">
-          <Button variant="secondary" onClick={() => setErrors({})}>OK</Button>
+          <Button variant="secondary" onClick={() => {
+            createMutation.reset()
+            updateMutation.reset()
+            saveDraftMutation.reset()
+            updateDraftMutation.reset()
+            setErrors({})
+          }}>OK</Button>
         </div>
       </Modal>
     </div>

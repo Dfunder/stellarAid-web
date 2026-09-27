@@ -238,7 +238,7 @@ export default function TransactionSigningFlow({
 
       <Modal
         isOpen={step === 'waiting_for_wallet' && !isConnected}
-        onClose={() => {}}
+        onClose={() => { setStep('preparing'); prepareMutation.reset() }}
         title="Wallet Disconnected"
         description="Your wallet was disconnected. Please reconnect to continue."
       >
