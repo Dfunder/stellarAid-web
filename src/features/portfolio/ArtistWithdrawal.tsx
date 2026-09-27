@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
+import { linkedWalletsKey } from '@/features/auth/hooks/useLinkedWallets'
 import { formatDate } from '@/lib'
 import type { LinkedWallet } from '@/features/auth/types'
 
@@ -58,7 +59,7 @@ export default function ArtistWithdrawal() {
   const [showHistory, setShowHistory] = useState(false)
 
   const { data: wallets } = useQuery({
-    queryKey: ['linkedWallets'],
+    queryKey: linkedWalletsKey,
     queryFn: async (): Promise<LinkedWallet[]> => (await http.get<{ wallets: LinkedWallet[] }>('/wallets')).wallets,
   })
 

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink } from '@/components/ui'
 import { http } from '@/services'
 import { useWallet } from '@/features/auth/hooks/useWallet'
+import { paymentKeys } from '@/features/payments/queryKeys'
 import { formatDate } from '@/lib'
 
 interface AssetBalance {
@@ -45,7 +46,7 @@ export default function WalletBalanceDisplay({
   const [isOpen, setIsOpen] = useState(false)
 
   const { data: balances, isPending, isError, refetch } = useQuery({
-    queryKey: ['walletBalances', publicKey],
+    queryKey: paymentKeys.walletBalances(publicKey ?? ''),
     queryFn: async (): Promise<AssetBalance[]> => {
       if (!publicKey) return []
       const response = await http.get<{ balances: AssetBalance[] }>(`/wallets/${publicKey}/balances`)
