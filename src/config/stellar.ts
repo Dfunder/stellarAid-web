@@ -1,4 +1,4 @@
-import { env, type StellarNetwork } from './env'
+import { env, STELLAR_NETWORK_PASSPHRASES, type StellarNetwork } from './env'
 
 /**
  * Stellar network constants derived from `VITE_STELLAR_NETWORK`.
@@ -7,12 +7,6 @@ import { env, type StellarNetwork } from './env'
  * extensions report a display name that varies (`PUBLIC`, `Public Global Stellar
  * Network`), while the passphrase is stable.
  */
-export const STELLAR_NETWORK_PASSPHRASES: Record<StellarNetwork, string> = {
-  testnet: 'Test SDF Network ; September 2015',
-  mainnet: 'Public Global Stellar Network ; September 2015',
-}
-
-/** Block explorer roots, used to build account links for a linked address. */
 export const STELLAR_EXPLORER_URLS: Record<StellarNetwork, string> = {
   testnet: 'https://stellar.expert/explorer/testnet',
   mainnet: 'https://stellar.expert/explorer/public',
