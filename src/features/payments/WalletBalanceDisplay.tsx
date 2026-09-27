@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink } from '@/components/ui'
 import { http } from '@/services'
@@ -56,14 +56,6 @@ export default function WalletBalanceDisplay({
   })
 
   // Refresh on window focus
-  useEffect(() => {
-    const handleFocus = () => {
-      if (isConnected) void refetch()
-    }
-    window.addEventListener('focus', handleFocus)
-    return () => window.removeEventListener('focus', handleFocus)
-  }, [isConnected, refetch])
-
   const filteredBalances = balances?.filter((b) => assets.includes(b.asset)) ?? []
   const missingTrustlines = filteredBalances.filter((b) => !b.hasTrustline)
 
