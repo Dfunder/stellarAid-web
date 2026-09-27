@@ -7,7 +7,7 @@ import eslintConfigPrettier from 'eslint-config-prettier'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'coverage']),
+  globalIgnores(['dist', 'coverage', '.kilo']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -19,6 +19,11 @@ export default defineConfig([
     ],
     languageOptions: {
       globals: globals.browser,
+      parserOptions: {
+        // Pinned so linting does not depend on how many tsconfig.json files
+        // happen to sit under the project root.
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
   },
 ])

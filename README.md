@@ -39,13 +39,22 @@ The app is served at `http://localhost:5173`.
 
 Runtime configuration is centralized in `src/config/env.ts` and validated with [Zod](https://zod.dev) at startup. All variables use the `VITE_` prefix and are defined in a `.env` file - copy `.env.example` to get started:
 
-| Variable               | Default                 | Description                             |
-| ---------------------- | ----------------------- | --------------------------------------- |
-| `VITE_API_URL`         | `http://localhost:4000` | Base URL of the Lumora backend API      |
-| `VITE_STELLAR_NETWORK` | `testnet`               | Stellar network: `testnet` or `mainnet` |
-| `VITE_APP_URL`         | `http://localhost:5173` | Public URL the web app is served from   |
+| Variable               | Required | Default | Description                                            |
+| ---------------------- | -------- | ------- | ------------------------------------------------------ |
+| `VITE_API_URL`         | yes      | _none_  | Base URL of the Lumora backend API. Must be `https://` |
+| `VITE_STELLAR_NETWORK` | yes      | _none_  | Stellar network: exactly `testnet` or `mainnet`        |
+| `VITE_APP_URL`         | yes      | _none_  | Public URL the web app is served from                  |
 
-The development server refuses to start with a clear error message when any variable is missing or invalid. `.env` is git-ignored; only `.env.example` is committed. Never read `import.meta.env` directly outside `src/config/env.ts` - import `{ env }` from `@/config` instead.
+The three required variables have **no defaults in any build mode**. A missing value, a non-`https` API URL, or an unsupported network makes the app render `ConfigErrorScreen` (naming the offending variables) instead of booting. There is no dev-only validation bypass, so what you verify locally is what production does. `.env` is git-ignored; only `.env.example` is committed. Never read `import.meta.env` directly outside `src/config/env.ts` - import `{ env, loadResult }` from `@/config` instead.
+
+### Production deploys
+
+`VITE_*` variables are inlined at **build** time, so they must be present in the environment that runs `npm run build` (CI job, Docker build, hosting provider's build settings) - setting them only at runtime has no effect.
+
+- Provide all three required variables, with `VITE_API_URL` on `https://`.
+- Set `VITE_STELLAR_NETWORK=mainnet` for real deployments; leaving it unset is an error, not an implicit `testnet`.
+- Verify the shipped bundle: if a required variable is missing, the build still succeeds and the deployed app shows the configuration error screen. Treat that screen as a failed deploy.
+- If you terminate TLS in front of the API, set `VITE_API_URL` to the public `https://` origin, not the internal container URL.
 
 ## Design System & Theming
 
