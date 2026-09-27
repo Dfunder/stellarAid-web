@@ -26,6 +26,10 @@ npm run build        # Production build
 
 Use `npm run format` to fix formatting automatically. Editor setup (format-on-save, ESLint autofix) is described in the [README](./README.md#editor-integrations).
 
+## Dependencies
+
+[Dependabot](.github/dependabot.yml) opens weekly grouped update PRs for runtime dependencies (`chore(deps)`), dev dependencies (`chore(deps-dev)`) and GitHub Actions (`chore(ci)` updates), plus security updates for published npm vulnerabilities. A fresh-principal maintainer reviews each green update; a version bump crossing a major requires a scan of the package's changelog before merge.
+
 ## Folder Structure
 
 ```text

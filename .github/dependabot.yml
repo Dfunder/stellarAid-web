@@ -1,0 +1,27 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    versioning-strategy: "auto"
+    groups:
+      runtime-dependencies:
+        applies-to: "version-updates"
+        dependency-type: "production"
+      dev-dependencies:
+        applies-to: "version-updates"
+        dependency-type: "development"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(ci)"
