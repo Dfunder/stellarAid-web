@@ -13,6 +13,7 @@
     "preview": "vite preview",
     "type-check": "tsc -b",
     "test": "vitest run",
+    "commitlint": "commitlint --from origin/main --to HEAD",
     "prepare": "husky"
   },
   "dependencies": {
@@ -39,6 +40,8 @@
     ]
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",

@@ -1,0 +1,34 @@
+name: Feature request
+description: Propose a feature, improvement or infrastructure change
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem is this solving?
+      description: Describe the user-facing need or the contributors' pain point. No solutions yet.
+    validations:
+      required: true
+  - type: textarea
+    id: suggested
+    attributes:
+      label: Suggested direction
+      description: Sketch of an implementation you have in mind (optional but helpful).
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - User-facing feature
+        - Developer / tooling experience
+        - Performance or reliability
+        - Design-only change
+        - Not sure yet
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Links, screenshots, related issues.

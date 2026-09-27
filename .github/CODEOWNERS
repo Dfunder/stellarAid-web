@@ -1,0 +1,15 @@
+# Code owners act as required reviewers for changes touching these paths.
+# Ref: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Auth, payments, portfolio and all service-layer code are security-sensitive.
+/src/features/auth/            @Dfunder
+/src/features/payments/        @Dfunder
+/src/features/portfolio/       @Dfunder
+/src/services/                 @Dfunder
+
+# Build config and CI are load-bearing for every contribution.
+/package.json                  @Dfunder
+/package-lock.json             @Dfunder
+/.github/workflows/            @Dfunder
+/vite.config.ts                @Dfunder
+/tsconfig.json                 @Dfunder

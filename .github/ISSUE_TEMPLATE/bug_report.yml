@@ -1,0 +1,61 @@
+name: Bug report
+description: Report a reproducible bug in Lumora Web
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: Which page / route?
+      description: Where did the bug appear? Include the URL or navigation path.
+      placeholder: e.g. /payments/result/..., campaign page, checkout
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Be concrete — what did you click, in what order?
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+        3. See ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Browser console / error output
+      render: shell
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser + version, OS, wallet used (Freighter/other), network (Testnet/Mainnet).
+      placeholder: Chrome 124, macOS, Freighter, Testnet
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or screen recording
+      description: If applicable, paste images or a link to a recording.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: Searched existing issues for a duplicate
+          required: true
+        - label: Can reproduce on latest `main`
+          required: true
