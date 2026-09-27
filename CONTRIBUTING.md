@@ -14,7 +14,13 @@ npm run dev
 
 ## Before You Push
 
-Every change must pass these checks locally:
+Every change must pass these checks locally. Run the whole gate with one command:
+
+```bash
+npm run check # lint + format:check + type-check + test + build
+```
+
+`npm run check` is exactly what CI runs (see below) and what the pre-push hook enforces; the individual commands it runs are:
 
 ```bash
 npm run lint         # ESLint - zero errors

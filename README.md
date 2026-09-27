@@ -28,12 +28,16 @@ The app is served at `http://localhost:5173`.
 | Script                 | Description                                    |
 | ---------------------- | ---------------------------------------------- |
 | `npm run dev`          | Start the Vite dev server with HMR             |
-| `npm run build`        | Type-check and build the production bundle     |
+| `npm run build`        | Build the production bundle                    |
 | `npm run preview`      | Serve the production build locally             |
 | `npm run lint`         | Lint the codebase with ESLint                  |
 | `npm run format`       | Format the codebase with Prettier              |
 | `npm run format:check` | Check formatting without writing (CI-friendly) |
 | `npm run type-check`   | Type-check with `tsc` without emitting output  |
+| `npm run test`         | Run unit tests once (Vitest)                   |
+| `npm run test:watch`   | Run unit tests in watch mode                   |
+| `npm run test:coverage`| Run unit tests with coverage                   |
+| `npm run check`        | Run the full CI gate (lint + format + type + test + build) |
 
 ## Environment Variables
 
