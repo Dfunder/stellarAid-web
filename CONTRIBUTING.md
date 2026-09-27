@@ -26,6 +26,10 @@ npm run build        # Production build
 
 Use `npm run format` to fix formatting automatically. Editor setup (format-on-save, ESLint autofix) is described in the [README](./README.md#editor-integrations).
 
+## CI
+
+A GitHub Actions workflow (`.github/workflows/ci.yml`) runs these five checks on every pull request and on pushes to `main`, as separate named steps. Green CI is required for merge. The failing check in the run for your PR is the one to address first; `npm run format` clears the `format:check` step.
+
 ## Folder Structure
 
 ```text
