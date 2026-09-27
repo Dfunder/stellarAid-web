@@ -16,6 +16,7 @@ export { default as CommissionRequestModal } from './components/CommissionReques
 export { artistProfileKey, useArtistProfile } from './hooks/useArtistProfile'
 export { useCheckUsername } from './hooks/useCheckUsername'
 export { useUpdateProfile } from './hooks/useUpdateProfile'
+export { useImageUpload, useImageUploadWithCrop } from './hooks/useImageUpload'
 
 export { default as ArtistProfilePage } from './pages/ArtistProfilePage'
 export { default as ProfileEditPage } from './pages/ProfileEditPage'
