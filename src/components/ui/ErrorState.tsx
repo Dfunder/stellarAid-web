@@ -1,4 +1,5 @@
-import { Button, Spinner } from '.'
+import Button from './Button'
+import Spinner from './Spinner'
 
 interface ErrorStateProps {
   /** Error message */
