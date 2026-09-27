@@ -57,7 +57,7 @@ let analyticsProvider: AnalyticsProvider = noopProvider
 
 const PII_KEY_PATTERN = /email|wallet|address|password|token|phone/i
 const EMAIL_PATTERN = /[^\s@]+@[^\s@]+\.[^\s@]+/
-const STELLAR_ADDRESS_PATTERN = /\b[GM][A-Z2-7]{55}\b/
+const STELLAR_ADDRESS_PATTERN = /\b[GM][a-z2-7]{55}\b/i
 
 function stripPii(props: AnalyticsProps): AnalyticsProps {
   return Object.fromEntries(
