@@ -55,21 +55,34 @@ export interface AnalyticsProvider {
 const noopProvider: AnalyticsProvider = { track: () => {} }
 let analyticsProvider: AnalyticsProvider = noopProvider
 
-const PII_KEY_PATTERN = /email|wallet|address|password|token|phone/i
+const PII_KEY_PATTERN = /email|wallet|address|password|token|phone|secret|passcode|reset/i
 const EMAIL_PATTERN = /[^\s@]+@[^\s@]+\.[^\s@]+/
-const STELLAR_ADDRESS_PATTERN = /\b[GM][A-Z2-7]{55}\b/
+const STELLAR_ADDRESS_PATTERN = /\b[GM][a-z2-7]{55}\b/i
 
-function stripPii(props: AnalyticsProps): AnalyticsProps {
-  return Object.fromEntries(
-    Object.entries(props).filter(
-      ([key, value]) =>
-        !PII_KEY_PATTERN.test(key) &&
-        !(
-          typeof value === 'string' &&
-          (EMAIL_PATTERN.test(value) || STELLAR_ADDRESS_PATTERN.test(value))
-        ),
-    ),
-  )
+/** True when a primitive value looks like an email or Stellar address. */
+function looksLikePii(value: unknown): boolean {
+  if (typeof value !== 'string') return false
+  return EMAIL_PATTERN.test(value) || STELLAR_ADDRESS_PATTERN.test(value)
+}
+
+/**
+ * Recursively removes PII-ish entries from a props payload. A value is dropped
+ * when its key mentions a PII category or its shape matches an email or Stellar
+ * address — key names alone are not trusted. Nested objects and arrays are
+ * scrubbed in place so an email under an unrecognised key still never leaks.
+ */
+function stripPii<T>(input: T): T {
+  if (Array.isArray(input)) {
+    return input.map((item) => stripPii(item)) as T
+  }
+  if (input !== null && typeof input === 'object') {
+    return Object.fromEntries(
+      Object.entries(input as Record<string, unknown>)
+        .filter(([key, value]) => !PII_KEY_PATTERN.test(key) && !looksLikePii(value))
+        .map(([key, value]) => [key, stripPii(value)]),
+    ) as T
+  }
+  return input
 }
 
 export const analytics = {

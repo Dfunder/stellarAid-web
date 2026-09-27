@@ -65,6 +65,8 @@ declare module 'axios' {
     skipRetry?: boolean
     /** Do not attempt a token refresh when this request returns 401. */
     skipAuthRefresh?: boolean
+    /** Suppress the global error toast for this request (e.g. background polls). */
+    skipToast?: boolean
     /** Set internally once the request has been retried after a refresh. */
     authRetried?: boolean
   }
@@ -184,6 +186,28 @@ function normalizeError(error: AxiosError): ApiError {
   return new ApiError(null, 'NETWORK_ERROR', getApiErrorMessage('NETWORK_ERROR', null))
 }
 
+/**
+ * Path segments that carry sensitive values (reset tokens, verification codes)
+ * which must never appear in a console log. Any trailing segment directly
+ * under these prefixes is redacted.
+ */
+const SENSITIVE_PATH_PREFIXES = ['/auth/reset-password']
+
+export function redactUrl(rawUrl: string | undefined): string | undefined {
+  if (!rawUrl) return undefined
+  try {
+    const [path, query] = rawUrl.split('?', 2)
+    for (const prefix of SENSITIVE_PATH_PREFIXES) {
+      if (path.startsWith(`${prefix}/`)) {
+        return `${prefix}/(redacted)${query ? `?${query}` : ''}`
+      }
+    }
+    return rawUrl
+  } catch {
+    return '(unparsable)'
+  }
+}
+
 function reportUnexpectedError(error: ApiError, request: AxiosRequestConfig | undefined): void {
   if (!(error.code in API_ERROR_MESSAGES)) {
     console.error('Unexpected API error', {
@@ -191,7 +215,7 @@ function reportUnexpectedError(error: ApiError, request: AxiosRequestConfig | un
       status: error.status,
       requestId: error.requestId,
       method: request?.method,
-      url: request?.url,
+      url: redactUrl(request?.url),
     })
   }
 }
@@ -258,7 +282,9 @@ function buildClient(): AxiosInstance {
 
       const normalized = normalizeError(error)
       reportUnexpectedError(normalized, config)
-      if (normalized.status !== 422) useUiStore.getState().pushToast(normalized.message, 'error')
+      if (normalized.status !== 422 && !config?.skipToast) {
+        useUiStore.getState().pushToast(normalized.message, 'error')
+      }
       return Promise.reject(normalized)
     },
   )

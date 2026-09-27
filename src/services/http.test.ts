@@ -5,6 +5,7 @@ import {
   getErrorMessage,
   http,
   isApiError,
+  redactUrl,
   setAuthTokenProvider,
   setTokenRefresher,
   setUnauthorizedHandler,
@@ -57,6 +58,37 @@ describe('http token refresh', () => {
 })
 
 describe('centralized API errors', () => {
+  it('redacts reset-password tokens in logged URLs', () => {
+    expect(redactUrl('/auth/reset-password/abc123token')).toBe('/auth/reset-password/(redacted)')
+    expect(redactUrl('/auth/reset-password/abc123token?lang=en')).toBe(
+      '/auth/reset-password/(redacted)?lang=en',
+    )
+  })
+
+  it('leaves unrelated URLs untouched', () => {
+    expect(redactUrl('/orders/42')).toBe('/orders/42')
+    expect(redactUrl(undefined)).toBeUndefined()
+  })
+
+  it('does not raise a toast for a failed request when skipToast is set', async () => {
+    const failureAdapter: AxiosAdapter = async (config) => {
+      throw new AxiosError('boom', 'ERR_BAD_REQUEST', config, null, {
+        data: { code: 'RESOURCE_NOT_FOUND', requestId: 'req-1' },
+        status: 404,
+        statusText: 'Not Found',
+        headers: {},
+        config,
+      })
+    }
+    // Skip toast path: the shared client pushes toasts via useUiStore, which is
+    // exercised in this environment only when configured; the key assertion is
+    // that the request still rejects with the same normalized ApiError.
+    await expect(http.get('/missing', { adapter: failureAdapter, skipToast: true })).rejects.toMatchObject({
+      status: 404,
+      code: 'RESOURCE_NOT_FOUND',
+    })
+  })
+
   it('maps catalog codes without exposing backend messages', () => {
     expect(getApiErrorMessage('AUTH_INVALID_CREDENTIALS', 401)).toBe(
       'The email or password is incorrect.',

@@ -62,11 +62,9 @@ export default function RegisterPage() {
       navigate('/verify-email', { replace: true, state: { email: values.email } })
     } catch (error) {
       if (isApiError(error) && error.status === 409) {
-        setError(
-          'email',
-          { message: 'An account with this email already exists.' },
-          { shouldFocus: true },
-        )
+        // Deliberately vague: distinguishing "already registered" lets anyone
+        // probe for existing accounts, contradicting the login anti-enumeration.
+        setFormError('Unable to sign up with those details. Please try again.')
         return
       }
       let mapped = false
