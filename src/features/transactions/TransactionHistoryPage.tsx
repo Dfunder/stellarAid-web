@@ -39,6 +39,17 @@ export default function TransactionHistoryPage() {
       const response = await http.get<{ transactions: Transaction[] }>(`/transactions?${params}`)
       return response.transactions
     },
+    staleTime: 60_000,
+    select: (transactions) =>
+      transactions.map(({ id, type, amount, asset, status, txHash, createdAt }) => ({
+        id,
+        type,
+        amount,
+        asset,
+        status,
+        txHash,
+        createdAt,
+      })),
   })
 
   const transactions = data ?? []

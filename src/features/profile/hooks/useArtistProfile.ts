@@ -9,6 +9,5 @@ export function useArtistProfile(username?: string) {
     queryKey: artistProfileKey(username ?? ''),
     queryFn: () => (username ? profileService.getProfileByUsername(username) : null),
     enabled: Boolean(username),
-    staleTime: 1000 * 60 * 5, // 5 minutes
   })
 }

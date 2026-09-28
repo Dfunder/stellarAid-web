@@ -58,6 +58,22 @@ export default function PurchasesPage() {
       const response = await http.get<{ orders: Order[]; total: number }>(`/orders/purchases?${params}`)
       return response
     },
+    select: (res) => ({
+      total: res.total,
+      orders: res.orders.map(({ id, artworkTitle, artworkThumbnail, sellerName, sellerUsername, amount, asset, status, txHash, createdAt, deliverables }) => ({
+        id,
+        artworkTitle,
+        artworkThumbnail,
+        sellerName,
+        sellerUsername,
+        amount,
+        asset,
+        status,
+        txHash,
+        createdAt,
+        deliverables,
+      })),
+    }),
   })
 
   const orders = data?.orders ?? []

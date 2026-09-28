@@ -56,6 +56,15 @@ export default function CategoryLandingPage({ slug }: CategoryLandingPageProps) 
       return response.artworks
     },
     enabled: !!slug,
+    select: (artworks) =>
+      artworks.map(({ id, title, thumbnail, price, asset, sellerName }) => ({
+        id,
+        title,
+        thumbnail,
+        price,
+        asset,
+        sellerName,
+      })),
   })
 
   if (categoryPending) {

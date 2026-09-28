@@ -48,6 +48,18 @@ export default function MyListingsDashboard() {
       return response.listings
     },
     enabled: !!user,
+    select: (listings) =>
+      listings.map(({ id, title, thumbnail, status, price, asset, views, likes, createdAt }) => ({
+        id,
+        title,
+        thumbnail,
+        status,
+        price,
+        asset,
+        views,
+        likes,
+        createdAt,
+      })),
   })
 
   const listings = data ?? []
