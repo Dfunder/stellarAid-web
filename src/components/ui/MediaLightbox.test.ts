@@ -15,6 +15,14 @@ describe('media lightbox helpers', () => {
 
   it('returns adjacent indexes for the current image', () => {
     expect(getAdjacentIndices(1, 4)).toEqual({ previous: 0, next: 2 })
-    expect(getAdjacentIndices(0, 4)).toEqual({ previous: 3, next: 1 })
+    expect(getAdjacentIndices(0, 4)).toEqual({ previous: 0, next: 1 })
+    expect(getAdjacentIndices(3, 4)).toEqual({ previous: 2, next: 3 })
+  })
+
+  it('clamps instead of wrapping, matching how navigation moves', () => {
+    // Navigation goes through clampIndex too, so the first and last image
+    // are endpoints rather than a loop. getAdjacentIndices only picks which
+    // neighbours to preload, so it has to agree with that.
+    expect(getAdjacentIndices(0, 0)).toEqual({ previous: 0, next: 0 })
   })
 })
