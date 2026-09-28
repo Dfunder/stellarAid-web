@@ -1,5 +1,7 @@
-import { BrowserRouter, Link, Outlet, Route, Routes, useNavigate } from 'react-router-dom'
-import { Button, ThemeToggle } from '@/components/ui'
+import { BrowserRouter, Link, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Button, EmptyState, ThemeToggle } from '@/components/ui'
+import { analytics } from '@/lib'
 import {
   AccountMenu,
   ArtistRoute,
@@ -172,16 +174,31 @@ function Dashboard() {
 }
 
 function NotFoundPage() {
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    analytics.track('page_404', { path: pathname })
+  }, [pathname])
+
   return (
     <div className="container py-24 text-center">
-      <h1 className="text-h2 font-bold">Page not found</h1>
-      <p className="mt-2 text-body text-muted">The link you followed does not exist or has been moved.</p>
-      <Link
-        to="/"
-        className="mt-8 inline-flex items-center rounded-control bg-primary px-5 py-2.5 text-body font-semibold text-primary-contrast shadow-card focus-visible:shadow-focus-ring"
-      >
-        Back home
-      </Link>
+      <EmptyState
+        icon={<span aria-hidden="true">404</span>}
+        title="Page not found"
+        description={`We couldn't find "${pathname}". It may have been moved or the link is out of date.`}
+        action={{ label: 'Back home', variant: 'primary', asChild: true, href: '/' }}
+      />
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <Link to="/" className="rounded-control border border-line bg-surface px-4 py-2 text-caption font-semibold text-foreground hover:bg-surface-muted">
+          Browse all categories
+        </Link>
+        <Link to="/artists/elena_art" className="rounded-control border border-line bg-surface px-4 py-2 text-caption font-semibold text-foreground hover:bg-surface-muted">
+          Popular artist
+        </Link>
+        <Link to="/profile/edit" className="rounded-control border border-line bg-surface px-4 py-2 text-caption font-semibold text-foreground hover:bg-surface-muted">
+          Your profile
+        </Link>
+      </div>
     </div>
   )
 }

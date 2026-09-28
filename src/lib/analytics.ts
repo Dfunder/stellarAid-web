@@ -43,6 +43,7 @@ export type AnalyticsEvent =
   | 'checkout_start'
   | 'payment_complete'
   | 'commission_request'
+  | 'page_404'
 
 /** Flat, primitive-only event properties. Never include PII (emails, wallet addresses). */
 export type AnalyticsProps = Record<string, string | number | boolean | null>
