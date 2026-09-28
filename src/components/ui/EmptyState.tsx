@@ -1,8 +1,9 @@
-import { Button } from './Button'
+import type { ReactNode } from 'react'
+import Button from './Button'
 
 interface EmptyStateProps {
   /** Icon name or custom icon component */
-  icon?: React.ReactNode
+  icon?: ReactNode
   /** Title text */
   title: string
   /** Description text */
