@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
-import { http } from '@/services'
+import { getErrorMessage, http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { formatDate } from '@/lib'
 import { z } from 'zod'
@@ -205,7 +205,7 @@ export default function EditListing({ listingId }: { listingId: string }) {
       <div className="container py-12">
         <div className="flex flex-wrap items-center gap-3 rounded-control bg-danger/10 p-4">
           <p role="alert" className="text-caption text-danger">
-            {error instanceof Error ? error.message : 'Failed to load listing'}
+            {getErrorMessage(error)}
           </p>
           <Button size="sm" variant="secondary" onClick={() => void refetch()}>
             Try again

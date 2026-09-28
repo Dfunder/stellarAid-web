@@ -1,6 +1,7 @@
 import { AxiosError, AxiosHeaders, type AxiosAdapter } from 'axios'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  ApiError,
   getApiErrorMessage,
   getErrorMessage,
   http,
@@ -95,5 +96,23 @@ describe('centralized API errors', () => {
         message: 'Check the highlighted fields and try again.',
       })
     }
+  })
+})
+
+describe('getErrorMessage', () => {
+  it('returns the ApiError message for ApiError instances', () => {
+    const apiError = new ApiError(422, 'VALIDATION_FAILED', 'Check the highlighted fields.')
+    expect(getErrorMessage(apiError)).toBe('Check the highlighted fields.')
+  })
+
+  it('does not expose raw plain-error messages (backend details stay hidden)', () => {
+    expect(getErrorMessage(new Error('database connection string'))).toBe(
+      'An unexpected error occurred.',
+    )
+  })
+
+  it('falls back to a generic message for non-Error values', () => {
+    expect(getErrorMessage(undefined)).toBe('An unexpected error occurred.')
+    expect(getErrorMessage('just a string')).toBe('An unexpected error occurred.')
   })
 })

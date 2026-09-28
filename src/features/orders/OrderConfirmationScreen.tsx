@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
-import { http } from '@/services'
+import { getErrorMessage, http } from '@/services'
 import { formatDate } from '@/lib'
 import { useAuth } from '@/features/auth'
 import { orderKeys } from './queryKeys'
@@ -91,7 +91,7 @@ export default function OrderConfirmationScreen() {
             <line x1="9" y1="9" x2="15" y2="15" />
           </svg>
           <h1 className="text-h2">Failed to load order</h1>
-          <p className="text-caption text-muted">{error instanceof Error ? error.message : 'Unknown error'}</p>
+          <p className="text-caption text-muted">{getErrorMessage(error)}</p>
           <Button className="mt-4" onClick={() => void refetch()}>Try again</Button>
         </div>
       </div>

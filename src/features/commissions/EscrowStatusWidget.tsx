@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Modal, Spinner } from '@/components/ui'
-import { http } from '@/services'
+import { getErrorMessage, http } from '@/services'
 import { formatDate } from '@/lib'
 
 type EscrowStatus = 'funded' | 'in_progress' | 'delivered' | 'released' | 'refunded' | 'disputed'
@@ -86,7 +86,7 @@ export default function EscrowStatusWidget({ escrowId, onRelease, onRefundReques
       <div className="rounded-card border border-line bg-surface p-6 shadow-card">
         <div className="flex flex-wrap items-center gap-3 rounded-control bg-danger/10 p-4">
           <p role="alert" className="text-caption text-danger">
-            {error instanceof Error ? error.message : 'Failed to load escrow'}
+            {getErrorMessage(error)}
           </p>
           <Button size="sm" variant="secondary" onClick={() => void refetch()}>
             Try again

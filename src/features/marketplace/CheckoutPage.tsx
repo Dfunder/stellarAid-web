@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
-import { http } from '@/services'
+import { getErrorMessage, http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { PaymentAssetSelector, WalletBalanceDisplay } from '@/features/payments'
 import { formatDate } from '@/lib'
@@ -256,7 +256,7 @@ export default function CheckoutPage({ artworkId }: { artworkId: string }) {
 
             {createSessionMutation.isError && (
               <p className="mt-3 text-caption text-danger text-center" role="alert">
-                {createSessionMutation.error instanceof Error ? createSessionMutation.error.message : 'Failed to create session'}
+                {getErrorMessage(createSessionMutation.error)}
               </p>
             )}
 

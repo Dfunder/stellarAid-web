@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
-import { http } from '@/services'
+import { getErrorMessage, http } from '@/services'
 import { formatDate } from '@/lib'
 import { transactionKeys } from './queryKeys'
 import type { Transaction } from './types'
@@ -81,7 +81,7 @@ export default function TransactionHistoryPage() {
       <div className="container py-12">
         <div className="flex flex-wrap items-center gap-3 rounded-control bg-danger/10 p-4">
           <p role="alert" className="text-caption text-danger">
-            {error instanceof Error ? error.message : 'Failed to load transactions'}
+            {getErrorMessage(error)}
           </p>
           <Button size="sm" variant="secondary" onClick={() => void refetch()}>
             Try again
