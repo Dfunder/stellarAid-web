@@ -3,6 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { formatDate } from '@/lib'
+import {
+  type OrderStatus,
+  ORDER_STATUS_LABELS as STATUS_LABELS,
+  ORDER_STATUS_CLASSES as STATUS_COLORS,
+} from '@/lib'
 import { orderKeys } from './queryKeys'
 
 interface Order {
@@ -13,7 +18,7 @@ interface Order {
   sellerUsername: string
   amount: string
   asset: string
-  status: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded'
+  status: OrderStatus
   txHash: string | null
   createdAt: string
   deliverables?: Deliverable[]
@@ -27,24 +32,8 @@ interface Deliverable {
   expiresAt: string
 }
 
-const STATUS_LABELS: Record<Order['status'], string> = {
-  pending: 'Pending',
-  processing: 'Processing',
-  completed: 'Completed',
-  failed: 'Failed',
-  refunded: 'Refunded',
-}
-
-const STATUS_COLORS: Record<Order['status'], string> = {
-  pending: 'bg-warning/10 text-warning',
-  processing: 'bg-blue/10 text-blue',
-  completed: 'bg-success/10 text-success',
-  failed: 'bg-danger/10 text-danger',
-  refunded: 'bg-muted text-muted',
-}
-
 export default function PurchasesPage() {
-  const [statusFilter, setStatusFilter] = useState<'all' | Order['status']>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | OrderStatus>('all')
   const [page, setPage] = useState(1)
   const pageSize = 10
 

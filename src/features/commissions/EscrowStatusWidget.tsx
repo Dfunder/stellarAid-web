@@ -3,8 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { formatDate } from '@/lib'
-
-type EscrowStatus = 'funded' | 'in_progress' | 'delivered' | 'released' | 'refunded' | 'disputed' | 'cancelled'
+import {
+  type EscrowStatus,
+  ESCROW_STATUS_LABELS as STATUS_LABELS,
+  ESCROW_STATUS_CLASSES as STATUS_COLORS,
+} from '@/lib'
 
 interface EscrowData {
   id: string
@@ -31,26 +34,6 @@ interface Milestone {
   status: 'pending' | 'completed' | 'disputed'
   dueDate: string
   completedAt: string | null
-}
-
-const STATUS_LABELS: Record<EscrowStatus, string> = {
-  funded: 'Funded',
-  in_progress: 'In Progress',
-  delivered: 'Delivered',
-  released: 'Released',
-  refunded: 'Refunded',
-  disputed: 'Disputed',
-  cancelled: 'Cancelled',
-}
-
-const STATUS_COLORS: Record<EscrowStatus, string> = {
-  funded: 'bg-primary/10 text-primary',
-  in_progress: 'bg-blue/10 text-blue',
-  delivered: 'bg-warning/10 text-warning',
-  released: 'bg-success/10 text-success',
-  refunded: 'bg-muted text-muted',
-  disputed: 'bg-danger/10 text-danger',
-  cancelled: 'bg-muted text-muted',
 }
 
 const STATUS_ORDER: EscrowStatus[] = ['funded', 'in_progress', 'delivered', 'released', 'refunded', 'disputed']

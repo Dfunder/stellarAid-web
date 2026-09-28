@@ -4,6 +4,7 @@ import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { formatDate } from '@/lib'
+import { LISTING_STATUS_LABELS as STATUS_LABELS, type ListingStatus } from '@/lib'
 import { z } from 'zod'
 
 const ListingSchema = z.object({
@@ -29,7 +30,7 @@ interface Listing {
   asset: string
   licenseTerms: string
   images: string[]
-  status: 'draft' | 'active' | 'sold' | 'unpublished'
+  status: ListingStatus
   createdAt: string
   updatedAt: string
   hasPendingOffers: boolean
@@ -576,11 +577,4 @@ export default function EditListing({ listingId }: { listingId: string }) {
       </Modal>
     </div>
   )
-}
-
-const STATUS_LABELS: Record<Listing['status'], string> = {
-  draft: 'Draft',
-  active: 'Active',
-  sold: 'Sold',
-  unpublished: 'Unpublished',
 }

@@ -3,8 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { formatDate } from '@/lib'
-
-type TxStatus = 'submitted' | 'confirming' | 'confirmed' | 'failed'
+import {
+  type TxStatus,
+  TX_STATUS_LABELS as STATUS_LABELS,
+  TX_STATUS_CLASSES as STATUS_COLORS,
+} from '@/lib'
 
 interface TransactionStatusData {
   txHash: string
@@ -17,20 +20,6 @@ interface TransactionStatusData {
   requiredConfirmations?: number
   submittedAt: string
   confirmedAt?: string
-}
-
-const STATUS_LABELS: Record<TxStatus, string> = {
-  submitted: 'Submitted',
-  confirming: 'Confirming',
-  confirmed: 'Confirmed',
-  failed: 'Failed',
-}
-
-const STATUS_COLORS: Record<TxStatus, string> = {
-  submitted: 'bg-muted text-muted',
-  confirming: 'bg-blue/10 text-blue',
-  confirmed: 'bg-success/10 text-success',
-  failed: 'bg-danger/10 text-danger',
 }
 
 interface TransactionStatusPollingProps {

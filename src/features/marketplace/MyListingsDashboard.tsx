@@ -4,12 +4,17 @@ import { Button, ExplorerLink, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { formatDate } from '@/lib'
+import {
+  type ListingStatus,
+  LISTING_STATUS_LABELS as STATUS_LABELS,
+  LISTING_STATUS_CLASSES as STATUS_COLORS,
+} from '@/lib'
 
 interface Listing {
   id: string
   title: string
   thumbnail?: string
-  status: 'draft' | 'active' | 'sold' | 'unpublished'
+  status: ListingStatus
   price: string
   asset: string
   views: number
@@ -18,24 +23,10 @@ interface Listing {
   updatedAt: string
 }
 
-const STATUS_LABELS: Record<Listing['status'], string> = {
-  draft: 'Draft',
-  active: 'Active',
-  sold: 'Sold',
-  unpublished: 'Unpublished',
-}
-
-const STATUS_COLORS: Record<Listing['status'], string> = {
-  draft: 'bg-muted text-muted',
-  active: 'bg-success/10 text-success',
-  sold: 'bg-primary/10 text-primary',
-  unpublished: 'bg-warning/10 text-warning',
-}
-
 export default function MyListingsDashboard() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
-  const [statusFilter, setStatusFilter] = useState<'all' | Listing['status']>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | ListingStatus>('all')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [pendingAction, setPendingAction] = useState<{ type: 'unpublish' | 'delete'; listing: Listing } | null>(null)
 
