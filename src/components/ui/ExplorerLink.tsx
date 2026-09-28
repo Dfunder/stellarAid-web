@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { activeStellarNetwork } from '@/config'
 import { useCopyToClipboard } from '@/hooks'
+import { truncateMiddle } from '@/lib/format'
 
 interface ExplorerLinkProps {
   /** The hash or address to link to. */
@@ -26,11 +27,6 @@ const EXPLORER_ROOTS = {
   },
 } as const
 
-function truncate(value: string, start = 8, end = 6): string {
-  if (value.length <= start + end + 3) return value
-  return `${value.slice(0, start)}…${value.slice(-end)}`
-}
-
 export default function ExplorerLink({
   value,
   type,
@@ -41,7 +37,7 @@ export default function ExplorerLink({
   const [isExpanded, setIsExpanded] = useState(false)
   const { copy, isCopied } = useCopyToClipboard()
 
-  const displayValue = isExpanded ? value : truncate(value)
+  const displayValue = isExpanded ? value : (label ?? truncateMiddle(value))
   const href = `${EXPLORER_ROOTS[network][type]}/${value}`
 
   return (

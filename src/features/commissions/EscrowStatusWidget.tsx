@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
-import { formatDate } from '@/lib'
+import { formatDate, truncateMiddle } from '@/lib'
 
 type EscrowStatus = 'funded' | 'in_progress' | 'delivered' | 'released' | 'refunded' | 'disputed' | 'cancelled'
 
@@ -452,11 +452,11 @@ export default function EscrowStatusWidget({ escrowId, onRelease, onRefundReques
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-caption-sm text-muted">Buyer</span>
-            <span className="text-caption font-mono text-foreground">{escrow.buyer.slice(0, 10)}…{escrow.buyer.slice(-8)}</span>
+            <span className="text-caption font-mono text-foreground">{truncateMiddle(escrow.buyer)}</span>
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-caption-sm text-muted">Seller</span>
-            <span className="text-caption font-mono text-foreground">{escrow.seller.slice(0, 10)}…{escrow.seller.slice(-8)}</span>
+            <span className="text-caption font-mono text-foreground">{truncateMiddle(escrow.seller)}</span>
           </div>
         </div>
       </div>

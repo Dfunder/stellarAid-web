@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
-import { formatDate } from '@/lib'
+import { formatDate, truncateMiddle } from '@/lib'
 
 type TxStatus = 'submitted' | 'confirming' | 'confirmed' | 'failed'
 
@@ -144,7 +144,7 @@ export default function TransactionStatusPolling({
             </div>
             <div>
               <p className="text-caption-sm font-medium text-foreground">{STATUS_LABELS[currentStatus]}</p>
-              <p className="text-caption-xs text-muted font-mono">{txHash.slice(0, 12)}…{txHash.slice(-8)}</p>
+              <p className="text-caption-xs text-muted font-mono">{truncateMiddle(txHash)}</p>
             </div>
           </div>
 
@@ -241,7 +241,7 @@ export default function TransactionStatusPolling({
 
         <h1 className="text-h2">{STATUS_LABELS[currentStatus]}</h1>
         <p className="mt-2 text-caption text-muted">
-          Transaction: <code className="font-mono">{txHash.slice(0, 16)}…{txHash.slice(-8)}</code>
+          Transaction: <code className="font-mono">{truncateMiddle(txHash)}</code>
         </p>
 
         {currentStatus === 'confirming' && (
