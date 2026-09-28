@@ -17,7 +17,7 @@ const RADIUS_CLASSES = {
   full: 'rounded-full',
 }
 
-export function Skeleton({
+export default function Skeleton({
   width = '100%',
   height = '1rem',
   radius = 'md',
