@@ -251,10 +251,8 @@ export default function EditListing({ listingId }: { listingId: string }) {
             <h2 className="text-h3">Details</h2>
 
             <div>
-              <label htmlFor="title" className="block text-caption-sm font-medium text-foreground mb-1">
-                Title *
-              </label>
               <Input
+                label="Title *"
                 id="title"
                 value={formData.title ?? ''}
                 onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
@@ -303,10 +301,8 @@ export default function EditListing({ listingId }: { listingId: string }) {
               </div>
 
               <div>
-                <label htmlFor="tags" className="block text-caption-sm font-medium text-foreground mb-1">
-                  Tags (comma-separated, max 10)
-                </label>
                 <Input
+                  label="Tags (comma-separated, max 10)"
                   id="tags"
                   value={formData.tags?.join(', ') ?? ''}
                   onChange={(e) => setFormData((prev) => ({ ...prev, tags: e.target.value.split(',').map((t) => t.trim()).filter(Boolean) }))}
@@ -365,10 +361,8 @@ export default function EditListing({ listingId }: { listingId: string }) {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label htmlFor="price" className="block text-caption-sm font-medium text-foreground mb-1">
-                  Price *
-                </label>
                 <Input
+                  label="Price *"
                   id="price"
                   type="number"
                   step="0.0000001"

@@ -115,15 +115,12 @@ export default function MultiAssetPricingInput({
 
   return (
     <div className="space-y-2">
-      <label className="block text-caption-sm font-medium text-foreground">
-        {label} {symbol}
-      </label>
-
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex-1">
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted">{symbol}</span>
             <Input
+              label={`${label} ${symbol}`}
               type="text"
               inputMode="decimal"
               value={value}

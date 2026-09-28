@@ -172,10 +172,8 @@ export default function ArtistWithdrawal() {
           </div>
 
           <div>
-            <label htmlFor="amount" className="block text-caption-sm font-medium text-foreground mb-1">
-              Amount ({selectedAsset})
-            </label>
             <Input
+              label={`Amount (${selectedAsset})`}
               id="amount"
               type="number"
               step={Math.pow(10, -precision)}
