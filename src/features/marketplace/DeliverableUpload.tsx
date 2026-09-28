@@ -1,8 +1,10 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, Input, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
+import { runPooled } from '@/lib/concurrency'
+import { throttleLatest } from '@/lib/throttle'
 
 export type DeliverableKind = 'wip' | 'final'
 
@@ -40,6 +42,12 @@ const ALLOWED_TYPES = [
 const MAX_FILE_SIZE = 500 * 1024 * 1024 // 500MB
 const MAX_FILES = 20
 
+/** Deliverable uploads run three at a time; the pool keeps the connection open without saturating it. */
+const MAX_CONCURRENT_UPLOADS = 3
+
+/** Progress is flushed to state at ~4Hz instead of on every XHR progress event. */
+const PROGRESS_FLUSH_MS = 250
+
 /** Default revision budget when the caller does not supply one. */
 const DEFAULT_MAX_REVISIONS = 3
 
@@ -55,6 +63,43 @@ function formatBytes(bytes: number): string {
     unit += 1
   }
   return `${value.toFixed(1)} ${units[unit]}`
+}
+
+function uploadToPresignedUrl(
+  url: string,
+  file: DeliverableFile,
+  onProgress: (progress: number) => void
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) {
+        onProgress(Math.round((e.loaded / e.total) * 100))
+      }
+    })
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve()
+      } else {
+        reject(new Error(`Upload failed with status ${xhr.status}`))
+      }
+    })
+    xhr.addEventListener('error', () => reject(new Error('Upload failed')))
+    xhr.addEventListener('abort', () => reject(new Error('Upload aborted')))
+    xhr.open('PUT', url)
+    xhr.setRequestHeader('Content-Type', file.type)
+    xhr.send(file as unknown as File)
+  })
+}
+
+function validateFile(file: File): string | null {
+  if (!ALLOWED_TYPES.includes(file.type as (typeof ALLOWED_TYPES)[number])) {
+    return `File type "${file.type}" is not allowed. Allowed: images, PDF, ZIP, video, audio.`
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    return `File "${file.name}" exceeds maximum size of 500MB.`
+  }
+  return null
 }
 
 interface DeliverableUploadProps {
@@ -91,6 +136,26 @@ export default function DeliverableUpload({
   const [note, setNote] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
+  // XHR fires progress several times per second per file. Buffering in a ref and
+  // flushing on a timer keeps re-renders bounded instead of scaling with events.
+  const progressRef = useRef<Record<string, number>>({})
+
+  const flushProgress = useMemo(
+    () =>
+      throttleLatest((snapshots: Record<string, number>) => {
+        setFiles((prev) =>
+          prev.map((f) => {
+            const progress = snapshots[f.id]
+            return progress !== undefined && progress !== f.progress ? { ...f, progress } : f
+          })
+        )
+      }, PROGRESS_FLUSH_MS),
+    []
+  )
+
+  // A pending trailing flush must not outlive the component.
+  useEffect(() => () => flushProgress.cancel(), [flushProgress])
+
   const uploadMutation = useMutation({
     mutationFn: async (file: DeliverableFile) => {
       // Get presigned URL
@@ -106,9 +171,8 @@ export default function DeliverableUpload({
 
       // Upload to presigned URL with progress
       await uploadToPresignedUrl(uploadUrl, file, (progress) => {
-        setFiles((prev) =>
-          prev.map((f) => (f.id === file.id ? { ...f, progress } : f))
-        )
+        progressRef.current[file.id] = progress
+        flushProgress({ ...progressRef.current })
       })
 
       // Confirm upload
@@ -117,6 +181,7 @@ export default function DeliverableUpload({
       return fileId
     },
     onSuccess: (fileId, file) => {
+      delete progressRef.current[file.id]
       setFiles((prev) =>
         prev.map((f) =>
           f.id === file.id ? { ...f, uploadStatus: 'completed', progress: 100 } : f
@@ -125,6 +190,7 @@ export default function DeliverableUpload({
       queryClient.invalidateQueries({ queryKey: ['deliverables', listingId] })
     },
     onError: (error, file) => {
+      delete progressRef.current[file.id]
       setFiles((prev) =>
         prev.map((f) =>
           f.id === file.id
@@ -135,42 +201,20 @@ export default function DeliverableUpload({
     },
   })
 
-  const uploadToPresignedUrl = (
-    url: string,
-    file: DeliverableFile,
-    onProgress: (progress: number) => void
-  ): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest()
-      xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-          onProgress(Math.round((e.loaded / e.total) * 100))
-        }
-      })
-      xhr.addEventListener('load', () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve()
-        } else {
-          reject(new Error(`Upload failed with status ${xhr.status}`))
-        }
-      })
-      xhr.addEventListener('error', () => reject(new Error('Upload failed')))
-      xhr.addEventListener('abort', () => reject(new Error('Upload aborted')))
-      xhr.open('PUT', url)
-      xhr.setRequestHeader('Content-Type', file.type)
-      xhr.send(file as unknown as File)
-    })
-  }
+  // `mutateAsync` is a stable reference, so it can safely be a useCallback dep.
+  const { mutateAsync: uploadOne } = uploadMutation
 
-  const validateFile = (file: File): string | null => {
-    if (!ALLOWED_TYPES.includes(file.type as typeof ALLOWED_TYPES[number])) {
-      return `File type "${file.type}" is not allowed. Allowed: images, PDF, ZIP, video, audio.`
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      return `File "${file.name}" exceeds maximum size of 500MB.`
-    }
-    return null
-  }
+  // Uploads run through a bounded pool, so selecting 20 files opens 3 requests
+  // at a time instead of 20. Failures stay per-file; the pool never aborts.
+  const startUploads = useCallback(
+    (targets: DeliverableFile[]) => {
+      void runPooled(
+        targets.map((file) => () => uploadOne(file)),
+        MAX_CONCURRENT_UPLOADS
+      )
+    },
+    [uploadOne]
+  )
 
   const handleFiles = useCallback(
     (newFiles: FileList | File[]) => {
@@ -205,15 +249,15 @@ export default function DeliverableUpload({
 
       if (validFiles.length > 0) {
         setFiles((prev) => [...prev, ...validFiles])
-        // Auto-upload
-        validFiles.forEach((f) => uploadMutation.mutate(f))
+        // Auto-upload, bounded to MAX_CONCURRENT_UPLOADS in flight.
+        startUploads(validFiles)
       }
 
       if (errors.length > 0) {
         alert(errors.join('\n'))
       }
     },
-    [files.length, listingId, uploadMutation, kind, revision, note]
+    [files.length, kind, revision, note, startUploads]
   )
 
   const handleDrop = useCallback(
@@ -239,12 +283,15 @@ export default function DeliverableUpload({
     setFiles((prev) => prev.filter((f) => f.id !== id))
   }, [])
 
-  const retryUpload = useCallback((file: DeliverableFile) => {
-    setFiles((prev) =>
-      prev.map((f) => (f.id === file.id ? { ...f, uploadStatus: 'pending', progress: 0, error: undefined } : f))
-    )
-    uploadMutation.mutate(file)
-  }, [uploadMutation])
+  const retryUpload = useCallback(
+    (file: DeliverableFile) => {
+      setFiles((prev) =>
+        prev.map((f) => (f.id === file.id ? { ...f, uploadStatus: 'pending', progress: 0, error: undefined } : f))
+      )
+      startUploads([file])
+    },
+    [startUploads]
+  )
 
   const completedFiles = files.filter((f) => f.uploadStatus === 'completed')
   const hasPendingUploads = files.some((f) => f.uploadStatus === 'pending' || f.uploadStatus === 'uploading')
@@ -465,7 +512,7 @@ export default function DeliverableUpload({
                     </>
                   )}
                   {file.uploadStatus === 'pending' && (
-                    <Button size="sm" onClick={() => uploadMutation.mutate(file)}>
+                    <Button size="sm" onClick={() => startUploads([file])}>
                       Upload
                     </Button>
                   )}
