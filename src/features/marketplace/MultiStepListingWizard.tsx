@@ -306,7 +306,7 @@ export default function MultiStepListingWizard({
             <div className="flex flex-wrap gap-3">
               {(formData.images ?? []).map((image, index) => (
                 <div key={index} className="relative group h-24 w-24 rounded-card overflow-hidden">
-                  <img src={image} alt={`Image ${index + 1}`} className="h-full w-full object-cover" />
+                  <img src={image} alt={`Uploaded preview ${index + 1}`} className="h-full w-full object-cover" />
                   <button
                     type="button"
                     className="absolute top-1 right-1 h-6 w-6 rounded-full bg-danger/90 text-danger-contrast opacity-0 group-hover:opacity-100 transition-opacity"

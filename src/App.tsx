@@ -38,12 +38,11 @@ function ToastViewport() {
   const dismissToast = useUiStore((state) => state.dismissToast)
 
   return (
-    <div className="fixed right-4 top-4 z-50 grid w-[min(24rem,calc(100vw-2rem))] gap-2">
+    <div className="fixed right-4 top-4 z-50 grid w-[min(24rem,calc(100vw-2rem))] gap-2" aria-live="polite">
       {toasts.map((toast) => (
         <button
           key={toast.id}
           type="button"
-          role="alert"
           onClick={() => dismissToast(toast.id)}
           className="rounded-control border border-line bg-surface px-4 py-3 text-left text-caption shadow-card"
         >

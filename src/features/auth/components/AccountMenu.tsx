@@ -50,7 +50,7 @@ export default function AccountMenu() {
   }, [isOpen])
 
   // Keyboard navigation within the menu
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (!isOpen) {
       if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
         event.preventDefault()
@@ -112,11 +112,7 @@ export default function AccountMenu() {
   const initials = getInitials(user.name, user.email)
 
   return (
-    <div
-      ref={menuRef}
-      onKeyDown={handleKeyDown}
-      className="relative inline-block text-left"
-    >
+    <div ref={menuRef} className="relative inline-block text-left">
       {/* Menu Trigger Button */}
       <button
         ref={triggerRef}
@@ -160,6 +156,8 @@ export default function AccountMenu() {
           role="menu"
           aria-orientation="vertical"
           aria-labelledby="account-menu-button"
+          onKeyDown={handleKeyDown}
+          tabIndex={-1}
           className="absolute right-0 z-50 mt-2 w-72 origin-top-right rounded-card border border-line bg-surface p-2 shadow-elevated animate-in fade-in zoom-in-95 duration-100"
         >
           {/* User Header Section */}

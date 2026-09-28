@@ -54,7 +54,15 @@ export default function ProfilePortfolioTab({ profile }: ProfilePortfolioTabProp
           {filteredArtworks.map((artwork) => (
             <div
               key={artwork.id}
+              role="button"
+              tabIndex={0}
               onClick={() => setSelectedArtwork(artwork)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setSelectedArtwork(artwork)
+                }
+              }}
               className="group cursor-pointer overflow-hidden rounded-card border border-line bg-surface shadow-card transition duration-200 hover:-translate-y-1 hover:shadow-elevated"
             >
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-surface-muted">

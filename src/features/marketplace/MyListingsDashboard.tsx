@@ -151,8 +151,9 @@ export default function MyListingsDashboard() {
 
       <div className="rounded-card border border-line bg-surface shadow-card overflow-hidden">
         <div className="p-4 border-b border-line bg-surface-muted flex flex-wrap items-center gap-2">
-          <label className="text-caption-sm text-muted">Status:</label>
+          <label htmlFor="my-listings-status-filter" className="text-caption-sm text-muted">Status:</label>
           <select
+            id="my-listings-status-filter"
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value as typeof statusFilter); setSelectedIds(new Set()) }}
             className="rounded-control border border-line bg-background px-3 py-1.5 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"

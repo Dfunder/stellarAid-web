@@ -195,7 +195,7 @@ export default function CheckoutPage({ artworkId }: { artworkId: string }) {
           <div className="rounded-card border border-line bg-surface p-6 shadow-card">
             <h2 className="text-h3">License Terms</h2>
             <div className="mt-4">
-              <label className="flex items-start gap-3 cursor-pointer">
+              <label className="flex items-start gap-3 cursor-pointer" aria-label="I agree to the license terms for this artwork">
                 <input
                   type="checkbox"
                   className="mt-1 h-4 w-4 accent-primary"

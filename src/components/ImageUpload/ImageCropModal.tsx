@@ -172,8 +172,9 @@ export default function ImageCropModal({
 
           {/* Zoom Control */}
           <div className="flex items-center gap-3">
-            <label className="text-caption-sm font-semibold text-foreground">Zoom</label>
+            <label htmlFor="image-zoom" className="text-caption-sm font-semibold text-foreground">Zoom</label>
             <input
+              id="image-zoom"
               type="range"
               min={1}
               max={3}

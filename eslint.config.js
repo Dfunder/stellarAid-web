@@ -27,10 +27,5 @@ export default defineConfig([
         version: 'detect',
       },
     },
-    rules: {
-      'jsx-a11y/click-events-have-key-events': 'warn',
-      'jsx-a11y/label-has-associated-control': 'warn',
-      'jsx-a11y/no-static-element-interactions': 'warn',
-    },
   },
 ])
