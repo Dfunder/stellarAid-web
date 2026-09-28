@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { formatDate } from '@/lib'
@@ -205,7 +205,7 @@ export default function OrderConfirmationScreen() {
                   <a href={`/artists/${order.sellerName.toLowerCase().replace(/\s+/g, '_')}`}>View Seller Profile</a>
                 </Button>
                 <Button variant="secondary" asChild>
-                  <a href="/orders/purchases">View All Purchases</a>
+                  <Link to="/purchases">View All Purchases</Link>
                 </Button>
               </div>
 

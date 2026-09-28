@@ -287,6 +287,14 @@ function AppRoutes() {
             </RequireAuth>
           }
         />
+        <Route
+          path="settings/wallets"
+          element={
+            <RequireAuth>
+              <WalletSettingsPage />
+            </RequireAuth>
+          }
+        />
 <Route
           path="dashboard"
           element={

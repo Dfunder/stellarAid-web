@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { Button, Skeleton } from '@/components/ui'
 import { http } from '@/services'
 
@@ -132,7 +133,7 @@ export default function RecentlyViewed({
           <h2 id="recently-viewed-heading" className="text-h3">{title}</h2>
           {history.length > maxItems && (
             <Button variant="ghost" size="sm" asChild>
-              <a href="/history">View all</a>
+              <Link to="/favorites">View all</Link>
             </Button>
           )}
         </div>
