@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 
@@ -166,7 +166,7 @@ interface FavoritesPageProps {
 }
 
 export default function FavoritesPage({ defaultTab = 'artworks' }: FavoritesPageProps) {
-  const { favorites, isPending } = useFavorites()
+  const { favorites, toggleFavorite, isPending } = useFavorites()
   const [activeTab, setActiveTab] = useState(defaultTab)
 
   const artworkFavorites = favorites.filter((f) => f.type === 'artwork')

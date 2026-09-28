@@ -5,7 +5,7 @@ import { http } from '@/services'
 import { formatDate } from '@/lib'
 import { useAuth } from '@/features/auth'
 import { orderKeys } from './queryKeys'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQueryClient, useQuery } from '@tanstack/react-query'
 
 interface OrderConfirmationData {
   id: string
