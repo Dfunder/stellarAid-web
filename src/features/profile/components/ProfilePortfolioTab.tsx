@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Modal } from '@/components/ui'
+import { useMemo, useState } from 'react'
+import { MediaLightbox, Modal } from '@/components/ui'
 import type { Artwork } from '@/types'
 import type { ArtistProfileExtended } from '../types'
 
@@ -9,6 +9,7 @@ export interface ProfilePortfolioTabProps {
 
 export default function ProfilePortfolioTab({ profile }: ProfilePortfolioTabProps) {
   const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null)
+  const [activeMediaIndex, setActiveMediaIndex] = useState(0)
   const [filterCategory, setFilterCategory] = useState<string>('all')
 
   const artworks = profile.portfolio || []
@@ -18,6 +19,11 @@ export default function ProfilePortfolioTab({ profile }: ProfilePortfolioTabProp
     filterCategory === 'all'
       ? artworks
       : artworks.filter((a) => a.category.toLowerCase() === filterCategory.toLowerCase())
+
+  const selectedImageUrls = useMemo(
+    () => selectedArtwork?.imageUrls ?? [],
+    [selectedArtwork],
+  )
 
   return (
     <div className="flex flex-col gap-6">
@@ -101,15 +107,48 @@ export default function ProfilePortfolioTab({ profile }: ProfilePortfolioTabProp
           onClose={() => setSelectedArtwork(null)}
           title={selectedArtwork.title}
           description={`${selectedArtwork.category} • Created by ${profile.displayName}`}
+          className="max-w-5xl"
         >
           <div className="flex flex-col gap-4">
             <div className="overflow-hidden rounded-control bg-neutral-950">
-              <img
-                src={selectedArtwork.imageUrls[0]}
-                alt={selectedArtwork.title}
-                className="max-h-96 w-full object-contain mx-auto"
-              />
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveMediaIndex(0)
+                  setSelectedArtwork(selectedArtwork)
+                }}
+                className="block w-full cursor-zoom-in"
+                aria-label={`Open gallery for ${selectedArtwork.title}`}
+              >
+                <img
+                  src={selectedArtwork.imageUrls[0]}
+                  alt={selectedArtwork.title}
+                  className="mx-auto max-h-96 w-full object-contain"
+                />
+              </button>
             </div>
+
+            {selectedArtwork.imageUrls.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {selectedArtwork.imageUrls.map((image, index) => (
+                  <button
+                    key={`${selectedArtwork.id}-${index}`}
+                    type="button"
+                    onClick={() => {
+                      setActiveMediaIndex(index)
+                      setSelectedArtwork(selectedArtwork)
+                    }}
+                    className={`h-16 w-16 shrink-0 overflow-hidden rounded-control border-2 bg-neutral-900 ${
+                      index === activeMediaIndex ? 'border-primary' : 'border-transparent opacity-75'
+                    }`}
+                    aria-label={`Preview image ${index + 1}`}
+                  >
+                    <img src={image} alt={`${selectedArtwork.title} preview ${index + 1}`} className="h-full w-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+
             {selectedArtwork.description && (
               <p className="text-body text-foreground leading-relaxed">
                 {selectedArtwork.description}
@@ -134,6 +173,21 @@ export default function ProfilePortfolioTab({ profile }: ProfilePortfolioTabProp
             </div>
           </div>
         </Modal>
+      )}
+
+      {selectedArtwork && (
+        <MediaLightbox
+          isOpen={Boolean(selectedArtwork)}
+          images={selectedImageUrls}
+          title={selectedArtwork.title}
+          description={`${selectedArtwork.category} • Created by ${profile.displayName}`}
+          activeIndex={activeMediaIndex}
+          onClose={() => {
+            setSelectedArtwork(null)
+            setActiveMediaIndex(0)
+          }}
+          onIndexChange={setActiveMediaIndex}
+        />
       )}
     </div>
   )
