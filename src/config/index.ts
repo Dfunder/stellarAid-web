@@ -16,3 +16,14 @@ export {
   STELLAR_NETWORK_LABELS,
   stellarAccountExplorerUrl,
 } from './stellar'
+export {
+  ASSET_CODES,
+  getAssetMeta,
+  getAssetPrecision,
+  getAssetLabel,
+  getAssetSymbol,
+  getMinWithdrawal,
+  getWithdrawalFee,
+  getConversionRate,
+} from './assets'
+export type { AssetMeta } from './assets'

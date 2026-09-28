@@ -4,26 +4,13 @@ import { Button, ExplorerLink } from '@/components/ui'
 import { http } from '@/services'
 import { useWallet } from '@/features/auth/hooks/useWallet'
 import { formatDate } from '@/lib'
+import { getAssetLabel, getAssetPrecision } from '@/config'
 
 interface AssetBalance {
   asset: string
   balance: string
   hasTrustline: boolean
   trustlineLimit?: string
-}
-
-const ASSET_LABELS: Record<string, string> = {
-  XLM: 'XLM (Native)',
-  USDC: 'USDC',
-  NGNT: 'NGNT',
-  EURC: 'EURC',
-}
-
-const ASSET_PRECISION: Record<string, number> = {
-  XLM: 7,
-  USDC: 2,
-  NGNT: 2,
-  EURC: 2,
 }
 
 interface WalletBalanceDisplayProps {
@@ -84,8 +71,8 @@ export default function WalletBalanceDisplay({
   }
 
   const renderBalanceItem = (balance: AssetBalance) => {
-    const precision = ASSET_PRECISION[balance.asset] ?? 7
-    const label = ASSET_LABELS[balance.asset] ?? balance.asset
+    const precision = getAssetPrecision(balance.asset) ?? 7
+    const label = getAssetLabel(balance.asset) ?? balance.asset
 
     return (
       <div

@@ -4,6 +4,7 @@ import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { formatDate } from '@/lib'
+import { getAssetPrecision, getMinWithdrawal, getWithdrawalFee } from '@/config'
 import type { LinkedWallet } from '@/features/auth/types'
 
 interface Balance {
@@ -26,27 +27,6 @@ interface WithdrawalHistoryItem {
   txHash: string | null
   destination: string
   createdAt: string
-}
-
-const ASSET_PRECISION: Record<string, number> = {
-  XLM: 7,
-  USDC: 2,
-  NGNT: 2,
-  EURC: 2,
-}
-
-const MIN_WITHDRAWAL: Record<string, string> = {
-  XLM: '0.0000001',
-  USDC: '1.00',
-  NGNT: '100.00',
-  EURC: '1.00',
-}
-
-const WITHDRAWAL_FEE: Record<string, string> = {
-  XLM: '0.00001',
-  USDC: '0.50',
-  NGNT: '50.00',
-  EURC: '0.50',
 }
 
 export default function ArtistWithdrawal() {
@@ -83,9 +63,9 @@ export default function ArtistWithdrawal() {
 
   const selectedBalance = balances?.find((b) => b.asset === selectedAsset)
   const availableAmount = selectedBalance?.available ?? '0'
-  const precision = ASSET_PRECISION[selectedAsset] ?? 7
-  const minAmount = MIN_WITHDRAWAL[selectedAsset] ?? '0.0000001'
-  const fee = WITHDRAWAL_FEE[selectedAsset] ?? '0'
+  const precision = getAssetPrecision(selectedAsset) ?? 7
+  const minAmount = getMinWithdrawal(selectedAsset) ?? '0.0000001'
+  const fee = getWithdrawalFee(selectedAsset) ?? '0'
   const isAmountValid = parseFloat(amount) > 0 && parseFloat(amount) <= parseFloat(availableAmount)
   const hasValidWallet = wallets?.some((w) => w.id === selectedWalletId) ?? false
 

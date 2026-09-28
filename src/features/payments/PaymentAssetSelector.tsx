@@ -4,6 +4,7 @@ import { Button, ExplorerLink } from '@/components/ui'
 import { http } from '@/services'
 import { useWallet } from '@/features/auth/hooks/useWallet'
 import { formatDate } from '@/lib'
+import { getAssetLabel, getAssetPrecision } from '@/config'
 
 interface AssetBalance {
   asset: string
@@ -22,20 +23,6 @@ interface PaymentAssetSelectorProps {
   selectedAsset: string
   /** Whether the selector is disabled */
   disabled?: boolean
-}
-
-const ASSET_LABELS: Record<string, string> = {
-  XLM: 'XLM (Native)',
-  USDC: 'USDC',
-  NGNT: 'NGNT',
-  EURC: 'EURC',
-}
-
-const ASSET_PRECISION: Record<string, number> = {
-  XLM: 7,
-  USDC: 2,
-  NGNT: 2,
-  EURC: 2,
 }
 
 export default function PaymentAssetSelector({
@@ -107,7 +94,7 @@ export default function PaymentAssetSelector({
       <div className="flex flex-wrap items-center gap-2">
         {availableAssets.map((asset) => {
           const balance = balances?.find((b) => b.asset === asset)
-          const precision = ASSET_PRECISION[asset] ?? 7
+          const precision = getAssetPrecision(asset) ?? 7
           const isSelected = selectedAsset === asset
           const hasBalance = balance && parseFloat(balance.balance) >= parseFloat(price)
           const isDisabled = disabled || !balance || !balance.hasTrustline || !hasBalance
@@ -124,7 +111,7 @@ export default function PaymentAssetSelector({
                   : 'bg-surface-muted text-foreground hover:bg-surface border border-line'
               } ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              <span>{ASSET_LABELS[asset] ?? asset}</span>
+              <span>{getAssetLabel(asset) ?? asset}</span>
               {balance && (
                 <span className="font-mono text-caption-xs text-muted">
                   {parseFloat(balance.balance).toLocaleString(undefined, {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui'
+import { getAssetLabel, getAssetPrecision, getAssetSymbol, getConversionRate } from '@/config'
 
 interface PriceInputProps {
   /** Current price value as string (to avoid float precision issues) */
@@ -18,34 +19,6 @@ interface PriceInputProps {
   error?: string
   /** Whether the field is disabled */
   disabled?: boolean
-}
-
-const ASSET_PRECISION: Record<string, number> = {
-  XLM: 7,
-  USDC: 2,
-  NGNT: 2,
-  EURC: 2,
-}
-
-const ASSET_SYMBOLS: Record<string, string> = {
-  XLM: '✦',
-  USDC: '$',
-  NGNT: '₦',
-  EURC: '€',
-}
-
-const ASSET_LABELS: Record<string, string> = {
-  XLM: 'XLM (Native)',
-  USDC: 'USDC',
-  NGNT: 'NGNT',
-  EURC: 'EURC',
-}
-
-const CONVERSION_RATES: Record<string, number> = {
-  XLM: 1,
-  USDC: 0.1, // 10 XLM = 1 USDC (example rate)
-  NGNT: 150, // 1 XLM = 150 NGNT (example rate)
-  EURC: 0.09, // 1 XLM = 0.09 EURC (example rate)
 }
 
 /**
@@ -67,8 +40,8 @@ export default function MultiAssetPricingInput({
   error,
   disabled = false,
 }: PriceInputProps) {
-  const precision = ASSET_PRECISION[asset] ?? 7
-  const symbol = ASSET_SYMBOLS[asset] ?? ''
+  const precision = getAssetPrecision(asset) ?? 7
+  const symbol = getAssetSymbol(asset) ?? ''
   const [showHint, setShowHint] = useState(false)
   const [convertedValues, setConvertedValues] = useState<Record<string, string>>({})
 
@@ -80,14 +53,14 @@ export default function MultiAssetPricingInput({
       return
     }
 
-    const baseRate = CONVERSION_RATES[asset] ?? 1
+    const baseRate = getConversionRate(asset) ?? 1
     const conversions: Record<string, string> = {}
 
     assets.forEach((a) => {
-      if (a !== asset && CONVERSION_RATES[a]) {
-        const targetRate = CONVERSION_RATES[a]
+      const targetRate = getConversionRate(a)
+      if (a !== asset && targetRate !== null) {
         const converted = (numValue * baseRate) / targetRate
-        const targetPrecision = ASSET_PRECISION[a] ?? 2
+        const targetPrecision = getAssetPrecision(a) ?? 2
         conversions[a] = converted.toFixed(targetPrecision)
       }
     })
@@ -152,7 +125,7 @@ export default function MultiAssetPricingInput({
           >
             {assets.map((a) => (
               <option key={a} value={a}>
-                {ASSET_LABELS[a] ?? a}
+                {getAssetLabel(a) ?? a}
               </option>
             ))}
           </select>
@@ -179,8 +152,8 @@ export default function MultiAssetPricingInput({
           <div className="grid gap-1 sm:grid-cols-2">
             {Object.entries(convertedValues).map(([a, v]) => (
               <div key={a} className="flex justify-between">
-                <span className="text-muted">{ASSET_LABELS[a] ?? a}</span>
-                <span className="font-mono text-foreground">{ASSET_SYMBOLS[a] ?? ''}{v}</span>
+                <span className="text-muted">{getAssetLabel(a) ?? a}</span>
+                <span className="font-mono text-foreground">{getAssetSymbol(a) ?? ''}{v}</span>
               </div>
             ))}
           </div>
@@ -191,7 +164,7 @@ export default function MultiAssetPricingInput({
       )}
 
       <p className="text-caption-xs text-muted">
-        Precision: {precision} decimal place{precision !== 1 ? 's' : ''} for {ASSET_LABELS[asset] ?? asset}.
+        Precision: {precision} decimal place{precision !== 1 ? 's' : ''} for {getAssetLabel(asset) ?? asset}.
         Amounts stored as strings to avoid floating-point errors.
       </p>
     </div>
