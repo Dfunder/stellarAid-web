@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { formatDate } from '@/lib'
@@ -48,7 +48,7 @@ export default function PurchasesPage() {
   const [page, setPage] = useState(1)
   const pageSize = 10
 
-  const { data, isPending, isError, error, refetch } = useQuery({
+  const { data, isPending, isFetching, isError, error, refetch } = useQuery({
     queryKey: orderKeys.list({ status: statusFilter, page, pageSize }),
     queryFn: async (): Promise<{ orders: Order[]; total: number }> => {
       const params = new URLSearchParams()
@@ -58,6 +58,7 @@ export default function PurchasesPage() {
       const response = await http.get<{ orders: Order[]; total: number }>(`/orders/purchases?${params}`)
       return response
     },
+    placeholderData: keepPreviousData,
   })
 
   const orders = data?.orders ?? []
@@ -91,7 +92,7 @@ export default function PurchasesPage() {
   }
 
   return (
-    <div className="container py-8">
+    <div className={`container py-8 ${isFetching ? 'opacity-70 transition-opacity duration-200' : ''}`}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-h2">My Purchases</h1>

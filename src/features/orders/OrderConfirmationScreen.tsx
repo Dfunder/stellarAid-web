@@ -5,7 +5,7 @@ import { http } from '@/services'
 import { formatDate } from '@/lib'
 import { useAuth } from '@/features/auth'
 import { orderKeys } from './queryKeys'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 
 interface OrderConfirmationData {
   id: string
@@ -47,6 +47,7 @@ export default function OrderConfirmationScreen() {
       return response.order
     },
     enabled: !!orderId,
+    placeholderData: keepPreviousData,
     refetchInterval: (data) => data?.status === 'confirming' ? 3000 : false,
   })
 
