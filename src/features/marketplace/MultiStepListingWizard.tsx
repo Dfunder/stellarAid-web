@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, Input, Modal, Spinner } from '@/components/ui'
+import { Button, Input, Modal } from '@/components/ui'
 import { http } from '@/services'
-import { useAuth } from '@/features/auth'
 import { MultiAssetPricingInput, LicenseTermsField } from '.'
 import { z } from 'zod'
 

@@ -1,6 +1,6 @@
 import { http } from '@/services'
 import type { User } from '@/features/auth/types'
-import type { ArtistProfileExtended, ArtistServicePackage, ProfileEditFormValues } from '../types'
+import type { ArtistProfileExtended, ProfileEditFormValues } from '../types'
 
 /** Seeded artist profiles for realistic fallback, testing, and initial catalog. */
 export const SEEDED_ARTISTS: Record<string, ArtistProfileExtended> = {

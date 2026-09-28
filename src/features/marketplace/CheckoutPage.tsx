@@ -1,10 +1,9 @@
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
+import { useQuery, useMutation } from '@tanstack/react-query'
+import { Button, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { PaymentAssetSelector, WalletBalanceDisplay } from '@/features/payments'
-import { formatDate } from '@/lib'
 
 interface Artwork {
   id: string
@@ -42,10 +41,9 @@ const LICENSE_PRESETS = [
 
 export default function CheckoutPage({ artworkId }: { artworkId: string }) {
   const { user } = useAuth()
-  const queryClient = useQueryClient()
   const [selectedAsset, setSelectedAsset] = useState<string>('')
   const [agreedToTerms, setAgreedToTerms] = useState(false)
-  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [, setSessionId] = useState<string | null>(null)
   const [showLicense, setShowLicense] = useState(false)
 
   const { data: artwork, isPending: artworkPending } = useQuery({

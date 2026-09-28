@@ -1,8 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, Input, Modal, Spinner } from '@/components/ui'
+import { Button, Spinner } from '@/components/ui'
 import { http } from '@/services'
-import { useAuth } from '@/features/auth'
 
 export type DeliverableKind = 'wip' | 'final'
 
@@ -83,7 +82,6 @@ export default function DeliverableUpload({
   onSubmitForReview,
   initialFiles = [],
 }: DeliverableUploadProps) {
-  const { user } = useAuth()
   const queryClient = useQueryClient()
   const [files, setFiles] = useState<DeliverableFile[]>(initialFiles)
   const [dragActive, setDragActive] = useState(false)
@@ -116,7 +114,7 @@ export default function DeliverableUpload({
 
       return fileId
     },
-    onSuccess: (fileId, file) => {
+    onSuccess: (_fileId, file) => {
       setFiles((prev) =>
         prev.map((f) =>
           f.id === file.id ? { ...f, uploadStatus: 'completed', progress: 100 } : f
