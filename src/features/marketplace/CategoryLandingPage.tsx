@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Button, Skeleton } from '@/components/ui'
 import { http } from '@/services'
@@ -31,11 +32,13 @@ interface CategoryArtwork {
 }
 
 export interface CategoryLandingPageProps {
-  /** Category slug from URL */
-  slug: string
+  /** Category slug from the route. Defaults to the `:slug` route param. */
+  slug?: string
 }
 
-export default function CategoryLandingPage({ slug }: CategoryLandingPageProps) {
+export default function CategoryLandingPage({ slug: slugProp }: CategoryLandingPageProps = {}) {
+  const { slug: slugParam } = useParams<{ slug: string }>()
+  const slug = slugParam ?? slugProp ?? ''
   const [subCategoryFilter, setSubCategoryFilter] = useState<string>('all')
 
   const { data: category, isPending: categoryPending, isError: categoryError } = useQuery({

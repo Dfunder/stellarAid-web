@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
@@ -40,7 +41,9 @@ const LICENSE_PRESETS = [
   { value: 'exclusive', label: 'Exclusive Rights', description: 'Full exclusive rights, artwork removed from marketplace' },
 ] as const
 
-export default function CheckoutPage({ artworkId }: { artworkId: string }) {
+export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?: string } = {}) {
+  const { artworkId: artworkIdParam } = useParams<{ artworkId: string }>()
+  const artworkId = artworkIdParam ?? artworkIdProp ?? ''
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const [selectedAsset, setSelectedAsset] = useState<string>('')

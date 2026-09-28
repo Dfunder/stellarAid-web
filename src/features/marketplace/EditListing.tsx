@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
@@ -52,7 +53,9 @@ const LICENSE_PRESETS = [
   { value: 'exclusive', label: 'Exclusive Rights', description: 'Full exclusive rights, artwork removed from marketplace' },
 ] as const
 
-export default function EditListing({ listingId }: { listingId: string }) {
+export default function EditListing({ listingId: listingIdProp }: { listingId?: string } = {}) {
+  const { listingId: listingIdParam } = useParams<{ listingId: string }>()
+  const listingId = listingIdParam ?? listingIdProp ?? ''
   const queryClient = useQueryClient()
   const [formData, setFormData] = useState<Partial<ListingFormData>>({})
   const [errors, setErrors] = useState<Partial<Record<keyof ListingFormData, string>>>({})
