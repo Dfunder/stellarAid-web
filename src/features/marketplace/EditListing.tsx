@@ -46,7 +46,7 @@ const CATEGORIES = [
   'Other',
 ] as const
 
-const LICENSE_PRESETS = [
+export const LICENSE_PRESETS = [
   { value: 'personal', label: 'Personal Use', description: 'For personal, non-commercial use only' },
   { value: 'commercial', label: 'Commercial Use', description: 'Allows commercial use with attribution' },
   { value: 'exclusive', label: 'Exclusive Rights', description: 'Full exclusive rights, artwork removed from marketplace' },

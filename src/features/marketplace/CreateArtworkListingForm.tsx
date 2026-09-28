@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, Input, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
-import { MultiStepListingWizard } from './MultiStepListingWizard'
+import MultiStepListingWizard from './MultiStepListingWizard'
 
 export interface CreateArtworkListingFormProps {
   /** Callback after successful publish */
