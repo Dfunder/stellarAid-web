@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
@@ -66,7 +66,6 @@ const FAILURE_REMEDIES: Record<string, { title: string; description: string; act
 export default function PaymentResultScreen() {
   const [searchParams] = useSearchParams()
   const sessionId = searchParams.get('sessionId')
-  const [showConfetti, setShowConfetti] = useState(false)
 
   const { data: result, isPending, isError, error, refetch } = useQuery({
     queryKey: ['paymentResult', sessionId],
@@ -79,11 +78,7 @@ export default function PaymentResultScreen() {
     refetchInterval: (data) => data?.status === 'success' ? false : 5000,
   })
 
-  useEffect(() => {
-    if (result?.status === 'success' && !showConfetti) {
-      setShowConfetti(true)
-    }
-  }, [result?.status, showConfetti])
+  const showConfetti = result?.status === 'success'
 
   if (!sessionId) {
     return (
@@ -263,7 +258,7 @@ export default function PaymentResultScreen() {
 import { useQuery } from '@tanstack/react-query'
 
 function Confetti() {
-  const [particles] = useState(
+  const [particles] = useState(() =>
     Array.from({ length: 50 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
@@ -273,6 +268,7 @@ function Confetti() {
       speed: 1 + Math.random() * 3,
       rotation: Math.random() * 360,
       rotationSpeed: (Math.random() - 0.5) * 10,
+      duration: 2 + Math.random() * 2,
     }))
   )
 
@@ -289,7 +285,7 @@ function Confetti() {
             height: `${p.size}px`,
             backgroundColor: p.color,
             transform: `rotate(${p.rotation}deg)`,
-            animation: `fall ${3 + Math.random() * 2}s linear forwards`,
+            animation: `fall ${p.duration}s linear forwards`,
           }}
         />
       ))}

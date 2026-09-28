@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
@@ -43,13 +43,9 @@ export default function TransactionHistoryPage() {
 
   const transactions = data ?? []
 
-  const filteredTransactions = useMemo(() => {
-    return transactions
-  }, [transactions])
-
   const exportCsv = () => {
     const headers = ['Date', 'Type', 'Amount', 'Asset', 'Status', 'Transaction Hash']
-    const rows = filteredTransactions.map((tx) => [
+    const rows = transactions.map((tx) => [
       formatDate(tx.createdAt),
       tx.type,
       tx.amount,
@@ -100,7 +96,7 @@ export default function TransactionHistoryPage() {
             Unified view of all on-chain and platform activity.
           </p>
         </div>
-        <Button variant="secondary" onClick={exportCsv} disabled={filteredTransactions.length === 0}>
+        <Button variant="secondary" onClick={exportCsv} disabled={transactions.length === 0}>
           Export CSV
         </Button>
       </div>
@@ -162,7 +158,7 @@ export default function TransactionHistoryPage() {
           </div>
         </div>
 
-        {filteredTransactions.length === 0 ? (
+        {transactions.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-12 text-muted">
             <svg className="h-12 w-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -186,7 +182,7 @@ export default function TransactionHistoryPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredTransactions.map((tx) => (
+                {transactions.map((tx) => (
                   <tr key={tx.id} className="border-b border-line/50 hover:bg-surface-muted/50">
                     <td className="px-4 py-3 text-caption-sm text-foreground">
                       {formatDate(tx.createdAt)}

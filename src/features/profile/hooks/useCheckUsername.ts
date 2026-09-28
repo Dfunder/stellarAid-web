@@ -13,46 +13,43 @@ export function useCheckUsername(
   currentUserId?: string,
   delayMs = 400,
 ): UseCheckUsernameResult {
-  const [isChecking, setIsChecking] = useState(false)
-  const [isAvailable, setIsAvailable] = useState<boolean | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
+  const clean = username.trim().toLowerCase().replace(/^@/, '')
+  const cleanCurrent = currentUsername?.trim().toLowerCase().replace(/^@/, '')
+  const isCurrentUsername = Boolean(cleanCurrent && clean === cleanCurrent)
+
+  const [availability, setAvailability] = useState<{ for: string; available: boolean; message: string | null } | null>(null)
 
   useEffect(() => {
-    const clean = username.trim().toLowerCase().replace(/^@/, '')
-    const cleanCurrent = currentUsername?.trim().toLowerCase().replace(/^@/, '')
-
-    if (!clean) {
-      setIsChecking(false)
-      setIsAvailable(null)
-      setMessage(null)
-      return
-    }
-
-    if (cleanCurrent && clean === cleanCurrent) {
-      setIsChecking(false)
-      setIsAvailable(true)
-      setMessage('This is your current username.')
-      return
-    }
-
-    setIsChecking(true)
-    setMessage(null)
-
+    if (!clean || isCurrentUsername) return
+    let cancelled = false
     const timer = setTimeout(async () => {
       try {
         const res = await profileService.checkUsernameAvailability(clean, currentUserId)
-        setIsAvailable(res.available)
-        setMessage(res.message || (res.available ? 'Username is available!' : 'Username is already taken.'))
+        if (cancelled) return
+        setAvailability({
+          for: clean,
+          available: res.available,
+          message: res.message || (res.available ? 'Username is available!' : 'Username is already taken.'),
+        })
       } catch {
-        setIsAvailable(true)
-        setMessage(null)
-      } finally {
-        setIsChecking(false)
+        if (!cancelled) setAvailability({ for: clean, available: true, message: null })
       }
     }, delayMs)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [clean, isCurrentUsername, currentUserId, delayMs])
 
-    return () => clearTimeout(timer)
-  }, [username, currentUsername, currentUserId, delayMs])
+  const awaitingCheck = Boolean(clean && !isCurrentUsername && availability?.for !== clean)
+
+  const isChecking = awaitingCheck
+  const isAvailable = isCurrentUsername ? true : awaitingCheck ? null : (availability?.available ?? null)
+  const message = isCurrentUsername
+    ? 'This is your current username.'
+    : awaitingCheck
+      ? null
+      : (availability?.message ?? null)
 
   return { isChecking, isAvailable, message }
 }

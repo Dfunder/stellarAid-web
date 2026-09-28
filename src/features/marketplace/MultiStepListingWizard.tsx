@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, Input, Modal, Spinner } from '@/components/ui'
+import { Button, Input, Modal } from '@/components/ui'
 import { http } from '@/services'
-import { useAuth } from '@/features/auth'
 import { MultiAssetPricingInput, LicenseTermsField } from '.'
 import { z } from 'zod'
 
@@ -96,12 +95,12 @@ export default function MultiStepListingWizard({
     },
   })
 
-  // Initialize form with initial data
-  useEffect(() => {
-    if (initialData) {
-      setFormData(initialData)
-    }
-  }, [initialData])
+  // Reset the form when initial data arrives (adjust state during render, not in an effect)
+  const [lastInitialData, setLastInitialData] = useState(initialData)
+  if (lastInitialData !== initialData) {
+    setLastInitialData(initialData)
+    if (initialData) setFormData(initialData)
+  }
 
   // Auto-save draft
   useEffect(() => {
@@ -116,7 +115,8 @@ export default function MultiStepListingWizard({
       }
     }, 2000)
     return () => clearTimeout(timer)
-  }, [formData, activeStep, draftId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mutations are stable identity; isSubmitting/activeStep refs handled in the timer body
+  }, [formData, activeStep, draftId, isSubmitting])
 
   const validateStep = (step: number): boolean => {
     const stepFields = STEPS[step].fields

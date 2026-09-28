@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
@@ -56,16 +56,17 @@ export default function TransactionStatusPolling({
   onFailed,
   initialStatus,
   pollInterval = 3000,
-  maxPollTime = 5 * 60 * 1000,
   inline = false,
 }: TransactionStatusPollingProps) {
-  const [startTime] = useState(Date.now())
+  const [startTime] = useState(() => Date.now())
+  const [now, setNow] = useState(() => Date.now())
   const [currentStatus, setCurrentStatus] = useState<TxStatus>(initialStatus?.status ?? 'submitted')
   const [confirmations, setConfirmations] = useState(initialStatus?.confirmations ?? 0)
   const [requiredConfirmations, setRequiredConfirmations] = useState(initialStatus?.requiredConfirmations ?? 1)
   const [failureReason, setFailureReason] = useState<string | null>(null)
+  const terminalNotifiedRef = useRef(false)
 
-  const { data, isPending, isError, error, refetch } = useQuery({
+  const { data, isPending, refetch } = useQuery({
     queryKey: ['txStatus', txHash],
     queryFn: async (): Promise<TransactionStatusData> => {
       const response = await http.get<{ status: TransactionStatusData }>(`/transactions/${txHash}/status`)
@@ -80,35 +81,34 @@ export default function TransactionStatusPolling({
       const backoff = Math.min(pollInterval * Math.pow(2, Math.floor(elapsed / 15000)), 30000)
       return backoff
     },
-  })
-
-  // Update local state from query data
-  useEffect(() => {
-    if (data) {
+    onSuccess: (data) => {
       setCurrentStatus(data.status)
       setConfirmations(data.confirmations ?? 0)
       setRequiredConfirmations(data.requiredConfirmations ?? 1)
       if (data.failureReason) setFailureReason(data.failureReason)
 
-      if (data.status === 'confirmed') {
-        onConfirmed?.(data)
-      } else if (data.status === 'failed') {
-        setFailureReason(data.failureReason ?? 'Transaction failed')
-        onFailed?.(data)
+      if (data.status === 'confirmed' || data.status === 'failed') {
+        if (terminalNotifiedRef.current) return
+        terminalNotifiedRef.current = true
+        if (data.status === 'confirmed') {
+          onConfirmed?.(data)
+        } else {
+          setFailureReason(data.failureReason ?? 'Transaction failed')
+          onFailed?.(data)
+        }
       }
-    }
-  }, [data, onConfirmed, onFailed])
+    },
+  })
 
-  // Stop polling after max time
+  // Refresh the elapsed-time clock while a transaction is still confirming
   useEffect(() => {
-    const elapsed = Date.now() - startTime
-    if (elapsed > maxPollTime && currentStatus === 'confirming') {
-      // Show handoff screen
-    }
-  }, [currentStatus, startTime, maxPollTime])
+    if (currentStatus !== 'confirming') return
+    const timer = setInterval(() => setNow(Date.now()), 5000)
+    return () => clearInterval(timer)
+  }, [currentStatus])
 
   const isFinal = currentStatus === 'confirmed' || currentStatus === 'failed'
-  const isSlow = Date.now() - startTime > 30000 && currentStatus === 'confirming'
+  const isSlow = now - startTime > 30000 && currentStatus === 'confirming'
 
   if (inline) {
     return (

@@ -1,8 +1,6 @@
 import { useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, Input, Spinner } from '@/components/ui'
-import { http } from '@/services'
-import { useAuth } from '@/features/auth'
+import { useQueryClient } from '@tanstack/react-query'
+import { Button } from '@/components/ui'
 import { MultiStepListingWizard } from './MultiStepListingWizard'
 
 export interface CreateArtworkListingFormProps {
@@ -34,7 +32,7 @@ export default function CreateArtworkListingForm({
     setShowWizard(false)
   }
 
-  const handleSaveDraft = (listingId: string) => {
+  const handleSaveDraft = () => {
     queryClient.invalidateQueries({ queryKey: ['myListings'] })
     // Stay on page to continue editing
   }

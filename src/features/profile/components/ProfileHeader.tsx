@@ -7,10 +7,9 @@ import ShareModal from './ShareModal'
 
 export interface ProfileHeaderProps {
   profile: ArtistProfileExtended
-  onTabChange?: (tab: 'services' | 'portfolio') => void
 }
 
-export default function ProfileHeader({ profile, onTabChange }: ProfileHeaderProps) {
+export default function ProfileHeader({ profile }: ProfileHeaderProps) {
   const [isFollowing, setIsFollowing] = useState(Boolean(profile.isFollowing))
   const [followersCount, setFollowersCount] = useState(profile.followersCount)
   const [isShareModalOpen, setShareModalOpen] = useState(false)

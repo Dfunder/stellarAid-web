@@ -1,9 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Button, ExplorerLink } from '@/components/ui'
 import { http } from '@/services'
 import { useWallet } from '@/features/auth/hooks/useWallet'
-import { formatDate } from '@/lib'
 
 interface AssetBalance {
   asset: string
@@ -46,7 +44,7 @@ export default function PaymentAssetSelector({
   disabled = false,
 }: PaymentAssetSelectorProps) {
   const { publicKey } = useWallet()
-  const [warning, setWarning] = useState<string | null>(null)
+  const [interactionWarning, setInteractionWarning] = useState<string | null>(null)
 
   const { data: balances } = useQuery({
     queryKey: ['walletBalances', publicKey],
@@ -58,29 +56,19 @@ export default function PaymentAssetSelector({
     enabled: !!publicKey,
   })
 
-  // Check balance when selected asset changes
-  useEffect(() => {
-    if (!selectedAsset || !balances) {
-      setWarning(null)
-      return
-    }
+  // Derive a balance warning for the selected asset
+  const derivedWarning = useMemo<string | null>(() => {
+    if (!selectedAsset || !balances) return null
     const balance = balances.find((b) => b.asset === selectedAsset)
-    if (!balance) {
-      setWarning(`No balance data for ${selectedAsset}`)
-      return
-    }
-    if (!balance.hasTrustline) {
-      setWarning(`Trustline missing for ${selectedAsset}. Add it in your wallet first.`)
-      return
-    }
+    if (!balance) return `No balance data for ${selectedAsset}`
+    if (!balance.hasTrustline) return `Trustline missing for ${selectedAsset}. Add it in your wallet first.`
     const required = parseFloat(price)
     const available = parseFloat(balance.balance)
-    if (available < required) {
-      setWarning(`Insufficient ${selectedAsset} balance. Need ${price}, have ${balance.balance}`)
-      return
-    }
-    setWarning(null)
+    if (available < required) return `Insufficient ${selectedAsset} balance. Need ${price}, have ${balance.balance}`
+    return null
   }, [selectedAsset, balances, price])
+
+  const warning = interactionWarning ?? derivedWarning
 
   const availableAssets = acceptedAssets.filter((asset) => {
     if (!balances) return true
@@ -92,9 +80,10 @@ export default function PaymentAssetSelector({
     if (disabled) return
     const balance = balances?.find((b) => b.asset === asset)
     if (balance && !balance.hasTrustline) {
-      setWarning(`Trustline missing for ${asset}. Add it in your wallet first.`)
+      setInteractionWarning(`Trustline missing for ${asset}. Add it in your wallet first.`)
       return
     }
+    setInteractionWarning(null)
     onSelect(asset)
   }
 

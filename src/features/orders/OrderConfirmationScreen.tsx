@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
@@ -37,7 +37,6 @@ export default function OrderConfirmationScreen() {
   const sessionId = searchParams.get('sessionId')
   const { user } = useAuth()
   const queryClient = useQueryClient()
-  const [showConfetti, setShowConfetti] = useState(false)
 
   const { data: order, isPending, isError, error, refetch } = useQuery({
     queryKey: orderKeys.detail(orderId ?? ''),
@@ -48,15 +47,15 @@ export default function OrderConfirmationScreen() {
     },
     enabled: !!orderId,
     refetchInterval: (data) => data?.status === 'confirming' ? 3000 : false,
+    onSuccess: (data) => {
+      if (data?.status === 'confirmed') {
+        // Invalidate purchases list
+        queryClient.invalidateQueries({ queryKey: orderKeys.lists() })
+      }
+    },
   })
 
-  useEffect(() => {
-    if (order?.status === 'confirmed' && !showConfetti) {
-      setShowConfetti(true)
-      // Invalidate purchases list
-      queryClient.invalidateQueries({ queryKey: orderKeys.lists() })
-    }
-  }, [order?.status, showConfetti, queryClient])
+  const showConfetti = order?.status === 'confirmed'
 
   if (!orderId && !sessionId) {
     return (
@@ -107,7 +106,6 @@ export default function OrderConfirmationScreen() {
   }
 
   const isSuccess = order.status === 'confirmed'
-  const isFailed = order.status === 'failed'
   const isConfirming = order.status === 'confirming'
 
   return (
@@ -255,7 +253,7 @@ export default function OrderConfirmationScreen() {
 }
 
 function Confetti() {
-  const [particles] = useState(
+  const [particles] = useState(() =>
     Array.from({ length: 50 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
@@ -265,6 +263,7 @@ function Confetti() {
       speed: 1 + Math.random() * 3,
       rotation: Math.random() * 360,
       rotationSpeed: (Math.random() - 0.5) * 10,
+      duration: 2 + Math.random() * 2,
     }))
   )
 
@@ -281,7 +280,7 @@ function Confetti() {
             height: `${p.size}px`,
             backgroundColor: p.color,
             transform: `rotate(${p.rotation}deg)`,
-            animation: `fall ${3 + Math.random() * 2}s linear forwards`,
+            animation: `fall ${p.duration}s linear forwards`,
           }}
         />
       ))}

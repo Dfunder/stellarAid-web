@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, ExplorerLink, Modal, Spinner } from '@/components/ui'
+import { Button, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { formatDate } from '@/lib'
@@ -292,6 +292,31 @@ export default function MyListingsDashboard() {
           </>
         )}
       </div>
+      <Modal
+        isOpen={pendingAction !== null}
+        onClose={() => setPendingAction(null)}
+        title={pendingAction?.type === 'unpublish' ? 'Unpublish Listing' : 'Delete Listing'}
+        description={
+          pendingAction
+            ? `Are you sure you want to ${pendingAction.type === 'unpublish' ? 'unpublish' : 'delete'} "${pendingAction.listing.title}"? ${
+                pendingAction.type === 'delete' ? 'This cannot be undone.' : ''
+              }`
+            : undefined
+        }
+      >
+        <div className="flex justify-end gap-2">
+          <Button variant="secondary" onClick={() => setPendingAction(null)}>
+            Cancel
+          </Button>
+          <Button
+            variant={pendingAction?.type === 'delete' ? 'danger' : 'primary'}
+            onClick={() => void handleConfirmAction()}
+            isLoading={unpublishMutation.isPending || deleteMutation.isPending}
+          >
+            {pendingAction?.type === 'unpublish' ? 'Unpublish' : 'Delete'}
+          </Button>
+        </div>
+      </Modal>
     </div>
   )
 }

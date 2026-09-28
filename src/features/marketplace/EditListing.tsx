@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
+import { Button, Input, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
-import { useAuth } from '@/features/auth'
 import { formatDate } from '@/lib'
 import { z } from 'zod'
 
@@ -217,7 +216,6 @@ export default function EditListing({ listingId }: { listingId: string }) {
 
   if (!listing) return null
 
-  const currentStep = steps[activeStep]
   const progress = ((activeStep + 1) / steps.length) * 100
 
   return (

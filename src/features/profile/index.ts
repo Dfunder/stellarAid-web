@@ -19,7 +19,8 @@ export { useUpdateProfile } from './hooks/useUpdateProfile'
 
 export { default as ArtistProfilePage } from './pages/ArtistProfilePage'
 export { default as ProfileEditPage } from './pages/ProfileEditPage'
-export { default as FavoritesPage, FavoriteButton, useFavorites } from './FavoritesPage'
+export { default as FavoritesPage, FavoriteButton } from './FavoritesPage'
+export { useFavorites } from './useFavorites'
 
 export { SEEDED_ARTISTS, profileService } from './services/profileService'
 

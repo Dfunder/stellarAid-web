@@ -8,26 +8,18 @@ import {
   ForgotPasswordPage,
   GuestRoute,
   LoginPage,
-  ProtectedRoute,
   RegisterPage,
   RequireAuth,
   ResetPasswordPage,
   useAuth,
   VerifyEmailPage,
-  WalletSettingsPage,
 } from '@/features/auth'
 import { ArtistProfilePage, ProfileEditPage, FavoritesPage } from '@/features/profile'
-import { CheckoutPage, MyListingsDashboard, EditListing, LicenseTermsField, DeliverableUpload, MultiAssetPricingInput, MultiStepListingWizard, CreateArtworkListingForm, RecentlyViewed, CategoryLandingPage } from '@/features/marketplace'
-import { ArtistProfilePage, ProfileEditPage } from '@/features/profile'
-import { CheckoutPage, MyListingsDashboard, EditListing, LicenseTermsField, DeliverableUpload, MultiAssetPricingInput, MultiStepListingWizard, CreateArtworkListingForm } from '@/features/marketplace'
+import { CheckoutPage, MyListingsDashboard, EditListing, CreateArtworkListingForm, CategoryLandingPage } from '@/features/marketplace'
 import { PurchasesPage, OrderConfirmationScreen } from '@/features/orders'
 import { TransactionHistoryPage } from '@/features/transactions'
 import { ArtistWithdrawal } from '@/features/portfolio'
 import { PaymentResultScreen } from '@/features/payments'
-import { CheckoutPage, MyListingsDashboard, EditListing, LicenseTermsField } from '@/features/marketplace'
-import { PurchasesPage, OrderConfirmationScreen } from '@/features/orders'
-import { TransactionHistoryPage } from '@/features/transactions'
-import { ArtistWithdrawal } from '@/features/portfolio'
 import { useUiStore } from '@/stores'
 
 const NAV_LINK_CLASSES =

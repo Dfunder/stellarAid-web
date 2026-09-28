@@ -98,10 +98,7 @@ export default function ArtistProfilePage() {
       <div className="container max-w-6xl pt-6">
         <div className="overflow-hidden rounded-card border border-line bg-surface shadow-elevated">
           {/* Header Component */}
-          <ProfileHeader
-            profile={profile}
-            onTabChange={(tab) => handleTabClick(tab)}
-          />
+          <ProfileHeader profile={profile} />
 
           {/* Stats Bar */}
           <ProfileStats profile={profile} />

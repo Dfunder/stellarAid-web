@@ -7,11 +7,8 @@ interface ExplorerLinkProps {
   value: string
   /** Type of the value: 'tx' for transaction hash, 'address' for public key. */
   type: 'tx' | 'address'
-  /** Optional custom network override. */
+/** Optional custom network override. */
   network?: 'testnet' | 'mainnet'
-  /** Optional label to display instead of the truncated value. */
-  label?: string
-  /** Optional custom CSS classes. */
   className?: string
 }
 
@@ -35,7 +32,6 @@ export default function ExplorerLink({
   value,
   type,
   network = activeStellarNetwork,
-  label,
   className = '',
 }: ExplorerLinkProps) {
   const [isExpanded, setIsExpanded] = useState(false)

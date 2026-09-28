@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { Input } from '@/components/ui'
 
 interface PriceInputProps {
@@ -70,15 +70,11 @@ export default function MultiAssetPricingInput({
   const precision = ASSET_PRECISION[asset] ?? 7
   const symbol = ASSET_SYMBOLS[asset] ?? ''
   const [showHint, setShowHint] = useState(false)
-  const [convertedValues, setConvertedValues] = useState<Record<string, string>>({})
 
-  // Update conversion hints when value or asset changes
-  useEffect(() => {
+  // Derive conversion hints from the current value and asset
+  const convertedValues = useMemo(() => {
     const numValue = parseFloat(value)
-    if (isNaN(numValue) || numValue === 0) {
-      setConvertedValues({})
-      return
-    }
+    if (isNaN(numValue) || numValue === 0) return {}
 
     const baseRate = CONVERSION_RATES[asset] ?? 1
     const conversions: Record<string, string> = {}
@@ -92,7 +88,7 @@ export default function MultiAssetPricingInput({
       }
     })
 
-    setConvertedValues(conversions)
+    return conversions
   }, [value, asset, assets])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

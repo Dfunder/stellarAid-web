@@ -35,10 +35,12 @@ export default function ProfileEditPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  // Sync form when user profile data loads
-  useEffect(() => {
+  // Reset the form when the loaded profile changes (adjust state during render, not in an effect)
+  const [lastUserId, setLastUserId] = useState<string | undefined>(user?.id)
+  if (lastUserId !== user?.id) {
+    setLastUserId(user?.id)
     setForm(initialValues)
-  }, [initialValues])
+  }
 
   // Username availability check hook
   const {
