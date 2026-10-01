@@ -11,31 +11,101 @@ export interface CopyToClipboard {
   isCopied: (value: string) => boolean
 }
 
+/**
+ * Fallback to document.execCommand('copy') for environments where
+ * navigator.clipboard is unavailable (e.g. non-HTTPS/insecure contexts).
+ */
+export function fallbackCopyTextToClipboard(text: string): boolean {
+  if (typeof document === 'undefined' || typeof document.createElement !== 'function') {
+    return false
+  }
+
+  const textArea = document.createElement('textarea')
+  textArea.value = text
+  textArea.style.position = 'fixed'
+  textArea.style.top = '0'
+  textArea.style.left = '0'
+  textArea.style.width = '2em'
+  textArea.style.height = '2em'
+  textArea.style.padding = '0'
+  textArea.style.border = 'none'
+  textArea.style.outline = 'none'
+  textArea.style.boxShadow = 'none'
+  textArea.style.background = 'transparent'
+  textArea.setAttribute('readonly', '')
+
+  document.body.appendChild(textArea)
+  textArea.focus()
+  textArea.select()
+  textArea.setSelectionRange?.(0, text.length)
+
+  let successful: boolean
+  try {
+    successful = document.execCommand('copy')
+  } catch {
+    successful = false
+  }
+
+  document.body.removeChild(textArea)
+  return successful
+}
+
 /** Copies text to the clipboard and briefly remembers what was copied. */
 export function useCopyToClipboard(resetDelayMs: number = DEFAULT_RESET_DELAY_MS): CopyToClipboard {
   const [copiedValue, setCopiedValue] = useState<string | null>(null)
   const timeoutRef = useRef<number | null>(null)
+  const isMountedRef = useRef(true)
+  const requestIdRef = useRef(0)
 
-  useEffect(
-    () => () => {
-      if (timeoutRef.current !== null) window.clearTimeout(timeoutRef.current)
-    },
-    [],
-  )
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [])
 
   const copy = useCallback(
     async (value: string): Promise<boolean> => {
-      try {
-        await navigator.clipboard.writeText(value)
-      } catch {
-        // Clipboard access can be denied (permissions, insecure context); callers
-        // fall back to showing the full value so it can be copied manually.
+      const currentRequestId = ++requestIdRef.current
+
+      let success: boolean
+      if (
+        typeof navigator !== 'undefined' &&
+        navigator.clipboard &&
+        typeof navigator.clipboard.writeText === 'function'
+      ) {
+        try {
+          await navigator.clipboard.writeText(value)
+          success = true
+        } catch {
+          success = fallbackCopyTextToClipboard(value)
+        }
+      } else {
+        success = fallbackCopyTextToClipboard(value)
+      }
+
+      if (!success) {
         return false
       }
 
-      if (timeoutRef.current !== null) window.clearTimeout(timeoutRef.current)
+      // Check if unmounted or if a newer copy request superseded this one
+      if (!isMountedRef.current || currentRequestId !== requestIdRef.current) {
+        return success
+      }
+
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current)
+      }
       setCopiedValue(value)
-      timeoutRef.current = window.setTimeout(() => setCopiedValue(null), resetDelayMs)
+      timeoutRef.current = window.setTimeout(() => {
+        if (isMountedRef.current && currentRequestId === requestIdRef.current) {
+          setCopiedValue(null)
+        }
+      }, resetDelayMs)
+
       return true
     },
     [resetDelayMs],
