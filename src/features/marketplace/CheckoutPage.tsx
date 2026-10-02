@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link, createSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
@@ -108,13 +109,15 @@ export default function CheckoutPage({ artworkId }: { artworkId: string }) {
       <div className="container py-24 text-center">
         <h1 className="text-h2">Artwork not found</h1>
         <Button className="mt-6" asChild>
-          <a href="/">Browse marketplace</a>
+          <Link to="/">Browse marketplace</Link>
         </Button>
       </div>
     )
   }
 
   if (!user) {
+    const redirectParam = artworkId ? `/checkout/${artworkId}` : '/marketplace'
+    const loginSearchParams = createSearchParams({ redirect: redirectParam }).toString()
     return (
       <div className="container py-12 max-w-md mx-auto">
         <div className="rounded-card border border-line bg-surface p-8 shadow-card text-center">
@@ -122,10 +125,10 @@ export default function CheckoutPage({ artworkId }: { artworkId: string }) {
           <p className="mt-2 text-caption text-muted">You need an account to buy artwork.</p>
           <div className="mt-6 flex flex-col gap-3">
             <Button asChild>
-              <a href={`/login?redirect=/checkout/${artworkId}`}>Sign in</a>
+              <Link to={`/login?${loginSearchParams}`}>Sign in</Link>
             </Button>
             <Button variant="secondary" asChild>
-              <a href={`/register?redirect=/checkout/${artworkId}`}>Create account</a>
+              <Link to={`/register?${loginSearchParams}`}>Create account</Link>
             </Button>
           </div>
         </div>

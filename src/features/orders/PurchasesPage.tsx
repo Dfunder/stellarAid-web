@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
@@ -128,7 +129,7 @@ export default function PurchasesPage() {
             When you buy artwork or commission creators, your orders will appear here.
           </p>
           <Button className="mt-6" asChild>
-            <a href="/artists/elena_art">Explore artists</a>
+            <Link to="/artists/elena_art">Explore artists</Link>
           </Button>
         </div>
       ) : (
@@ -193,11 +194,11 @@ export default function PurchasesPage() {
                             </Button>
                           )}
                           <Button size="sm" variant="ghost" asChild>
-                            <a href={`/artists/${order.sellerUsername}`}>Contact</a>
+                            <Link to={`/artists/${order.sellerUsername}`}>Contact</Link>
                           </Button>
                           {order.status === 'completed' && (
                             <Button size="sm" variant="ghost" asChild>
-                              <a href={`/commissions/new?seller=${order.sellerUsername}`}>Reorder</a>
+                              <Link to={`/commissions/new?seller=${order.sellerUsername}`}>Reorder</Link>
                             </Button>
                           )}
                         </div>
@@ -238,7 +239,7 @@ export default function PurchasesPage() {
           {orders.some((o) => o.status === 'failed') && (
             <div className="mt-4 rounded-control bg-danger/10 p-4">
               <p className="text-caption text-danger">
-                Some orders failed. <a href="/support" className="underline">Contact support</a> for assistance.
+                Some orders failed. <Link to="/support" className="underline">Contact support</Link> for assistance.
               </p>
             </div>
           )}

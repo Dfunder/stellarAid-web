@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
@@ -240,18 +241,18 @@ export default function FavoritesPage({ defaultTab = 'artworks' }: FavoritesPage
                   {artworkFavorites.map((fav) => (
                     <tr key={fav.id} className="border-b border-line/50 hover:bg-surface-muted/50">
                       <td className="px-4 py-3">
-                        <a href={`/artworks/${fav.artwork?.id}`} className="flex items-center gap-3">
+                        <Link to={`/artworks/${fav.artwork?.id}`} className="flex items-center gap-3">
                           {fav.artwork?.thumbnail && (
                             <img src={fav.artwork.thumbnail} alt="" className="h-12 w-12 rounded-card object-cover" />
                           )}
                           <span className="text-caption font-medium text-foreground">{fav.artwork?.title}</span>
-                        </a>
+                        </Link>
                       </td>
                       <td className="px-4 py-3 text-caption text-muted">
                         {fav.artwork && (
-                          <a href={`/artists/${fav.artwork.id}`} className="hover:text-foreground">
+                          <Link to={`/artists/${fav.artwork.id}`} className="hover:text-foreground">
                             {fav.artist?.name ?? 'Unknown'}
-                          </a>
+                          </Link>
                         )}
                       </td>
                       <td className="px-4 py-3 text-caption-sm font-mono text-foreground">
@@ -290,9 +291,9 @@ export default function FavoritesPage({ defaultTab = 'artworks' }: FavoritesPage
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {artistFavorites.map((fav) => (
-                <a
+                <Link
                   key={fav.id}
-                  href={`/artists/${fav.artist?.username}`}
+                  to={`/artists/${fav.artist?.username}`}
                   className="flex items-center gap-4 p-4 rounded-card border border-line hover:bg-surface-muted transition-colors"
                 >
                   {fav.artist?.avatarUrl && (
@@ -309,7 +310,7 @@ export default function FavoritesPage({ defaultTab = 'artworks' }: FavoritesPage
                   >
                     Remove
                   </button>
-                </a>
+                </Link>
               ))}
             </div>
           )}

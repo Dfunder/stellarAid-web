@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { formatDate } from '@/lib'
@@ -64,7 +64,7 @@ export default function OrderConfirmationScreen() {
         <h1 className="text-h2">Invalid confirmation link</h1>
         <p className="mt-2 text-caption text-muted">Missing order ID or session ID.</p>
         <Button className="mt-6" asChild>
-          <a href="/">Go home</a>
+          <Link to="/">Go home</Link>
         </Button>
       </div>
     )
@@ -202,10 +202,10 @@ export default function OrderConfirmationScreen() {
 
               <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
                 <Button asChild>
-                  <a href={`/artists/${order.sellerName.toLowerCase().replace(/\s+/g, '_')}`}>View Seller Profile</a>
+                  <Link to={`/artists/${order.sellerName.toLowerCase().replace(/\s+/g, '_')}`}>View Seller Profile</Link>
                 </Button>
                 <Button variant="secondary" asChild>
-                  <a href="/orders/purchases">View All Purchases</a>
+                  <Link to="/orders/purchases">View All Purchases</Link>
                 </Button>
               </div>
 
@@ -239,7 +239,7 @@ export default function OrderConfirmationScreen() {
               <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
                 <Button onClick={() => void refetch()}>Retry Payment</Button>
                 <Button variant="secondary" asChild>
-                  <a href="/">Go Home</a>
+                  <Link to="/">Go Home</Link>
                 </Button>
               </div>
 
