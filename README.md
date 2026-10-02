@@ -37,7 +37,7 @@ The app is served at `http://localhost:5173`.
 
 ## Environment Variables
 
-Runtime configuration is centralized in `src/config/env.ts` and validated with [Zod](https://zod.dev) at startup. All variables use the `VITE_` prefix and are defined in a `.env` file - copy `.env.example` to get started:
+Runtime configuration is centralized in `src/config/env.ts` and validated with [Zod](https://zod.dev). All variables use the `VITE_` prefix and are defined in a `.env` file - copy `.env.example` to get started:
 
 | Variable               | Default                 | Description                             |
 | ---------------------- | ----------------------- | --------------------------------------- |
@@ -45,7 +45,15 @@ Runtime configuration is centralized in `src/config/env.ts` and validated with [
 | `VITE_STELLAR_NETWORK` | `testnet`               | Stellar network: `testnet` or `mainnet` |
 | `VITE_APP_URL`         | `http://localhost:5173` | Public URL the web app is served from   |
 
-The development server refuses to start with a clear error message when any variable is missing or invalid. `.env` is git-ignored; only `.env.example` is committed. Never read `import.meta.env` directly outside `src/config/env.ts` - import `{ env }` from `@/config` instead.
+### Validation Behaviour: Development vs. Production
+
+- **Development (`npm run dev`)**: The development server validates variables strictly. When any required variable is missing or malformed, a descriptive error message is logged to the console and surfaced via the `ConfigErrorScreen` overlay.
+- **Production (`npm run build`)**: Fallback defaults are applied for unsupplied values (`envSchema.parse(raw)`). Note that if invalid formats are provided at module load, `zod` will throw, which can lead to an unhandled exception before React mounts.
+- **Important Operational Cautions**:
+  - `VITE_STELLAR_NETWORK` silently defaults to `testnet` if omitted in production builds. Production releases targeting Stellar mainnet must explicitly configure `VITE_STELLAR_NETWORK=mainnet`.
+  - `VITE_API_URL` defaults to `http://localhost:4000`, which will cause network requests to fail in remote production deployments unless set to the actual backend URL.
+
+`.env` is git-ignored; only `.env.example` is committed. Never read `import.meta.env` directly outside `src/config/env.ts` - import `{ env }` from `@/config` instead.
 
 ## Design System & Theming
 
