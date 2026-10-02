@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useId, useRef, type KeyboardEvent } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { Spinner } from '@/components/ui'
 import ProfileAboutTab from '../components/ProfileAboutTab'
@@ -15,6 +15,8 @@ const VALID_TABS: ProfileTabKey[] = ['portfolio', 'services', 'reviews', 'about'
 export default function ArtistProfilePage() {
   const { username } = useParams<{ username: string }>()
   const [searchParams, setSearchParams] = useSearchParams()
+  const tablistRef = useRef<HTMLDivElement>(null)
+  const baseId = useId()
 
   const currentTab = (searchParams.get('tab') as ProfileTabKey) || 'portfolio'
   const activeTab: ProfileTabKey = VALID_TABS.includes(currentTab) ? currentTab : 'portfolio'
@@ -23,15 +25,18 @@ export default function ArtistProfilePage() {
 
   // Update SEO meta tags dynamically
   useEffect(() => {
+    let createdMeta = false
+    let metaDescription = document.querySelector('meta[name="description"]')
+
     if (profile) {
       const pageTitle = `${profile.displayName} (@${profile.username}) | Lumora Artist Profile`
       document.title = pageTitle
 
-      let metaDescription = document.querySelector('meta[name="description"]')
       if (!metaDescription) {
         metaDescription = document.createElement('meta')
         metaDescription.setAttribute('name', 'description')
         document.head.appendChild(metaDescription)
+        createdMeta = true
       }
       metaDescription.setAttribute(
         'content',
@@ -40,11 +45,37 @@ export default function ArtistProfilePage() {
     }
     return () => {
       document.title = 'Lumora - Crowdfunding on Stellar'
+      if (createdMeta && metaDescription && metaDescription.parentNode) {
+        metaDescription.parentNode.removeChild(metaDescription)
+      }
     }
   }, [profile])
 
   const handleTabClick = (tab: ProfileTabKey) => {
     setSearchParams({ tab }, { replace: true })
+  }
+
+  const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
+    const total = VALID_TABS.length
+    let nextIndex = -1
+
+    if (event.key === 'ArrowRight') {
+      nextIndex = (currentIndex + 1) % total
+    } else if (event.key === 'ArrowLeft') {
+      nextIndex = (currentIndex - 1 + total) % total
+    } else if (event.key === 'Home') {
+      nextIndex = 0
+    } else if (event.key === 'End') {
+      nextIndex = total - 1
+    }
+
+    if (nextIndex !== -1) {
+      event.preventDefault()
+      const nextTab = VALID_TABS[nextIndex]
+      handleTabClick(nextTab)
+      const targetBtn = tablistRef.current?.querySelector<HTMLButtonElement>(`#tab-${baseId}-${nextTab}`)
+      targetBtn?.focus()
+    }
   }
 
   if (isLoading) {
@@ -108,15 +139,28 @@ export default function ArtistProfilePage() {
 
           {/* Deep-Linked Tabs Navigation */}
           <div className="border-b border-line px-4 sm:px-8">
-            <nav className="flex space-x-8" aria-label="Profile Tabs">
-              {tabs.map((tab) => {
+            <div
+              ref={tablistRef}
+              role="tablist"
+              aria-label="Profile Tabs"
+              className="flex space-x-8"
+            >
+              {tabs.map((tab, idx) => {
                 const isActive = activeTab === tab.key
+                const tabId = `tab-${baseId}-${tab.key}`
+                const panelId = `panel-${baseId}-${tab.key}`
                 return (
                   <button
                     key={tab.key}
+                    id={tabId}
                     type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-controls={panelId}
+                    tabIndex={isActive ? 0 : -1}
                     onClick={() => handleTabClick(tab.key)}
-                    className={`relative py-4 text-body font-semibold transition-colors flex items-center gap-2 ${
+                    onKeyDown={(e) => handleTabKeyDown(e, idx)}
+                    className={`relative py-4 text-body font-semibold transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                       isActive
                         ? 'text-primary'
                         : 'text-muted hover:text-foreground'
@@ -140,11 +184,17 @@ export default function ArtistProfilePage() {
                   </button>
                 )
               })}
-            </nav>
+            </div>
           </div>
 
           {/* Tab Content Panes */}
-          <div className="p-4 sm:p-8">
+          <div
+            id={`panel-${baseId}-${activeTab}`}
+            role="tabpanel"
+            aria-labelledby={`tab-${baseId}-${activeTab}`}
+            tabIndex={0}
+            className="p-4 sm:p-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-card"
+          >
             {activeTab === 'portfolio' && <ProfilePortfolioTab profile={profile} />}
             {activeTab === 'services' && <ProfileServicesTab profile={profile} />}
             {activeTab === 'reviews' && <ProfileReviewsTab profile={profile} />}
