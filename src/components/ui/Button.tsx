@@ -1,4 +1,5 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { Children, cloneElement, isValidElement } from 'react'
+import type { ButtonHTMLAttributes, ReactElement, ReactNode } from 'react'
 import { cn } from '@/lib'
 import Spinner from './Spinner'
 
@@ -10,6 +11,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: ButtonSize
   /** Shows a spinner and blocks interaction while an action is in flight. */
   isLoading?: boolean
+  /** Render the single child element with merged button classes and attributes. */
+  asChild?: boolean
   children: ReactNode
 }
 
@@ -33,18 +36,39 @@ export default function Button({
   variant = 'primary',
   size = 'md',
   isLoading = false,
+  asChild = false,
   className,
   children,
   disabled,
   type = 'button',
   ...rest
 }: ButtonProps) {
+  const combinedClassName = cn(BASE_CLASSES, VARIANT_CLASSES[variant], SIZE_CLASSES[size], className)
+
+  if (asChild) {
+    const onlyChild = Children.only(children)
+    if (isValidElement(onlyChild)) {
+      const childElement = onlyChild as ReactElement<{ className?: string; children?: ReactNode }>
+      return cloneElement(childElement, {
+        ...rest,
+        className: cn(combinedClassName, childElement.props.className),
+        'aria-busy': isLoading || undefined,
+        children: (
+          <>
+            {isLoading ? <Spinner /> : null}
+            {childElement.props.children}
+          </>
+        ),
+      })
+    }
+  }
+
   return (
     <button
       type={type}
       disabled={disabled === true || isLoading}
       aria-busy={isLoading || undefined}
-      className={cn(BASE_CLASSES, VARIANT_CLASSES[variant], SIZE_CLASSES[size], className)}
+      className={combinedClassName}
       {...rest}
     >
       {isLoading ? <Spinner /> : null}
