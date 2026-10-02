@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Button, Skeleton } from '@/components/ui'
 import { http } from '@/services'
@@ -76,7 +77,7 @@ export default function CategoryLandingPage({ slug }: CategoryLandingPageProps) 
         <h1 className="text-h2">Category not found</h1>
         <p className="mt-2 text-caption text-muted">The category "{slug}" does not exist.</p>
         <Button className="mt-6" asChild>
-          <a href="/">Browse all categories</a>
+          <Link to="/">Browse all categories</Link>
         </Button>
       </div>
     )
@@ -84,7 +85,7 @@ export default function CategoryLandingPage({ slug }: CategoryLandingPageProps) 
 
   const renderCard = (artwork: CategoryArtwork) => (
     <article className="group">
-      <a href={`/artworks/${artwork.id}`} className="block">
+      <Link to={`/artworks/${artwork.id}`} className="block">
         <div className="relative aspect-square rounded-card overflow-hidden bg-surface-muted">
           {artwork.thumbnail ? (
             <img src={artwork.thumbnail} alt="" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
@@ -100,7 +101,7 @@ export default function CategoryLandingPage({ slug }: CategoryLandingPageProps) 
         <h3 className="mt-3 text-caption font-medium text-foreground line-clamp-1">{artwork.title}</h3>
         <p className="text-caption-xs text-muted">{artwork.sellerName}</p>
         <p className="text-caption-sm font-mono text-foreground">{artwork.price} {artwork.asset}</p>
-      </a>
+      </Link>
     </article>
   )
 

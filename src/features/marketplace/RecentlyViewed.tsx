@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Button, Skeleton } from '@/components/ui'
 import { http } from '@/services'
@@ -98,7 +99,7 @@ export default function RecentlyViewed({
 
   const renderCard = (artwork: ArtworkCard) => (
     <div className="group">
-      <a href={`/artworks/${artwork.id}`} className="block">
+      <Link to={`/artworks/${artwork.id}`} className="block">
         <div className="relative aspect-square rounded-card overflow-hidden bg-surface-muted">
           {artwork.thumbnail ? (
             <img src={artwork.thumbnail} alt="" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
@@ -114,7 +115,7 @@ export default function RecentlyViewed({
         <h4 className="mt-2 text-caption font-medium text-foreground line-clamp-1">{artwork.title}</h4>
         <p className="text-caption-xs text-muted">{artwork.sellerName}</p>
         <p className="text-caption-sm font-mono text-foreground">{artwork.price} {artwork.asset}</p>
-      </a>
+      </Link>
     </div>
   )
 
@@ -132,7 +133,7 @@ export default function RecentlyViewed({
           <h2 id="recently-viewed-heading" className="text-h3">{title}</h2>
           {history.length > maxItems && (
             <Button variant="ghost" size="sm" asChild>
-              <a href="/history">View all</a>
+              <Link to="/history">View all</Link>
             </Button>
           )}
         </div>

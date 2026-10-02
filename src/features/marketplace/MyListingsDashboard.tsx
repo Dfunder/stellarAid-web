@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, ExplorerLink, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
@@ -144,7 +145,7 @@ export default function MyListingsDashboard() {
         </div>
         {listings.length === 0 && statusFilter === 'all' && (
           <Button asChild>
-            <a href="/artist/listings/new">Create Your First Listing</a>
+            <Link to="/artist/listings/new">Create Your First Listing</Link>
           </Button>
         )}
       </div>
@@ -178,7 +179,7 @@ export default function MyListingsDashboard() {
             )}
             {statusFilter === 'all' && (
               <Button asChild className="mt-4">
-                <a href="/artist/listings/new">Create Listing</a>
+                <Link to="/artist/listings/new">Create Listing</Link>
               </Button>
             )}
           </div>
@@ -243,13 +244,13 @@ export default function MyListingsDashboard() {
                         <div className="flex flex-wrap items-center gap-2">
                           {listing.status === 'draft' && (
                             <Button size="sm" variant="secondary" asChild>
-                              <a href={`/artist/listings/${listing.id}/edit`}>Edit</a>
+                              <Link to={`/artist/listings/${listing.id}/edit`}>Edit</Link>
                             </Button>
                           )}
                           {listing.status === 'active' && (
                             <>
                               <Button size="sm" variant="ghost" asChild>
-                                <a href={`/artworks/${listing.id}`}>View</a>
+                                <Link to={`/artworks/${listing.id}`}>View</Link>
                               </Button>
                               <Button
                                 size="sm"
