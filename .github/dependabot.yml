@@ -1,0 +1,52 @@
+# Dependabot configuration for automated dependency updates
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+
+version: 2
+
+updates:
+  # npm ecosystem — runtime and dev dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 10
+
+    # Group minor/patch bumps into a single PR to keep the queue reviewable
+    groups:
+      production-minor-patch:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      dev-minor-patch:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+
+    # Major version bumps get their own PRs for careful review
+    # (they are NOT grouped, so each major bump = 1 separate PR)
+
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+
+    labels:
+      - "dependencies"
+
+    reviewers:
+      - "Dfunder"
+
+  # GitHub Actions — keep CI workflows up to date
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "ci"
