@@ -109,6 +109,21 @@ Anything that does not fit a documented location needs this document updated fir
 - [ ] Cross-feature imports use feature barrels only
 - [ ] `npm run lint`, `npm run format:check` and `npm run type-check` pass
 
+## Dependency Management
+
+Dependencies are kept up to date automatically by [Dependabot](https://docs.github.com/en/code-security/dependabot). Configuration lives in [`.github/dependabot.yml`](./.github/dependabot.yml).
+
+**How it works:**
+
+- **Weekly schedule** — every Monday Dependabot opens PRs for outdated npm packages and GitHub Actions.
+- **Grouped PRs** — minor and patch bumps are grouped into a single PR per dependency type (production / development) so the review queue stays manageable. Major bumps get individual PRs for careful review.
+- **Security updates** — enabled by default. GitHub automatically opens PRs for known vulnerabilities regardless of the weekly schedule.
+- **PR limit** — at most 10 open dependency PRs at a time to avoid noise.
+
+**Who reviews dependency PRs:**
+
+Dependabot PRs are assigned to `@Dfunder` for review. Any maintainer may merge once CI passes and the changelog is checked.
+
 ## Analytics Events
 
 Track product events only through `analytics.track(event, props)` from `@/lib` - never call a vendor SDK from components. A vendor is plugged in once via `analytics.setProvider(...)`; until then a no-op provider is used. In development every event is logged to the console as `[analytics]`.
