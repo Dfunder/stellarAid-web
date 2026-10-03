@@ -328,7 +328,7 @@ export default function EditListing({ listingId }: { listingId: string }) {
             <div className="flex flex-wrap gap-3">
               {(formData.images ?? []).map((image, index) => (
                 <div key={index} className="relative group h-24 w-24 rounded-card overflow-hidden">
-                  <img src={image} alt={`Image ${index + 1}`} className="h-full w-full object-cover" />
+                  <img src={image} alt={`Listing upload ${index + 1}`} className="h-full w-full object-cover" />
                   <button
                     type="button"
                     className="absolute top-1 right-1 h-6 w-6 rounded-full bg-danger/90 text-danger-contrast opacity-0 group-hover:opacity-100 transition-opacity"
@@ -345,6 +345,7 @@ export default function EditListing({ listingId }: { listingId: string }) {
               ))}
               <button
                 type="button"
+                aria-label="Add image"
                 className="h-24 w-24 rounded-card border-2 border-dashed border-line flex items-center justify-center text-muted hover:border-primary hover:text-primary transition-colors"
                 disabled={(formData.images?.length ?? 0) >= 10}
               >
@@ -401,9 +402,9 @@ export default function EditListing({ listingId }: { listingId: string }) {
             </div>
 
             <div>
-              <label className="block text-caption-sm font-medium text-foreground mb-2">
+              <span className="block text-caption-sm font-medium text-foreground mb-2">
                 License Terms *
-              </label>
+              </span>
               <div className="mb-3">
                 <label className="flex items-center gap-2">
                   <input

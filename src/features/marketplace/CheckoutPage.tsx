@@ -195,23 +195,32 @@ export default function CheckoutPage({ artworkId }: { artworkId: string }) {
           <div className="rounded-card border border-line bg-surface p-6 shadow-card">
             <h2 className="text-h3">License Terms</h2>
             <div className="mt-4">
-              <label className="flex items-start gap-3 cursor-pointer">
+              <div className="flex items-start gap-3">
                 <input
+                  id="agree-to-terms-checkbox"
                   type="checkbox"
-                  className="mt-1 h-4 w-4 accent-primary"
+                  className="mt-1 h-4 w-4 accent-primary cursor-pointer"
                   checked={agreedToTerms}
                   onChange={(e) => setAgreedToTerms(e.target.checked)}
                   required
                 />
                 <div>
                   <p className="text-caption-sm text-foreground">
-                    I agree to the <button type="button" className="text-primary hover:underline" onClick={() => setShowLicense(true)}>license terms</button> for this artwork.
+                    <label htmlFor="agree-to-terms-checkbox" className="cursor-pointer">
+                      I agree to the{' '}
+                    </label>
+                    <button type="button" className="text-primary hover:underline" onClick={() => setShowLicense(true)}>
+                      license terms
+                    </button>
+                    <label htmlFor="agree-to-terms-checkbox" className="cursor-pointer">
+                      {' '}for this artwork.
+                    </label>
                   </p>
                   <p className="mt-1 text-caption-xs text-muted">
                     {LICENSE_PRESETS.find((l) => l.value === artwork.licenseTerms)?.description ?? artwork.licenseTerms}
                   </p>
                 </div>
-              </label>
+              </div>
             </div>
           </div>
         </div>

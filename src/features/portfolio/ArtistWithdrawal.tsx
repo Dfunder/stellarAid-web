@@ -113,15 +113,14 @@ export default function ArtistWithdrawal() {
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {balances?.map((balance) => (
-          <div
+          <button
             key={balance.asset}
-            className={`rounded-card border border-line bg-surface p-6 shadow-card ${
+            type="button"
+            className={`text-left w-full rounded-card border border-line bg-surface p-6 shadow-card transition-colors ${
               selectedAsset === balance.asset ? 'border-primary ring-1 ring-primary' : ''
             }`}
             onClick={() => setSelectedAsset(balance.asset as typeof selectedAsset)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedAsset(balance.asset as typeof selectedAsset) }}
+            aria-label={`Select ${balance.asset}`}
           >
             <div className="flex items-center justify-between">
               <span className="text-caption-sm font-semibold text-foreground">{balance.asset}</span>
@@ -144,7 +143,7 @@ export default function ArtistWithdrawal() {
               </p>
               <p className="mt-1 text-caption-xs text-warning">Funds held in escrow cannot be withdrawn</p>
             </div>
-          </div>
+          </button>
         ))}
       </div>
 

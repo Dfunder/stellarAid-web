@@ -100,8 +100,11 @@ export default function PurchasesPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <label className="text-caption-sm text-muted">Status:</label>
+          <label htmlFor="purchases-status-filter" className="text-caption-sm text-muted">
+            Status:
+          </label>
           <select
+            id="purchases-status-filter"
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value as typeof statusFilter); setPage(1); }}
             className="rounded-control border border-line bg-background px-3 py-1.5 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"

@@ -112,6 +112,7 @@ export default function AccountMenu() {
   const initials = getInitials(user.name, user.email)
 
   return (
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- Keyboard navigation event handler for menu items
     <div
       ref={menuRef}
       onKeyDown={handleKeyDown}

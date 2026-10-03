@@ -26,6 +26,7 @@ export {
   shouldStickToBottom,
 } from './conversation'
 export type { ConversationMessage, DaySegment } from './conversation'
+/**
  * Integration seam: the repository has no messaging backend yet. The composer
  * therefore takes its transport as the `sender` prop and ships no API client of
  * its own, so the module is usable and fully testable today and a future

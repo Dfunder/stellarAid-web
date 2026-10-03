@@ -153,10 +153,8 @@ export function adjustUnreadCount(
   for (const page of pages) {
     for (const notification of page.items) {
       if (!targets.has(notification.id)) continue
-      if (notification.read) continue
-      before += 1
-      if (read) continue
-      after += 1
+      if (!notification.read) before += 1
+      if (!read) after += 1
     }
   }
 

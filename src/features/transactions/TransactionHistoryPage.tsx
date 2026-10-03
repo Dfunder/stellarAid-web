@@ -109,8 +109,11 @@ export default function TransactionHistoryPage() {
         <div className="p-4 border-b border-line bg-surface-muted">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap items-center gap-2">
-              <label className="text-caption-sm text-muted">Type:</label>
+              <label htmlFor="tx-type-filter" className="text-caption-sm text-muted">
+                Type:
+              </label>
               <select
+                id="tx-type-filter"
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
                 className="rounded-control border border-line bg-background px-3 py-1.5 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
@@ -123,8 +126,11 @@ export default function TransactionHistoryPage() {
               </select>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <label className="text-caption-sm text-muted">Status:</label>
+              <label htmlFor="tx-status-filter" className="text-caption-sm text-muted">
+                Status:
+              </label>
               <select
+                id="tx-status-filter"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
                 className="rounded-control border border-line bg-background px-3 py-1.5 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
@@ -137,8 +143,11 @@ export default function TransactionHistoryPage() {
               </select>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <label className="text-caption-sm text-muted">From:</label>
+              <label htmlFor="tx-from-filter" className="text-caption-sm text-muted">
+                From:
+              </label>
               <input
+                id="tx-from-filter"
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
@@ -146,8 +155,11 @@ export default function TransactionHistoryPage() {
               />
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <label className="text-caption-sm text-muted">To:</label>
+              <label htmlFor="tx-to-filter" className="text-caption-sm text-muted">
+                To:
+              </label>
               <input
+                id="tx-to-filter"
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
