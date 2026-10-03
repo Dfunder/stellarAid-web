@@ -38,15 +38,15 @@ function ToastViewport() {
   return (
     <div className="fixed right-4 top-4 z-50 grid w-[min(24rem,calc(100vw-2rem))] gap-2">
       {toasts.map((toast) => (
-        <button
-          key={toast.id}
-          type="button"
-          role="alert"
-          onClick={() => dismissToast(toast.id)}
-          className="rounded-control border border-line bg-surface px-4 py-3 text-left text-caption shadow-card"
-        >
-          {toast.message}
-        </button>
+        <div key={toast.id} role="alert">
+          <button
+            type="button"
+            onClick={() => dismissToast(toast.id)}
+            className="w-full rounded-control border border-line bg-surface px-4 py-3 text-left text-caption shadow-card"
+          >
+            {toast.message}
+          </button>
+        </div>
       ))}
     </div>
   )

@@ -233,7 +233,7 @@ export default function FavoritesPage({ defaultTab = 'artworks' }: FavoritesPage
                     <th className="px-4 py-3 text-caption-sm font-semibold text-muted">Artist</th>
                     <th className="px-4 py-3 text-caption-sm font-semibold text-muted">Price</th>
                     <th className="px-4 py-3 text-caption-sm font-semibold text-muted">Saved</th>
-                    <th className="px-4 py-3 text-caption-sm font-semibold text-muted"></th>
+                    <th className="px-4 py-3 text-caption-sm font-semibold text-muted">Actions</th>
                   </tr>
                 </thead>
                 <tbody>

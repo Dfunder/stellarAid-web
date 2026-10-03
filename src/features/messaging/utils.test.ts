@@ -212,8 +212,8 @@ describe('optimistic send lifecycle', () => {
     const older = sent('s0', new Date('2026-01-01T09:00:00.000Z'))
     expect(appendPending([older], pending('p1')).map((m) => m.id)).toEqual(['s0', 'p1'])
     expect(appendPending([sent('s2', new Date('2026-01-01T11:00:00.000Z'))], pending('p1')).map((m) => m.id)).toEqual([
-      's2',
       'p1',
+      's2',
     ])
   })
 

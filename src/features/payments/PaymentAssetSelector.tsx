@@ -100,9 +100,9 @@ export default function PaymentAssetSelector({
 
   return (
     <div className="rounded-card border border-line bg-surface p-4">
-      <label className="block text-caption-sm font-medium text-foreground mb-2">
+      <span className="block text-caption-sm font-medium text-foreground mb-2">
         Pay with
-      </label>
+      </span>
 
       <div className="flex flex-wrap items-center gap-2">
         {availableAssets.map((asset) => {

@@ -151,8 +151,11 @@ export default function MyListingsDashboard() {
 
       <div className="rounded-card border border-line bg-surface shadow-card overflow-hidden">
         <div className="p-4 border-b border-line bg-surface-muted flex flex-wrap items-center gap-2">
-          <label className="text-caption-sm text-muted">Status:</label>
+          <label htmlFor="listing-status-filter" className="text-caption-sm text-muted">
+            Status:
+          </label>
           <select
+            id="listing-status-filter"
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value as typeof statusFilter); setSelectedIds(new Set()) }}
             className="rounded-control border border-line bg-background px-3 py-1.5 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
@@ -215,6 +218,7 @@ export default function MyListingsDashboard() {
                           className="h-4 w-4 accent-primary"
                           checked={selectedIds.has(listing.id)}
                           onChange={() => handleToggleSelect(listing.id)}
+                          aria-label={`Select ${listing.title}`}
                         />
                       </td>
                       <td className="px-4 py-3">

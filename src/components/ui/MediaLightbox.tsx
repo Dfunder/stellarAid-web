@@ -17,8 +17,8 @@ export function getAdjacentIndices(index: number, total: number): { previous: nu
   const safeIndex = clampIndex(index, safeTotal)
 
   return {
-    previous: clampIndex(safeIndex - 1, safeTotal),
-    next: clampIndex(safeIndex + 1, safeTotal),
+    previous: (safeIndex - 1 + safeTotal) % safeTotal,
+    next: (safeIndex + 1) % safeTotal,
   }
 }
 
