@@ -23,6 +23,8 @@ export interface UserDto {
   id: string
   name: string
   email: string
+  /** Public profile handle; absent on older accounts. */
+  username?: string | null
   role: string
   emailVerified: boolean
   avatarUrl?: string | null

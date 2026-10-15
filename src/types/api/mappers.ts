@@ -54,7 +54,7 @@ export function mapMoney(dto: MoneyDto): Money {
   }
 }
 
-const USER_ROLES = ['artist', 'client'] as const
+const USER_ROLES = ['artist', 'client', 'admin'] as const
 const ARTWORK_STATUSES = ['draft', 'published', 'sold', 'unpublished'] as const
 const ORDER_STATUSES = [
   'pending',
@@ -89,6 +89,7 @@ export function mapUser(dto: UserDto): User {
     id: dto.id,
     name: dto.name,
     email: dto.email,
+    username: dto.username ?? undefined,
     role: toEnum<UserRole>(dto.role, USER_ROLES, 'client'),
     emailVerified: dto.emailVerified,
     avatarUrl: dto.avatarUrl ?? null,

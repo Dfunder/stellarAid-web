@@ -1,7 +1,8 @@
 import type { StellarNetwork } from '@/config'
+import type { UserRole } from '@/types/api/models'
 
 /** Roles a user can hold; mirrors the backend's role enum. */
-export type UserRole = 'client' | 'artist' | 'admin'
+export type { UserRole }
 
 export interface UserSocials {
   twitter?: string

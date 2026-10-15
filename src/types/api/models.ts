@@ -3,7 +3,11 @@
  * enums are narrowed unions and money amounts are decimal strings.
  */
 
-export type UserRole = 'artist' | 'client'
+/**
+ * Canonical role union shared with the auth layer — `features/auth/types.ts`
+ * re-exports this instead of declaring a second, conflicting copy.
+ */
+export type UserRole = 'client' | 'artist' | 'admin'
 
 /** A Stellar asset. `issuer` is `null` for native XLM. */
 export interface Asset {
@@ -21,6 +25,8 @@ export interface User {
   id: string
   name: string
   email: string
+  /** Public profile handle, mapped from the DTO when the account has one. */
+  username?: string
   role: UserRole
   emailVerified: boolean
   avatarUrl: string | null
