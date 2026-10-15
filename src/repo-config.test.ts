@@ -44,7 +44,7 @@ describe('repository configuration', () => {
     const paths = [...read('CONTRIBUTING.md').matchAll(/`((?:src|\.husky)\/[A-Za-z0-9_./-]+)`/g)].map(
       (match) => match[1] as string,
     )
-    const missing = paths.filter((path) => !path.includes('<') && !existsSync(resolve(ROOT, path)))
+    const missing = paths.filter((path) => !path.includes('<') && !path.includes('...') && !existsSync(resolve(ROOT, path)))
     expect(missing).toEqual([])
   })
 })
