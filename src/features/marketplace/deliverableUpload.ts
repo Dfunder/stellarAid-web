@@ -40,3 +40,22 @@ export function uploadToPresignedUrl(
     xhr.send(file)
   })
 }
+
+/** Result of applying the per-revision file-count cap. */
+export interface FileCap<T> {
+  /** Incoming items that fit under the cap, in order. */
+  accepted: T[]
+  /** True only when the incoming batch actually overflowed the cap. */
+  exceeded: boolean
+}
+
+/**
+ * Applies the file-count cap: keeps at most `max - existingCount` incoming
+ * items. `exceeded` is true only when items had to be dropped, so the
+ * "maximum files" message never appears when a batch lands exactly on the cap.
+ */
+export function applyFileCap<T>(incoming: T[], existingCount: number, max: number): FileCap<T> {
+  const room = Math.max(max - existingCount, 0)
+  if (incoming.length <= room) return { accepted: incoming, exceeded: false }
+  return { accepted: incoming.slice(0, room), exceeded: true }
+}

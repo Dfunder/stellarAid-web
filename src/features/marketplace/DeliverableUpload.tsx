@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, Input, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
-import { uploadToPresignedUrl } from './deliverableUpload'
+import { applyFileCap, uploadToPresignedUrl } from './deliverableUpload'
 
 export type DeliverableKind = 'wip' | 'final'
 
@@ -163,16 +163,15 @@ export default function DeliverableUpload({
 
   const handleFiles = useCallback(
     (newFiles: FileList | File[]) => {
-      const fileArray = Array.from(newFiles)
       const validFiles: DeliverableFile[] = []
       const errors: string[] = []
+      const { accepted, exceeded } = applyFileCap(Array.from(newFiles), files.length, MAX_FILES)
 
-      if (files.length + fileArray.length > MAX_FILES) {
+      if (exceeded) {
         errors.push(`Maximum ${MAX_FILES} files allowed.`)
-        fileArray.splice(MAX_FILES - files.length)
       }
 
-      fileArray.forEach((file) => {
+      accepted.forEach((file) => {
         const error = validateFile(file)
         if (error) {
           errors.push(error)

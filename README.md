@@ -95,3 +95,7 @@ src/
 ```
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for placement rules and conventions.
+
+## License
+
+Licensed under the [MIT License](./LICENSE).

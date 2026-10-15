@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { uploadToPresignedUrl } from './deliverableUpload'
+import { applyFileCap, uploadToPresignedUrl } from './deliverableUpload'
 
 type Listener = (event?: unknown) => void
 
@@ -107,5 +107,26 @@ describe('uploadToPresignedUrl (#775)', () => {
     await expect(uploadToPresignedUrl('https://storage.test/u', file, () => {})).rejects.toThrow(
       'Upload failed: network error reaching the storage host'
     )
+  })
+})
+
+describe('applyFileCap', () => {
+  it('keeps everything when the batch is under the cap', () => {
+    expect(applyFileCap(['a', 'b', 'c'], 0, 20)).toEqual({
+      accepted: ['a', 'b', 'c'],
+      exceeded: false,
+    })
+  })
+
+  it('does not report an overflow when the batch lands exactly on the cap', () => {
+    expect(applyFileCap(['new'], 19, 20)).toEqual({ accepted: ['new'], exceeded: false })
+  })
+
+  it('trims and reports an overflow when the cap would be exceeded', () => {
+    expect(applyFileCap(['a', 'b', 'c'], 19, 20)).toEqual({ accepted: ['a'], exceeded: true })
+  })
+
+  it('accepts nothing when the cap is already reached', () => {
+    expect(applyFileCap(['a', 'b'], 20, 20)).toEqual({ accepted: [], exceeded: true })
   })
 })
