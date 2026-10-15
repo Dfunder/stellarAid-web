@@ -111,7 +111,8 @@ export function getErrorMessage(error: unknown): string {
 }
 
 type FieldErrorsDto =
-  Record<string, string> | Array<{ field?: string; path?: string | string[]; message?: string }>
+  | Record<string, string>
+  | Array<{ field?: string; path?: string | string[]; message?: string } | null>
 
 /** Accepts `{ field: message }` or `[{ field | path, message }]` validation payloads. */
 function parseFieldErrors(errors: FieldErrorsDto | undefined): Record<string, string> {
@@ -121,6 +122,8 @@ function parseFieldErrors(errors: FieldErrorsDto | undefined): Record<string, st
   }
   const result: Record<string, string> = {}
   for (const item of errors) {
+    // A null element must not replace the ApiError with a TypeError.
+    if (!item) continue
     const field = item.field ?? (Array.isArray(item.path) ? item.path.join('.') : item.path)
     if (field && item.message && !(field in result)) result[field] = item.message
   }
@@ -139,39 +142,47 @@ const API_ERROR_MESSAGES: Record<string, string> = {
   INTERNAL_ERROR: 'Something went wrong on our end. Please try again later.',
   NETWORK_ERROR: 'Unable to reach the server. Please check your connection and try again.',
   TIMEOUT: 'The request timed out. Please try again.',
+  HTTP_ERROR: 'The request could not be completed.',
 }
 
-export function getApiErrorMessage(code: string, status: number | null): string {
+/**
+ * Maps an error code (with an HTTP status fallback) to user-facing copy.
+ * `serverMessage` is the DTO's own message, used when no curated copy exists.
+ */
+export function getApiErrorMessage(
+  code: string,
+  status: number | null,
+  serverMessage?: string,
+): string {
   const mapped = API_ERROR_MESSAGES[code]
-  return (
-    mapped ??
-    (status === 401
-      ? API_ERROR_MESSAGES.AUTH_TOKEN_EXPIRED
-      : status === 403
-        ? API_ERROR_MESSAGES.AUTH_FORBIDDEN
-        : status === 404
-          ? API_ERROR_MESSAGES.RESOURCE_NOT_FOUND
-          : status === 409
-            ? API_ERROR_MESSAGES.RESOURCE_CONFLICT
-            : status === 422
-              ? API_ERROR_MESSAGES.VALIDATION_FAILED
-              : status !== null && status >= 500
-                ? API_ERROR_MESSAGES.INTERNAL_ERROR
-                : 'The request could not be completed.') ??
-    'The request could not be completed.'
-  )
+  const own = typeof serverMessage === 'string' ? serverMessage.trim() : ''
+  // HTTP_ERROR means the response carried no code, so nothing is curated for
+  // it: the server's own message wins when present.
+  if (own && (!mapped || code === 'HTTP_ERROR')) return own
+  if (mapped) return mapped
+  if (status === 401) return API_ERROR_MESSAGES.AUTH_TOKEN_EXPIRED
+  if (status === 403) return API_ERROR_MESSAGES.AUTH_FORBIDDEN
+  if (status === 404) return API_ERROR_MESSAGES.RESOURCE_NOT_FOUND
+  if (status === 409) return API_ERROR_MESSAGES.RESOURCE_CONFLICT
+  if (status === 422) return API_ERROR_MESSAGES.VALIDATION_FAILED
+  if (status !== null && status >= 500) return API_ERROR_MESSAGES.INTERNAL_ERROR
+  return API_ERROR_MESSAGES.HTTP_ERROR
 }
 
 function normalizeError(error: AxiosError): ApiError {
   const response = error.response
 
   if (response) {
-    const data = response.data as ApiErrorDto | undefined
+    // Non-JSON bodies (gateways, proxies) are not an ApiErrorDto — degrade to
+    // undefined instead of trusting an unchecked cast.
+    const body: unknown = response.data
+    const data: ApiErrorDto | undefined =
+      typeof body === 'object' && body !== null ? (body as ApiErrorDto) : undefined
     const code = data?.code ?? (response.status === 422 ? 'VALIDATION_FAILED' : 'HTTP_ERROR')
     return new ApiError(
       response.status,
       code,
-      getApiErrorMessage(code, response.status),
+      getApiErrorMessage(code, response.status, data?.message),
       parseFieldErrors(data?.errors),
       data?.requestId ?? null,
     )
