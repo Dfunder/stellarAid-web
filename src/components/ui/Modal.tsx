@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useId, type ReactNode } from 'react'
 import { cn } from '@/lib'
 
 export interface ModalProps {
@@ -21,6 +21,8 @@ export default function Modal({
   children,
   className,
 }: ModalProps) {
+  const titleId = useId()
+
   useEffect(() => {
     if (!isOpen) return
 
@@ -46,7 +48,7 @@ export default function Modal({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={title}
+        aria-labelledby={titleId}
         className={cn(
           'relative w-full max-w-md rounded-card bg-surface p-6 shadow-elevated',
           className,
@@ -54,7 +56,9 @@ export default function Modal({
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-h4">{title}</h2>
+            <h2 id={titleId} className="text-h4">
+              {title}
+            </h2>
             {description ? <p className="mt-1 text-caption text-muted">{description}</p> : null}
           </div>
           <button

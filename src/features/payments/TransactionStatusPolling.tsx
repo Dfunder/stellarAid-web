@@ -73,7 +73,10 @@ export default function TransactionStatusPolling({
       return response.status
     },
     enabled: !!txHash,
-    refetchInterval: (query) => txStatusRefetchInterval(query, pollInterval, startTime),
+    // `maxPollTime` is handed to the interval decision so polling actually
+    // stops once the budget is spent (#799).
+    refetchInterval: (query) =>
+      txStatusRefetchInterval(query, pollInterval, startTime, maxPollTime),
   })
 
   // Update local state from query data
@@ -92,14 +95,6 @@ export default function TransactionStatusPolling({
       }
     }
   }, [data, onConfirmed, onFailed])
-
-  // Stop polling after max time
-  useEffect(() => {
-    const elapsed = Date.now() - startTime
-    if (elapsed > maxPollTime && currentStatus === 'confirming') {
-      // Show handoff screen
-    }
-  }, [currentStatus, startTime, maxPollTime])
 
   const isFinal = currentStatus === 'confirmed' || currentStatus === 'failed'
   const isSlow = Date.now() - startTime > 30000 && currentStatus === 'confirming'
