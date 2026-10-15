@@ -3,6 +3,10 @@
   "private": true,
   "version": "0.1.0",
   "description": "Lumora web client - transparent, borderless crowdfunding on the Stellar Network.",
+  "license": "MIT",
+  "repository": "https://github.com/Dfunder/stellarAid-web",
+  "homepage": "https://github.com/Dfunder/stellarAid-web#readme",
+  "bugs": "https://github.com/Dfunder/stellarAid-web/issues",
   "type": "module",
   "scripts": {
     "dev": "vite",
