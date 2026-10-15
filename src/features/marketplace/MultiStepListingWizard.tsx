@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, Input, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
@@ -104,20 +104,32 @@ export default function MultiStepListingWizard({
     }
   }, [initialData])
 
-  // Auto-save draft
+  // Auto-save draft (#783): the debounce restarts on every keystroke, and only
+  // a listing that passes the full schema is persisted, so a half-filled form
+  // is never POSTed to /listings/draft. Once a draft exists that same draft is
+  // updated, and data that has not changed since the last save is skipped.
+  const lastAutoSaved = useRef<string | null>(null)
+  const canAutoSave =
+    activeStep > 0 && !isSubmitting && ListingSchema.safeParse(formData).success
+
   useEffect(() => {
+    if (!canAutoSave) return
+
+    const dataToSave = { ...formData, status: 'draft' } as ListingFormData
+    const serialized = JSON.stringify(dataToSave)
+    if (serialized === lastAutoSaved.current) return
+
     const timer = setTimeout(() => {
-      if (activeStep > 0 && (draftId || !isSubmitting)) {
-        const dataToSave = { ...formData, status: 'draft' } as ListingFormData
-        if (draftId) {
-          updateDraftMutation.mutate({ id: draftId, data: dataToSave })
-        } else {
-          saveDraftMutation.mutate(dataToSave)
-        }
+      lastAutoSaved.current = serialized
+      if (draftId) {
+        updateDraftMutation.mutate({ id: draftId, data: dataToSave })
+      } else {
+        saveDraftMutation.mutate(dataToSave)
       }
     }, 2000)
+
     return () => clearTimeout(timer)
-  }, [formData, activeStep, draftId])
+  }, [formData, activeStep, draftId, canAutoSave, saveDraftMutation, updateDraftMutation])
 
   const validateStep = (step: number): boolean => {
     const stepFields = STEPS[step].fields
@@ -193,6 +205,16 @@ export default function MultiStepListingWizard({
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Dismissing the dialog clears the mutation errors that opened it, so the
+  // wizard can carry on instead of being blocked forever (#785).
+  const dismissError = () => {
+    createMutation.reset()
+    updateMutation.reset()
+    saveDraftMutation.reset()
+    updateDraftMutation.reset()
+    setErrors({})
   }
 
   const progress = ((activeStep + 1) / STEPS.length) * 100
@@ -435,12 +457,12 @@ export default function MultiStepListingWizard({
 
       <Modal
         isOpen={createMutation.isError || updateMutation.isError || saveDraftMutation.isError || updateDraftMutation.isError}
-        onClose={() => {}}
+        onClose={dismissError}
         title="Error"
         description={createMutation.error?.message ?? updateMutation.error?.message ?? saveDraftMutation.error?.message ?? updateDraftMutation.error?.message ?? 'An error occurred'}
       >
         <div className="mt-6 flex justify-end">
-          <Button variant="secondary" onClick={() => setErrors({})}>OK</Button>
+          <Button variant="secondary" onClick={dismissError}>OK</Button>
         </div>
       </Modal>
     </div>

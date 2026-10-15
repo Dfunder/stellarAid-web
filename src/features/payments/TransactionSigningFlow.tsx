@@ -397,7 +397,10 @@ export default function TransactionSigningFlow({
 
       <Modal
         isOpen={step === 'waiting_for_wallet' && !isConnected}
-        onClose={() => {}}
+        onClose={() => {
+          setStep('failed')
+          onReject?.()
+        }}
         title="Wallet Disconnected"
         description="Your wallet was disconnected. Reconnect to continue — your transaction is still prepared."
       >
