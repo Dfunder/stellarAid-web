@@ -1,11 +1,10 @@
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useParams } from 'react-router-dom'
-import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
+import { useQuery, useMutation } from '@tanstack/react-query'
+import { useNavigate, useParams } from 'react-router-dom'
+import { Button, ErrorState, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { PaymentAssetSelector, WalletBalanceDisplay } from '@/features/payments'
-import { formatDate } from '@/lib'
 import { LICENSE_PRESETS } from './constants'
 
 interface Artwork {
@@ -45,31 +44,25 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
   const params = useParams()
   const artworkId = artworkIdProp ?? params.artworkId
   const { user } = useAuth()
-  const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const [selectedAsset, setSelectedAsset] = useState<string>('')
   const [agreedToTerms, setAgreedToTerms] = useState(false)
-  const [sessionId, setSessionId] = useState<string | null>(null)
   const [showLicense, setShowLicense] = useState(false)
 
-  const { data: artwork, isPending: artworkPending } = useQuery({
+  const {
+    data: artwork,
+    isPending: artworkPending,
+    isError: artworkFailed,
+    error: artworkError,
+    refetch: retryArtwork,
+  } = useQuery({
     queryKey: ['artwork', artworkId],
     queryFn: async (): Promise<Artwork> => (await http.get<{ artwork: Artwork }>(`/artworks/${artworkId}`)).artwork,
     enabled: !!artworkId,
   })
 
-  const { data: session } = useQuery({
-    queryKey: ['checkoutSession', artworkId, selectedAsset],
-    queryFn: async (): Promise<CheckoutSession> => {
-      if (!selectedAsset) throw new Error('No asset selected')
-      const response = await http.post<{ session: CheckoutSession }>(`/checkout/session`, {
-        artworkId,
-        asset: selectedAsset,
-      })
-      return response.session
-    },
-    enabled: !!artworkId && !!selectedAsset,
-  })
-
+  // One POST per checkout attempt: the session is created here and the buyer
+  // lands on the payment result screen with its id (#789).
   const createSessionMutation = useMutation({
     mutationFn: async (): Promise<CheckoutSession> => {
       if (!selectedAsset) throw new Error('Select an asset first')
@@ -79,18 +72,14 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
       })
       return response.session
     },
-    onSuccess: (data) => {
-      setSessionId(data.id)
+    onSuccess: (created) => {
+      navigate(`/payment/result?session=${created.id}`)
     },
   })
 
-  const handleProceedToPayment = async () => {
-    if (!agreedToTerms) return
-    if (!session) {
-      await createSessionMutation.mutateAsync()
-    }
-    // Navigate to wallet signing flow
-    // window.location.href = `/payment/sign?sessionId=${sessionId}`
+  const handleProceedToPayment = () => {
+    if (!agreedToTerms || !selectedAsset) return
+    createSessionMutation.mutate()
   }
 
   const canProceed = !!artwork && !!selectedAsset && agreedToTerms && !!user && !createSessionMutation.isPending
@@ -106,6 +95,17 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
     )
   }
 
+  if (artworkFailed) {
+    return (
+      <div className="container py-24">
+        <ErrorState
+          message={artworkError instanceof Error ? artworkError.message : 'Failed to load the artwork.'}
+          onRetry={() => void retryArtwork()}
+        />
+      </div>
+    )
+  }
+
   if (!artwork) {
     return (
       <div className="container py-24 text-center">
@@ -113,25 +113,6 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
         <Button className="mt-6" asChild>
           <a href="/">Browse marketplace</a>
         </Button>
-      </div>
-    )
-  }
-
-  if (!user) {
-    return (
-      <div className="container py-12 max-w-md mx-auto">
-        <div className="rounded-card border border-line bg-surface p-8 shadow-card text-center">
-          <h1 className="text-h2">Sign in to purchase</h1>
-          <p className="mt-2 text-caption text-muted">You need an account to buy artwork.</p>
-          <div className="mt-6 flex flex-col gap-3">
-            <Button asChild>
-              <a href={`/login?redirect=/checkout/${artworkId}`}>Sign in</a>
-            </Button>
-            <Button variant="secondary" asChild>
-              <a href={`/register?redirect=/checkout/${artworkId}`}>Create account</a>
-            </Button>
-          </div>
-        </div>
       </div>
     )
   }
@@ -171,30 +152,6 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
             />
           </div>
 
-          {session && (
-            <div className="rounded-card border border-line bg-surface p-6 shadow-card">
-              <h2 className="text-h3">Payment Summary</h2>
-              <div className="mt-4 space-y-3">
-                <div className="flex justify-between text-caption-sm">
-                  <span className="text-muted">Artwork price</span>
-                  <span className="font-mono">{artwork.price} {selectedAsset}</span>
-                </div>
-                <div className="flex justify-between text-caption-sm">
-                  <span className="text-muted">Platform fee</span>
-                  <span className="font-mono">{session.platformFee} {selectedAsset}</span>
-                </div>
-                <div className="flex justify-between text-caption-sm">
-                  <span className="text-muted">Est. network fee</span>
-                  <span className="font-mono">{session.networkFeeEstimate} {selectedAsset}</span>
-                </div>
-                <div className="flex justify-between border-t border-line pt-3">
-                  <span className="text-body font-semibold">Total</span>
-                  <span className="text-body font-bold font-mono">{session.total} {selectedAsset}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
           <div className="rounded-card border border-line bg-surface p-6 shadow-card">
             <h2 className="text-h3">License Terms</h2>
             <div className="mt-4">
@@ -227,21 +184,9 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
                 <span className="text-muted">Price</span>
                 <span className="font-mono">{artwork.price} {selectedAsset || artwork.asset}</span>
               </div>
-              {session && (
-                <>
-                  <div className="flex justify-between text-caption-sm">
-                    <span className="text-muted">Platform fee</span>
-                    <span className="font-mono">{session.platformFee} {selectedAsset}</span>
-                  </div>
-                  <div className="flex justify-between text-caption-sm">
-                    <span className="text-muted">Est. network fee</span>
-                    <span className="font-mono">{session.networkFeeEstimate} {selectedAsset}</span>
-                  </div>
-                </>
-              )}
               <div className="flex justify-between border-t border-line pt-3">
                 <span className="text-body font-semibold">Total</span>
-                <span className="text-body font-bold font-mono">{session?.total ?? artwork.price} {selectedAsset || artwork.asset}</span>
+                <span className="text-body font-bold font-mono">{artwork.price} {selectedAsset || artwork.asset}</span>
               </div>
             </div>
 
@@ -254,7 +199,7 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
               disabled={!canProceed}
               onClick={handleProceedToPayment}
             >
-              {session ? 'Proceed to Payment' : 'Create Checkout Session'}
+              Proceed to Payment
             </Button>
 
             {createSessionMutation.isError && (
