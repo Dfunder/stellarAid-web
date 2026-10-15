@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { formatDate } from '@/lib'
+import { paymentResultRefetchInterval } from './polling'
 
 interface PaymentResultData {
   id: string
@@ -76,7 +77,7 @@ export default function PaymentResultScreen() {
       return response.result
     },
     enabled: !!sessionId,
-    refetchInterval: (data) => data?.status === 'success' ? false : 5000,
+    refetchInterval: paymentResultRefetchInterval,
   })
 
   useEffect(() => {
