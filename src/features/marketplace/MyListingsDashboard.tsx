@@ -249,7 +249,7 @@ export default function MyListingsDashboard() {
                           {listing.status === 'active' && (
                             <>
                               <Button size="sm" variant="ghost" asChild>
-                                <a href={`/artworks/${listing.id}`}>View</a>
+                                <a href={`/checkout/${listing.id}`}>View</a>
                               </Button>
                               <Button
                                 size="sm"

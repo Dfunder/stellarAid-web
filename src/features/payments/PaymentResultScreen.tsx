@@ -11,6 +11,8 @@ interface PaymentResultData {
   artworkTitle: string
   artworkThumbnail?: string
   sellerName: string
+  /** Real profile handle for the seller link — never slugify the display name. */
+  sellerUsername?: string
   amount: string
   asset: string
   platformFee: string
@@ -208,10 +210,10 @@ export default function PaymentResultScreen() {
 
               <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
                 <Button asChild>
-                  <a href={`/artists/${result.sellerName.toLowerCase().replace(/\s+/g, '_')}`}>View Seller Profile</a>
+                  <a href={`/artists/${result.sellerUsername}`}>View Seller Profile</a>
                 </Button>
                 <Button variant="secondary" asChild>
-                  <a href="/orders/purchases">View All Purchases</a>
+                  <a href="/purchases">View All Purchases</a>
                 </Button>
               </div>
 

@@ -197,7 +197,7 @@ export default function PurchasesPage() {
                           </Button>
                           {order.status === 'completed' && (
                             <Button size="sm" variant="ghost" asChild>
-                              <a href={`/commissions/new?seller=${order.sellerUsername}`}>Reorder</a>
+                              <a href={`/artists/${order.sellerUsername}`}>Reorder</a>
                             </Button>
                           )}
                         </div>
@@ -238,7 +238,7 @@ export default function PurchasesPage() {
           {orders.some((o) => o.status === 'failed') && (
             <div className="mt-4 rounded-control bg-danger/10 p-4">
               <p className="text-caption text-danger">
-                Some orders failed. <a href="/support" className="underline">Contact support</a> for assistance.
+                Some orders failed. Contact support for assistance.
               </p>
             </div>
           )}

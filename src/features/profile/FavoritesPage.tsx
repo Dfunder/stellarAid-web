@@ -240,7 +240,7 @@ export default function FavoritesPage({ defaultTab = 'artworks' }: FavoritesPage
                   {artworkFavorites.map((fav) => (
                     <tr key={fav.id} className="border-b border-line/50 hover:bg-surface-muted/50">
                       <td className="px-4 py-3">
-                        <a href={`/artworks/${fav.artwork?.id}`} className="flex items-center gap-3">
+                        <a href={`/checkout/${fav.artwork?.id}`} className="flex items-center gap-3">
                           {fav.artwork?.thumbnail && (
                             <img src={fav.artwork.thumbnail} alt="" className="h-12 w-12 rounded-card object-cover" />
                           )}

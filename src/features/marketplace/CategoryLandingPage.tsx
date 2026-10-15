@@ -90,7 +90,7 @@ export default function CategoryLandingPage({ slug: slugProp }: CategoryLandingP
 
   const renderCard = (artwork: CategoryArtwork) => (
     <article className="group">
-      <a href={`/artworks/${artwork.id}`} className="block">
+      <a href={`/checkout/${artwork.id}`} className="block">
         <div className="relative aspect-square rounded-card overflow-hidden bg-surface-muted">
           {artwork.thumbnail ? (
             <img src={artwork.thumbnail} alt="" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
