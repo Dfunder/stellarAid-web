@@ -186,6 +186,9 @@ export default function MultiStepListingWizard({
           await saveDraftMutation.mutateAsync({ ...data, status: 'draft' })
         }
       }
+    } catch {
+      // The failure is surfaced by the error modal driven by the mutation's
+      // isError state; swallow it so the click handler's floating promise never rejects.
     } finally {
       setIsSubmitting(false)
     }
