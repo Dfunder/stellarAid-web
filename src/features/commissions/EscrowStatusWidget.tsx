@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button, ExplorerLink, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
+import { useUiStore } from '@/stores'
 import { formatDate } from '@/lib'
 
 type EscrowStatus = 'funded' | 'in_progress' | 'delivered' | 'released' | 'refunded' | 'disputed' | 'cancelled'
@@ -260,6 +261,29 @@ export default function EscrowStatusWidget({ escrowId, onRelease, onRefundReques
     enabled: !!escrowId,
   })
 
+  const queryClient = useQueryClient()
+  const pushToast = useUiStore((state) => state.pushToast)
+
+  // Mutations (not raw click handlers) so the buttons can disable themselves
+  // while a release/refund is in flight — a double-click must never fire twice.
+  const releaseMutation = useMutation({
+    mutationFn: () => http.post(`/escrows/${escrowId}/release`),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['escrow', escrowId] })
+      onRelease?.()
+    },
+    onError: (err) => pushToast(err instanceof Error ? err.message : 'Release failed', 'error'),
+  })
+
+  const refundMutation = useMutation({
+    mutationFn: () => http.post(`/escrows/${escrowId}/refund-request`),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['escrow', escrowId] })
+      onRefundRequest?.()
+    },
+    onError: (err) => pushToast(err instanceof Error ? err.message : 'Refund request failed', 'error'),
+  })
+
   const currentStatus = escrow?.status ?? 'funded'
   const currentIndex = STATUS_ORDER.indexOf(currentStatus)
   const [showReleaseConfirm, setShowReleaseConfirm] = useState(false)
@@ -311,31 +335,9 @@ export default function EscrowStatusWidget({ escrowId, onRelease, onRefundReques
       setCancelReason('')
       void refetch()
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Cancellation failed')
+      pushToast(err instanceof Error ? err.message : 'Cancellation failed', 'error')
     } finally {
       setCancelling(false)
-    }
-  }
-
-  const handleRelease = async () => {
-    if (!confirm('Releasing funds will transfer the escrowed amount to the seller. This action cannot be undone. Continue?')) return
-    try {
-      await http.post(`/escrows/${escrowId}/release`)
-      void refetch()
-      onRelease?.()
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Release failed')
-    }
-  }
-
-  const handleRefundRequest = async () => {
-    if (!confirm('Requesting a refund will start a dispute process. The seller will be notified. Continue?')) return
-    try {
-      await http.post(`/escrows/${escrowId}/refund-request`)
-      void refetch()
-      onRefundRequest?.()
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Refund request failed')
     }
   }
 
@@ -478,12 +480,25 @@ export default function EscrowStatusWidget({ escrowId, onRelease, onRefundReques
       {(escrow.canRelease || escrow.canRefund) && (
         <div className="mt-6 border-t border-line pt-6 flex flex-wrap items-center gap-3">
           {escrow.canRelease && (
-            <Button variant="primary" onClick={handleRelease} disabled={isLocked || currentStatus !== 'delivered'}>
+            <Button
+              variant="primary"
+              onClick={() => setShowReleaseConfirm(true)}
+              disabled={isLocked || currentStatus !== 'delivered' || releaseMutation.isPending}
+            >
               Release Funds
             </Button>
           )}
           {escrow.canRefund && (
-            <Button variant="danger" onClick={handleRefundRequest} disabled={isLocked || currentStatus === 'released' || currentStatus === 'refunded'}>
+            <Button
+              variant="danger"
+              onClick={() => setShowRefundConfirm(true)}
+              disabled={
+                isLocked ||
+                currentStatus === 'released' ||
+                currentStatus === 'refunded' ||
+                refundMutation.isPending
+              }
+            >
               Request Refund
             </Button>
           )}
@@ -508,8 +523,15 @@ export default function EscrowStatusWidget({ escrowId, onRelease, onRefundReques
           <Button variant="ghost" onClick={() => setShowReleaseConfirm(false)}>
             Cancel
           </Button>
-          <Button variant="danger" onClick={() => { handleRelease(); setShowReleaseConfirm(false); }}>
-            Confirm Release
+          <Button
+            variant="danger"
+            onClick={() => {
+              setShowReleaseConfirm(false)
+              releaseMutation.mutate()
+            }}
+            disabled={releaseMutation.isPending}
+          >
+            {releaseMutation.isPending ? 'Releasing…' : 'Confirm Release'}
           </Button>
         </div>
       </Modal>
@@ -524,8 +546,15 @@ export default function EscrowStatusWidget({ escrowId, onRelease, onRefundReques
           <Button variant="ghost" onClick={() => setShowRefundConfirm(false)}>
             Cancel
           </Button>
-          <Button variant="danger" onClick={() => { handleRefundRequest(); setShowRefundConfirm(false); }}>
-            Confirm Refund Request
+          <Button
+            variant="danger"
+            onClick={() => {
+              setShowRefundConfirm(false)
+              refundMutation.mutate()
+            }}
+            disabled={refundMutation.isPending}
+          >
+            {refundMutation.isPending ? 'Requesting…' : 'Confirm Refund Request'}
           </Button>
         </div>
       </Modal>

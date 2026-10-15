@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Button, Skeleton, SkeletonCard, SkeletonText } from '@/components/ui'
+import { Skeleton, SkeletonCard, SkeletonText } from '@/components/ui'
 import { http } from '@/services'
 
 interface ArtworkCard {
@@ -98,7 +98,7 @@ export default function RecentlyViewed({
 
   const renderCard = (artwork: ArtworkCard) => (
     <div className="group">
-      <a href={`/artworks/${artwork.id}`} className="block">
+      <a href={`/checkout/${artwork.id}`} className="block">
         <div className="relative aspect-square rounded-card overflow-hidden bg-surface-muted">
           {artwork.thumbnail ? (
             <img src={artwork.thumbnail} alt="" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
@@ -130,11 +130,6 @@ export default function RecentlyViewed({
       <section className="py-6" aria-labelledby="recently-viewed-heading">
         <div className="flex items-center justify-between mb-4">
           <h2 id="recently-viewed-heading" className="text-h3">{title}</h2>
-          {history.length > maxItems && (
-            <Button variant="ghost" size="sm" asChild>
-              <a href="/history">View all</a>
-            </Button>
-          )}
         </div>
         <div className="flex gap-4 overflow-x-auto pb-4 -mx-3 px-3" role="list">
           {isPending ? (

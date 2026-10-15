@@ -122,7 +122,7 @@ export default function PaymentSummaryAndFeeBreakdown({
         <p className="mt-2 text-caption text-muted">
           For protected commissions, funds are held in escrow until you confirm delivery.
           The seller receives payment only after you approve the deliverables or the auto-release
-          period expires. <a href="/help/escrow" className="text-primary hover:underline ml-1">Learn more</a>
+          period expires.
         </p>
       </div>
     </div>

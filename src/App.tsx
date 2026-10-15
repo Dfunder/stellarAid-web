@@ -13,6 +13,7 @@ import {
   ResetPasswordPage,
   useAuth,
   VerifyEmailPage,
+  WalletSettingsPage,
 } from '@/features/auth'
 import { ArtistProfilePage, FavoritesPage, ProfileEditPage } from '@/features/profile'
 import {
@@ -41,9 +42,15 @@ function ToastViewport() {
         <button
           key={toast.id}
           type="button"
-          role="alert"
+          role={toast.tone === 'error' ? 'alert' : 'status'}
           onClick={() => dismissToast(toast.id)}
-          className="rounded-control border border-line bg-surface px-4 py-3 text-left text-caption shadow-card"
+          className={`rounded-control border bg-surface px-4 py-3 text-left text-caption shadow-card ${
+            toast.tone === 'error'
+              ? 'border-danger/40 text-danger'
+              : toast.tone === 'success'
+                ? 'border-success/40 text-success'
+                : 'border-line text-foreground'
+          }`}
         >
           {toast.message}
         </button>
@@ -616,6 +623,16 @@ function AppRoutes() {
         <Route
           path="category/:slug"
           element={<CategoryLandingPage />}
+        />
+
+        {/* Wallet settings — linked from five entry points (#788) */}
+        <Route
+          path="settings/wallets"
+          element={
+            <RequireAuth>
+              <WalletSettingsPage />
+            </RequireAuth>
+          }
         />
 
         {/* Artist Route */}

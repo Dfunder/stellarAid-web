@@ -178,9 +178,6 @@ export default function TransactionStatusPolling({
               <Button size="sm" variant="secondary" onClick={() => void refetch()}>
                 Check Again
               </Button>
-              <Button size="sm" variant="ghost" asChild>
-                <a href="/support">Contact Support</a>
-              </Button>
             </div>
           </div>
         )}
@@ -286,9 +283,6 @@ export default function TransactionStatusPolling({
             <div className="flex flex-col sm:flex-row gap-2 justify-center">
               <Button size="sm" variant="secondary" onClick={() => void refetch()}>
                 Check Again
-              </Button>
-              <Button size="sm" variant="ghost" asChild>
-                <a href="/support">Contact Support</a>
               </Button>
             </div>
           </div>
