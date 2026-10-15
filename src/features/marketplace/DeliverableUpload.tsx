@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, Input, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
+import { applyFileCap, uploadToPresignedUrl } from './uploadHelpers'
 
 export type DeliverableKind = 'wip' | 'final'
 
@@ -20,6 +21,8 @@ export interface DeliverableFile {
   /** Revision round this file belongs to, stacked per submission. */
   revision: number
   note?: string
+  /** Raw bytes kept locally so the upload sends the file itself, not metadata. */
+  source?: File
 }
 
 const ALLOWED_TYPES = [
@@ -93,6 +96,13 @@ export default function DeliverableUpload({
 
   const uploadMutation = useMutation({
     mutationFn: async (file: DeliverableFile) => {
+      // The upload needs the real bytes; sending the metadata object would put
+      // "[object Object]" in the request body.
+      const source = file.source
+      if (!source) {
+        throw new Error(`No file data available for "${file.name}"`)
+      }
+
       // Get presigned URL
       const { uploadUrl, fileId } = await http.post<{ uploadUrl: string; fileId: string }>(
         `/listings/${listingId}/deliverables/presigned-url`,
@@ -105,7 +115,7 @@ export default function DeliverableUpload({
       )
 
       // Upload to presigned URL with progress
-      await uploadToPresignedUrl(uploadUrl, file, (progress) => {
+      await uploadToPresignedUrl(uploadUrl, source, (progress) => {
         setFiles((prev) =>
           prev.map((f) => (f.id === file.id ? { ...f, progress } : f))
         )
@@ -135,33 +145,6 @@ export default function DeliverableUpload({
     },
   })
 
-  const uploadToPresignedUrl = (
-    url: string,
-    file: DeliverableFile,
-    onProgress: (progress: number) => void
-  ): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest()
-      xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-          onProgress(Math.round((e.loaded / e.total) * 100))
-        }
-      })
-      xhr.addEventListener('load', () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve()
-        } else {
-          reject(new Error(`Upload failed with status ${xhr.status}`))
-        }
-      })
-      xhr.addEventListener('error', () => reject(new Error('Upload failed')))
-      xhr.addEventListener('abort', () => reject(new Error('Upload aborted')))
-      xhr.open('PUT', url)
-      xhr.setRequestHeader('Content-Type', file.type)
-      xhr.send(file as unknown as File)
-    })
-  }
-
   const validateFile = (file: File): string | null => {
     if (!ALLOWED_TYPES.includes(file.type as typeof ALLOWED_TYPES[number])) {
       return `File type "${file.type}" is not allowed. Allowed: images, PDF, ZIP, video, audio.`
@@ -174,16 +157,15 @@ export default function DeliverableUpload({
 
   const handleFiles = useCallback(
     (newFiles: FileList | File[]) => {
-      const fileArray = Array.from(newFiles)
       const validFiles: DeliverableFile[] = []
       const errors: string[] = []
+      const { accepted, exceeded } = applyFileCap(Array.from(newFiles), files.length, MAX_FILES)
 
-      if (files.length + fileArray.length > MAX_FILES) {
+      if (exceeded) {
         errors.push(`Maximum ${MAX_FILES} files allowed.`)
-        fileArray.splice(MAX_FILES - files.length)
       }
 
-      fileArray.forEach((file) => {
+      accepted.forEach((file) => {
         const error = validateFile(file)
         if (error) {
           errors.push(error)
@@ -199,6 +181,7 @@ export default function DeliverableUpload({
             kind,
             revision,
             note: note.trim() || undefined,
+            source: file,
           })
         }
       })
