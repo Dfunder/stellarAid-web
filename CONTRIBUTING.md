@@ -127,6 +127,10 @@ Lifecycle:
 2. **Ship** - turn it on via env/remote config; once stable for everyone, schedule removal.
 3. **Remove** - delete the key and env var. TypeScript then flags every remaining `useFeatureFlag('<flag>')` call; delete those checks and the disabled code path in the same PR.
 
+## Environment Variables
+
+Every `VITE_*` variable is inlined into the public client bundle at build time and can be read by any visitor. Never add a secret under that prefix; secrets belong on a server. The full variable list, defaults and validation behaviour are in the [README](./README.md#environment-variables).
+
 ## Auth Tokens
 
 Access and refresh tokens are persisted by `useAuthStore` in `localStorage` so sessions survive reloads. Trade-off: any script running on the origin can read them, so an XSS bug could leak them. This is accepted for the MVP because the API uses bearer tokens; mitigations are short-lived access tokens, transparent refresh on 401 and never rendering untrusted HTML. Move the refresh token to an httpOnly cookie once the API supports it. Do not store tokens anywhere else.
