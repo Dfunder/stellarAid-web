@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { formatDate } from '@/lib'
+import { buildCsv, csvFilename, isNegativeAmount } from './csv'
 import { transactionKeys } from './queryKeys'
 import type { Transaction } from './types'
 
@@ -57,12 +58,21 @@ export default function TransactionHistoryPage() {
       tx.status,
       tx.txHash,
     ])
-    const csv = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(',')).join('\n')
+    const csv = buildCsv([headers, ...rows])
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = `transactions-${formatDate(new Date().toISOString())}.csv`
-    link.click()
+    const url = URL.createObjectURL(blob)
+    try {
+      link.href = url
+      link.download = csvFilename()
+      document.body.appendChild(link)
+      link.click()
+    } finally {
+      // Safari needs the anchor in the document; the blob URL must be revoked
+      // so repeated exports do not leak memory.
+      link.remove()
+      URL.revokeObjectURL(url)
+    }
   }
 
   if (isPending) {
@@ -195,7 +205,7 @@ export default function TransactionHistoryPage() {
                       <span className="capitalize">{tx.type}</span>
                     </td>
                     <td className="px-4 py-3 text-caption-sm font-mono text-foreground">
-                      {tx.amount >= 0 ? '+' : ''}{tx.amount}
+                      {isNegativeAmount(tx.amount) ? '' : '+'}{tx.amount}
                     </td>
                     <td className="px-4 py-3 text-caption-sm text-foreground">{tx.asset}</td>
                     <td className="px-4 py-3">
