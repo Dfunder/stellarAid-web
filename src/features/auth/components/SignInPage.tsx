@@ -39,7 +39,8 @@ export default function SignInPage() {
 
     const parsedEmail = emailSchema.safeParse(email)
     if (!parsedEmail.success) {
-      setEmailError(parsedEmail.error.issues[0]?.message ?? 'Enter a valid email address.')
+      // `||` not `??` — an empty-string zod message must still fall back (#777).
+      setEmailError(parsedEmail.error.issues[0]?.message || 'Enter a valid email address.')
       return
     }
     setEmailError(null)

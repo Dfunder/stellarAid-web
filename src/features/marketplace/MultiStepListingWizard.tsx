@@ -5,6 +5,7 @@ import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { MultiAssetPricingInput, LicenseTermsField } from '.'
 import { z } from 'zod'
+import { firstZodMessage } from './utils'
 
 const ListingSchema = z.object({
   title: z.string().min(3).max(100),
@@ -131,7 +132,7 @@ export default function MultiStepListingWizard({
         }
       } catch (err) {
         if (err instanceof z.ZodError) {
-          newErrors[field as keyof ListingFormData] = err.errors[0].message
+          newErrors[field as keyof ListingFormData] = firstZodMessage(err)
           isValid = false
         }
       }
@@ -149,7 +150,7 @@ export default function MultiStepListingWizard({
     } catch (err) {
       if (err instanceof z.ZodError) {
         const newErrors: Partial<Record<keyof ListingFormData, string>> = {}
-        err.errors.forEach((e) => {
+        err.issues.forEach((e) => {
           if (e.path[0]) newErrors[e.path[0] as keyof ListingFormData] = e.message
         })
         setErrors(newErrors)

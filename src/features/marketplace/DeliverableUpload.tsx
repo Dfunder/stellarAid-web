@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, Input, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
+import { uploadToPresignedUrl } from './deliverableUpload'
 
 export type DeliverableKind = 'wip' | 'final'
 
@@ -20,6 +21,13 @@ export interface DeliverableFile {
   /** Revision round this file belongs to, stacked per submission. */
   revision: number
   note?: string
+  /**
+   * Raw browser `File` kept so the upload can send real bytes (#775) —
+   * `XMLHttpRequest.send` rejects anything that is not a Blob. Absent for
+   * server-loaded `initialFiles`, which cannot be re-uploaded from this
+   * session.
+   */
+  file?: File
 }
 
 const ALLOWED_TYPES = [
@@ -93,6 +101,14 @@ export default function DeliverableUpload({
 
   const uploadMutation = useMutation({
     mutationFn: async (file: DeliverableFile) => {
+      // The descriptor itself is not uploadable — send the raw File it wraps.
+      const rawFile = file.file
+      if (!(rawFile instanceof Blob)) {
+        throw new Error(
+          `"${file.name}" is no longer available in this browser session — remove it and add the file again`
+        )
+      }
+
       // Get presigned URL
       const { uploadUrl, fileId } = await http.post<{ uploadUrl: string; fileId: string }>(
         `/listings/${listingId}/deliverables/presigned-url`,
@@ -105,7 +121,7 @@ export default function DeliverableUpload({
       )
 
       // Upload to presigned URL with progress
-      await uploadToPresignedUrl(uploadUrl, file, (progress) => {
+      await uploadToPresignedUrl(uploadUrl, rawFile, (progress) => {
         setFiles((prev) =>
           prev.map((f) => (f.id === file.id ? { ...f, progress } : f))
         )
@@ -134,33 +150,6 @@ export default function DeliverableUpload({
       )
     },
   })
-
-  const uploadToPresignedUrl = (
-    url: string,
-    file: DeliverableFile,
-    onProgress: (progress: number) => void
-  ): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest()
-      xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-          onProgress(Math.round((e.loaded / e.total) * 100))
-        }
-      })
-      xhr.addEventListener('load', () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve()
-        } else {
-          reject(new Error(`Upload failed with status ${xhr.status}`))
-        }
-      })
-      xhr.addEventListener('error', () => reject(new Error('Upload failed')))
-      xhr.addEventListener('abort', () => reject(new Error('Upload aborted')))
-      xhr.open('PUT', url)
-      xhr.setRequestHeader('Content-Type', file.type)
-      xhr.send(file as unknown as File)
-    })
-  }
 
   const validateFile = (file: File): string | null => {
     if (!ALLOWED_TYPES.includes(file.type as typeof ALLOWED_TYPES[number])) {
@@ -199,6 +188,7 @@ export default function DeliverableUpload({
             kind,
             revision,
             note: note.trim() || undefined,
+            file,
           })
         }
       })
