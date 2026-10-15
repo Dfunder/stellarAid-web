@@ -5,3 +5,4 @@
  */
 export { useCopyToClipboard } from './useCopyToClipboard'
 export type { CopyToClipboard } from './useCopyToClipboard'
+export { useFeatureFlag } from './useFeatureFlag'
