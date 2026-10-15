@@ -25,15 +25,17 @@ The app is served at `http://localhost:5173`.
 
 ## Scripts
 
-| Script                 | Description                                    |
-| ---------------------- | ---------------------------------------------- |
-| `npm run dev`          | Start the Vite dev server with HMR             |
-| `npm run build`        | Type-check and build the production bundle     |
-| `npm run preview`      | Serve the production build locally             |
-| `npm run lint`         | Lint the codebase with ESLint                  |
-| `npm run format`       | Format the codebase with Prettier              |
-| `npm run format:check` | Check formatting without writing (CI-friendly) |
-| `npm run type-check`   | Type-check with `tsc` without emitting output  |
+| Script                 | Description                                                                       |
+| ---------------------- | --------------------------------------------------------------------------------- |
+| `npm run dev`          | Start the Vite dev server with HMR                                                |
+| `npm run build`        | Type-check and build the production bundle                                        |
+| `npm run preview`      | Serve the production build locally                                                |
+| `npm run lint`         | Lint the codebase with ESLint                                                     |
+| `npm run format`       | Format the codebase with Prettier                                                 |
+| `npm run format:check` | Check formatting without writing (CI-friendly)                                    |
+| `npm run type-check`   | Run `tsc -b` (a project-references build; the same type check `build` runs first) |
+| `npm run test`         | Run the Vitest unit and component tests once                                      |
+| `npm run prepare`      | Installs the Husky git hooks (runs automatically on `npm install` / `npm ci`)     |
 
 ## Environment Variables
 
@@ -95,6 +97,12 @@ src/
 ```
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for placement rules and conventions.
+
+## Community & Security
+
+- [Code of Conduct](./CODE_OF_CONDUCT.md)
+- [Security policy](./SECURITY.md) - report vulnerabilities privately, never in a public issue
+- [Changelog](./CHANGELOG.md)
 
 ## License
 
