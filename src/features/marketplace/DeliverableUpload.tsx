@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, Input, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
-import { applyFileCap, uploadToPresignedUrl } from './uploadHelpers'
+import { applyFileCap, uploadToPresignedUrl } from './deliverableUpload'
 
 export type DeliverableKind = 'wip' | 'final'
 
@@ -21,8 +21,13 @@ export interface DeliverableFile {
   /** Revision round this file belongs to, stacked per submission. */
   revision: number
   note?: string
-  /** Raw bytes kept locally so the upload sends the file itself, not metadata. */
-  source?: File
+  /**
+   * Raw browser `File` kept so the upload can send real bytes (#775) —
+   * `XMLHttpRequest.send` rejects anything that is not a Blob. Absent for
+   * server-loaded `initialFiles`, which cannot be re-uploaded from this
+   * session.
+   */
+  file?: File
 }
 
 const ALLOWED_TYPES = [
@@ -96,11 +101,12 @@ export default function DeliverableUpload({
 
   const uploadMutation = useMutation({
     mutationFn: async (file: DeliverableFile) => {
-      // The upload needs the real bytes; sending the metadata object would put
-      // "[object Object]" in the request body.
-      const source = file.source
-      if (!source) {
-        throw new Error(`No file data available for "${file.name}"`)
+      // The descriptor itself is not uploadable — send the raw File it wraps.
+      const rawFile = file.file
+      if (!(rawFile instanceof Blob)) {
+        throw new Error(
+          `"${file.name}" is no longer available in this browser session — remove it and add the file again`
+        )
       }
 
       // Get presigned URL
@@ -115,7 +121,7 @@ export default function DeliverableUpload({
       )
 
       // Upload to presigned URL with progress
-      await uploadToPresignedUrl(uploadUrl, source, (progress) => {
+      await uploadToPresignedUrl(uploadUrl, rawFile, (progress) => {
         setFiles((prev) =>
           prev.map((f) => (f.id === file.id ? { ...f, progress } : f))
         )
@@ -181,7 +187,7 @@ export default function DeliverableUpload({
             kind,
             revision,
             note: note.trim() || undefined,
-            source: file,
+            file,
           })
         }
       })

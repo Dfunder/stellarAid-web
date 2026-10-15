@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { cloneElement, isValidElement, type ButtonHTMLAttributes, type ReactElement, type ReactNode } from 'react'
 import { cn } from '@/lib'
 import Spinner from './Spinner'
 
@@ -10,6 +10,13 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: ButtonSize
   /** Shows a spinner and blocks interaction while an action is in flight. */
   isLoading?: boolean
+  /**
+   * Renders the single child element (usually a react-router `<Link>` or an
+   * `<a>`) in place of the `<button>`, merging the button's classes and
+   * props onto it (#780). Without this, ~30 call sites produced invalid
+   * `<button><a></button>` nesting that browsers refuse to make clickable.
+   */
+  asChild?: boolean
   children: ReactNode
 }
 
@@ -33,18 +40,44 @@ export default function Button({
   variant = 'primary',
   size = 'md',
   isLoading = false,
+  asChild = false,
   className,
   children,
   disabled,
   type = 'button',
   ...rest
 }: ButtonProps) {
+  const classes = cn(BASE_CLASSES, VARIANT_CLASSES[variant], SIZE_CLASSES[size], className)
+
+  if (asChild && isValidElement(children)) {
+    // Radix-Slot-style single-child merge: the child *is* the rendered
+    // element, so a <Link>/<a> stays a real link (keyboard, middle-click,
+    // screen readers) instead of being nested inside a <button>.
+    const child = children as ReactElement<Record<string, unknown>>
+    const childProps = child.props
+    const childOnClick = childProps['onClick'] as
+      | ((event: React.MouseEvent) => void)
+      | undefined
+    const childClassName = childProps['className'] as string | false | null | undefined
+    const onClick = rest.onClick
+    return cloneElement(child, {
+      ...childProps,
+      ...rest,
+      className: cn(classes, childClassName),
+      'aria-busy': isLoading || undefined,
+      onClick: (event: React.MouseEvent) => {
+        childOnClick?.(event)
+        onClick?.(event)
+      },
+    })
+  }
+
   return (
     <button
       type={type}
       disabled={disabled === true || isLoading}
       aria-busy={isLoading || undefined}
-      className={cn(BASE_CLASSES, VARIANT_CLASSES[variant], SIZE_CLASSES[size], className)}
+      className={classes}
       {...rest}
     >
       {isLoading ? <Spinner /> : null}

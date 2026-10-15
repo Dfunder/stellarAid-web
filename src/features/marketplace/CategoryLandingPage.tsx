@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Button, Skeleton } from '@/components/ui'
+import { useParams } from 'react-router-dom'
+import { Button, Skeleton, SkeletonGrid, SkeletonText } from '@/components/ui'
 import { http } from '@/services'
 import { formatDate } from '@/lib'
 
@@ -31,11 +32,16 @@ interface CategoryArtwork {
 }
 
 export interface CategoryLandingPageProps {
-  /** Category slug from URL */
-  slug: string
+  /** Category slug from the route (`category/:slug`); optional for reuse outside the router. */
+  slug?: string
 }
 
-export default function CategoryLandingPage({ slug }: CategoryLandingPageProps) {
+export default function CategoryLandingPage({ slug: slugProp }: CategoryLandingPageProps) {
+  // The route (`category/:slug`) never passed the prop this page declared,
+  // so `slug` was `undefined`, both queries stayed disabled, and the page
+  // spun forever (#782). Read the param ourselves.
+  const params = useParams()
+  const slug = slugProp ?? params.slug
   const [subCategoryFilter, setSubCategoryFilter] = useState<string>('all')
 
   const { data: category, isPending: categoryPending, isError: categoryError } = useQuery({

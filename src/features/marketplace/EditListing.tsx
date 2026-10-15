@@ -1,10 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useParams } from 'react-router-dom'
 import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { formatDate } from '@/lib'
 import { z } from 'zod'
+import { LICENSE_PRESETS } from './constants'
+import { firstZodMessage, listingToFormValues } from './utils'
 
 const ListingSchema = z.object({
   title: z.string().min(3).max(100),
@@ -46,13 +49,14 @@ const CATEGORIES = [
   'Other',
 ] as const
 
-const LICENSE_PRESETS = [
-  { value: 'personal', label: 'Personal Use', description: 'For personal, non-commercial use only' },
-  { value: 'commercial', label: 'Commercial Use', description: 'Allows commercial use with attribution' },
-  { value: 'exclusive', label: 'Exclusive Rights', description: 'Full exclusive rights, artwork removed from marketplace' },
-] as const
-
-export default function EditListing({ listingId }: { listingId: string }) {
+export default function EditListing({ listingId: listingIdProp }: { listingId?: string }) {
+  // The route (`artist/listings/:listingId/edit`) never passed the prop the
+  // page declared, so `listingId` was always `undefined`, the query stayed
+  // disabled, and the page spun forever (#782). Read the param ourselves so
+  // the route element can stay a simple `<EditListing />`; the optional prop
+  // keeps the page usable outside the router.
+  const params = useParams()
+  const listingId = listingIdProp ?? params.listingId
   const queryClient = useQueryClient()
   const [formData, setFormData] = useState<Partial<ListingFormData>>({})
   const [errors, setErrors] = useState<Partial<Record<keyof ListingFormData, string>>>({})
@@ -100,21 +104,18 @@ export default function EditListing({ listingId }: { listingId: string }) {
     },
   })
 
-  // Initialize form with listing data
-  useState(() => {
-    if (listing) {
-      setFormData({
-        title: listing.title,
-        description: listing.description,
-        category: listing.category,
-        tags: listing.tags,
-        price: listing.price,
-        asset: listing.asset as ListingFormData['asset'],
-        licenseTerms: listing.licenseTerms,
-        images: listing.images,
-      })
+  // Populate the form once the async listing query resolves (#776). This
+  // used to live in a `useState` lazy initializer, which ran exactly once —
+  // while `listing` was still `undefined` — so the form never filled and the
+  // run also triggered a "Cannot update a component while rendering" warning.
+  // Keyed on the listing id so a background refetch cannot clobber in-progress edits.
+  const populatedForListing = useRef<string | null>(null)
+  useEffect(() => {
+    if (listing && populatedForListing.current !== listing.id) {
+      populatedForListing.current = listing.id
+      setFormData(listingToFormValues(listing))
     }
-  })
+  }, [listing])
 
   const steps = [
     { id: 0, label: 'Details', fields: ['title', 'description', 'category', 'tags'] },
@@ -136,7 +137,7 @@ export default function EditListing({ listingId }: { listingId: string }) {
         }
       } catch (err) {
         if (err instanceof z.ZodError) {
-          newErrors[field as keyof ListingFormData] = err.errors[0].message
+          newErrors[field as keyof ListingFormData] = firstZodMessage(err)
           isValid = false
         }
       }
@@ -154,7 +155,7 @@ export default function EditListing({ listingId }: { listingId: string }) {
     } catch (err) {
       if (err instanceof z.ZodError) {
         const newErrors: Partial<Record<keyof ListingFormData, string>> = {}
-        err.errors.forEach((e) => {
+        err.issues.forEach((e) => {
           if (e.path[0]) newErrors[e.path[0] as keyof ListingFormData] = e.message
         })
         setErrors(newErrors)

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Input } from '@/components/ui'
-import { LICENSE_PRESETS } from './EditListing'
+import { LICENSE_PRESETS } from './constants'
 
 interface LicenseTermsFieldProps {
   /** Current license terms value */

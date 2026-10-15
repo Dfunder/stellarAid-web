@@ -5,6 +5,7 @@ import { http } from '@/services'
 import { formatDate } from '@/lib'
 import { useAuth } from '@/features/auth'
 import { orderKeys } from './queryKeys'
+import { orderRefetchInterval } from './polling'
 import { useQueryClient } from '@tanstack/react-query'
 
 interface OrderConfirmationData {
@@ -47,7 +48,7 @@ export default function OrderConfirmationScreen() {
       return response.order
     },
     enabled: !!orderId,
-    refetchInterval: (data) => data?.status === 'confirming' ? 3000 : false,
+    refetchInterval: orderRefetchInterval,
   })
 
   useEffect(() => {

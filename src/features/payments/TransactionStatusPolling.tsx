@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { formatDate } from '@/lib'
+import { txStatusRefetchInterval } from './polling'
 
 type TxStatus = 'submitted' | 'confirming' | 'confirmed' | 'failed'
 
@@ -72,14 +73,7 @@ export default function TransactionStatusPolling({
       return response.status
     },
     enabled: !!txHash,
-    refetchInterval: (data) => {
-      if (!data) return pollInterval
-      if (data.status === 'confirmed' || data.status === 'failed') return false
-      // Exponential backoff: 3s, 6s, 12s, 24s, max 30s
-      const elapsed = Date.now() - startTime
-      const backoff = Math.min(pollInterval * Math.pow(2, Math.floor(elapsed / 15000)), 30000)
-      return backoff
-    },
+    refetchInterval: (query) => txStatusRefetchInterval(query, pollInterval, startTime),
   })
 
   // Update local state from query data
