@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useParams } from 'react-router-dom'
 import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { formatDate } from '@/lib'
 import { z } from 'zod'
+import { LICENSE_PRESETS } from './constants'
 import { firstZodMessage, listingToFormValues } from './utils'
 
 const ListingSchema = z.object({
@@ -47,13 +49,14 @@ const CATEGORIES = [
   'Other',
 ] as const
 
-const LICENSE_PRESETS = [
-  { value: 'personal', label: 'Personal Use', description: 'For personal, non-commercial use only' },
-  { value: 'commercial', label: 'Commercial Use', description: 'Allows commercial use with attribution' },
-  { value: 'exclusive', label: 'Exclusive Rights', description: 'Full exclusive rights, artwork removed from marketplace' },
-] as const
-
-export default function EditListing({ listingId }: { listingId: string }) {
+export default function EditListing({ listingId: listingIdProp }: { listingId?: string }) {
+  // The route (`artist/listings/:listingId/edit`) never passed the prop the
+  // page declared, so `listingId` was always `undefined`, the query stayed
+  // disabled, and the page spun forever (#782). Read the param ourselves so
+  // the route element can stay a simple `<EditListing />`; the optional prop
+  // keeps the page usable outside the router.
+  const params = useParams()
+  const listingId = listingIdProp ?? params.listingId
   const queryClient = useQueryClient()
   const [formData, setFormData] = useState<Partial<ListingFormData>>({})
   const [errors, setErrors] = useState<Partial<Record<keyof ListingFormData, string>>>({})

@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useParams } from 'react-router-dom'
 import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { PaymentAssetSelector, WalletBalanceDisplay } from '@/features/payments'
 import { formatDate } from '@/lib'
+import { LICENSE_PRESETS } from './constants'
 
 interface Artwork {
   id: string
@@ -34,13 +36,14 @@ interface CheckoutSession {
   expiresAt: string
 }
 
-const LICENSE_PRESETS = [
-  { value: 'personal', label: 'Personal Use', description: 'For personal, non-commercial use only' },
-  { value: 'commercial', label: 'Commercial Use', description: 'Allows commercial use with attribution' },
-  { value: 'exclusive', label: 'Exclusive Rights', description: 'Full exclusive rights, artwork removed from marketplace' },
-] as const
-
-export default function CheckoutPage({ artworkId }: { artworkId: string }) {
+export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?: string }) {
+  // The route (`checkout/:artworkId`) never passed the prop this page
+  // declared, so `artworkId` was always `undefined`, the query stayed
+  // disabled, and checkout spun forever (#782). Read the param ourselves so
+  // the route element can stay a simple `<CheckoutPage />`; the optional
+  // prop keeps the page usable outside the router.
+  const params = useParams()
+  const artworkId = artworkIdProp ?? params.artworkId
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const [selectedAsset, setSelectedAsset] = useState<string>('')
