@@ -1,10 +1,13 @@
-import { AxiosError, AxiosHeaders, type AxiosAdapter } from 'axios'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { AxiosError, AxiosHeaders, type AxiosAdapter, type InternalAxiosRequestConfig } from 'axios'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   getApiErrorMessage,
   getErrorMessage,
   http,
   isApiError,
+  retryDelayMs,
   setAuthTokenProvider,
   setTokenRefresher,
   setUnauthorizedHandler,
@@ -20,6 +23,14 @@ const adapter: AxiosAdapter = async (config) => {
   const unauthorized = { ...response, data: {}, status: 401, statusText: 'Unauthorized' }
   throw new AxiosError('Unauthorized', 'ERR_BAD_REQUEST', config, null, unauthorized)
 }
+
+afterEach(() => {
+  // Module-level HTTP state must not leak between tests (#794), otherwise
+  // test order can mask the concurrency bugs this file exists to cover.
+  setAuthTokenProvider(() => null)
+  setTokenRefresher(async () => null)
+  setUnauthorizedHandler(() => {})
+})
 
 describe('http token refresh', () => {
   beforeEach(() => {
@@ -95,5 +106,78 @@ describe('centralized API errors', () => {
         message: 'Check the highlighted fields and try again.',
       })
     }
+  })
+})
+
+describe('401 on the refresh endpoint', () => {
+  it('does not re-enter the refresh branch (no request storm)', async () => {
+    token = 'expired'
+    setAuthTokenProvider(() => token)
+
+    const refreshCalls = vi.fn()
+    const adapter: AxiosAdapter = async (config) => {
+      if (config.url === '/auth/refresh') refreshCalls()
+      throw new AxiosError('Unauthorized', 'ERR_BAD_REQUEST', config, null, {
+        data: {},
+        status: 401,
+        statusText: 'Unauthorized',
+        headers: {},
+        config,
+      })
+    }
+
+    const onUnauthorized = vi.fn()
+    setUnauthorizedHandler(onUnauthorized)
+    const refresher = vi.fn(async () => {
+      try {
+        // Mirrors authService.refresh / authApi.refresh: the refresh call
+        // itself opts out of the 401 branch.
+        await http.post('/auth/refresh', {}, { adapter, skipAuthRefresh: true, skipRetry: true })
+      } catch {
+        return null
+      }
+      return null
+    })
+    setTokenRefresher(refresher)
+
+    await expect(http.get('/me', { adapter })).rejects.toMatchObject({ status: 401 })
+
+    expect(refresher).toHaveBeenCalledTimes(1)
+    expect(refreshCalls).toHaveBeenCalledTimes(1)
+    expect(onUnauthorized).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('authApi.refresh', () => {
+  it('sets skipAuthRefresh so a rejected refresh never loops (source guard)', () => {
+    const source = readFileSync(resolve(__dirname, '../features/auth/services/authApi.ts'), 'utf8')
+    const call = source.indexOf("'/auth/refresh'")
+    expect(call).toBeGreaterThan(-1)
+    expect(source.slice(call, call + 240)).toContain('skipAuthRefresh: true')
+  })
+})
+
+describe('retryDelayMs', () => {
+  function responseError(status: number, headers: Record<string, string>): AxiosError {
+    const config = {
+      method: 'get',
+      url: '/resource',
+      headers: {},
+    } as unknown as InternalAxiosRequestConfig
+    const response = { data: {}, status, statusText: '', headers, config }
+    return new AxiosError('failed', 'ERR_BAD_REQUEST', config, null, response)
+  }
+
+  it('honours the Retry-After header on a 429 (seconds → ms)', () => {
+    expect(retryDelayMs(responseError(429, { 'retry-after': '2' }), 1)).toBe(2000)
+  })
+
+  it('caps an absurd Retry-After value', () => {
+    expect(retryDelayMs(responseError(429, { 'retry-after': '3600' }), 1)).toBe(30_000)
+  })
+
+  it('falls back to the base delay when the header is missing or malformed', () => {
+    expect(retryDelayMs(responseError(429, {}), 1)).toBe(500)
+    expect(retryDelayMs(responseError(429, { 'retry-after': 'soon' }), 2)).toBe(1000)
   })
 })

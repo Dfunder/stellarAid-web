@@ -47,7 +47,12 @@ export const authApi = {
 
   /** Exchanges a refresh token for a new access/refresh pair. */
   refresh(refreshToken: string): Promise<{ tokens: AuthTokens }> {
-    return http.post<{ tokens: AuthTokens }>('/auth/refresh', { refreshToken }, { skipRetry: true })
+    return http.post<{ tokens: AuthTokens }>('/auth/refresh', { refreshToken }, {
+      skipRetry: true,
+      // A 401 here means the refresh token itself was rejected — re-entering
+      // the refresh branch would spin a request storm (#794).
+      skipAuthRefresh: true,
+    })
   },
 
   /** Revokes the refresh token server-side. */
