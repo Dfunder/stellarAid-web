@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { UserRole as AuthRole } from '@/features/auth/types'
 import type { UserDto } from './dto'
-import { mapUser } from './mappers'
+import { mapArtwork, mapUser } from './mappers'
 import type { UserRole as ModelRole } from './models'
 
 /** Compile-time guard: both import paths expose the same canonical role union. */
@@ -65,5 +65,26 @@ describe('mapUser', () => {
   it('exposes one canonical UserRole from both entry points', () => {
     const sameRole: IsSameUnion<ModelRole, AuthRole> = true
     expect(sameRole).toBe(true)
+  })
+})
+
+describe('mapArtwork status', () => {
+  const dto = {
+    id: 'a1',
+    artistId: 'u1',
+    title: 't',
+    category: 'c',
+    price: { amount: '1', asset: { code: 'XLM' } },
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z',
+  }
+
+  it('maps the legacy published status to active', () => {
+    expect(mapArtwork({ ...dto, status: 'published' }).status).toBe('active')
+  })
+
+  it('keeps known statuses and falls back to draft for unknown ones', () => {
+    expect(mapArtwork({ ...dto, status: 'sold' }).status).toBe('sold')
+    expect(mapArtwork({ ...dto, status: 'nonsense' }).status).toBe('draft')
   })
 })

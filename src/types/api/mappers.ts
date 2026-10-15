@@ -55,7 +55,7 @@ export function mapMoney(dto: MoneyDto): Money {
 }
 
 const USER_ROLES = ['artist', 'client', 'admin'] as const
-const ARTWORK_STATUSES = ['draft', 'published', 'sold', 'unpublished'] as const
+const ARTWORK_STATUSES = ['draft', 'active', 'sold', 'unpublished'] as const
 const ORDER_STATUSES = [
   'pending',
   'paid',
@@ -121,7 +121,8 @@ export function mapArtwork(dto: ArtworkDto): Artwork {
     category: dto.category,
     imageUrls: dto.imageUrls ?? [],
     price: mapMoney(dto.price),
-    status: toEnum<ArtworkStatus>(dto.status, ARTWORK_STATUSES, 'draft'),
+    // `published` is the legacy name of `active`.
+    status: toEnum<ArtworkStatus>(dto.status === 'published' ? 'active' : dto.status, ARTWORK_STATUSES, 'draft'),
     createdAt: toDate(dto.createdAt),
     updatedAt: toDate(dto.updatedAt),
   }

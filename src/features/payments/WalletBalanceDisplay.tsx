@@ -4,6 +4,7 @@ import { Button, ExplorerLink } from '@/components/ui'
 import { http } from '@/services'
 import { useWallet } from '@/features/auth/hooks/useWallet'
 import { formatDate } from '@/lib'
+import { Link } from 'react-router-dom'
 
 interface AssetBalance {
   asset: string
@@ -77,7 +78,7 @@ export default function WalletBalanceDisplay({
     return (
       <div className={className}>
         <Button variant="ghost" size="sm" asChild>
-          <a href="/settings/wallets">Connect wallet to see balances</a>
+          <Link to="/settings/wallets">Connect wallet to see balances</Link>
         </Button>
       </div>
     )
@@ -190,7 +191,7 @@ export default function WalletBalanceDisplay({
                     Some assets need trustlines to receive payments.
                   </p>
                   <Button size="sm" variant="secondary" className="w-full" asChild>
-                    <a href="/settings/wallets">Manage trustlines</a>
+                    <Link to="/settings/wallets">Manage trustlines</Link>
                   </Button>
                 </div>
               )}
@@ -200,7 +201,7 @@ export default function WalletBalanceDisplay({
                   Refresh
                 </Button>
                 <Button size="sm" variant="ghost" className="flex-1" asChild>
-                  <a href="/settings/wallets">Manage</a>
+                  <Link to="/settings/wallets">Manage</Link>
                 </Button>
               </div>
             </div>
@@ -243,7 +244,7 @@ export default function WalletBalanceDisplay({
             {missingTrustlines.length} asset{missingTrustlines.length > 1 ? 's' : ''} missing trustline{missingTrustlines.length > 1 ? 's' : ''}.
           </p>
           <Button size="sm" variant="secondary" className="mt-2" asChild>
-            <a href="/settings/wallets">Add trustlines</a>
+            <Link to="/settings/wallets">Add trustlines</Link>
           </Button>
         </div>
       )}
