@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
-import { formatDate } from '@/lib'
+import { formatDate, statusMeta } from '@/lib'
 import { orderKeys } from './queryKeys'
 
 interface Order {
@@ -27,21 +27,7 @@ interface Deliverable {
   expiresAt: string
 }
 
-const STATUS_LABELS: Record<Order['status'], string> = {
-  pending: 'Pending',
-  processing: 'Processing',
-  completed: 'Completed',
-  failed: 'Failed',
-  refunded: 'Refunded',
-}
 
-const STATUS_COLORS: Record<Order['status'], string> = {
-  pending: 'bg-warning/10 text-warning',
-  processing: 'bg-blue/10 text-blue',
-  completed: 'bg-success/10 text-success',
-  failed: 'bg-danger/10 text-danger',
-  refunded: 'bg-muted text-muted',
-}
 
 export default function PurchasesPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | Order['status']>('all')
@@ -172,8 +158,8 @@ export default function PurchasesPage() {
                         {order.amount} {order.asset}
                       </td>
                       <td className="px-4 py-4">
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-caption-sm font-medium ${STATUS_COLORS[order.status]}`}>
-                          {STATUS_LABELS[order.status]}
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-caption-sm font-medium ${statusMeta(order.status).className}`}>
+                          {statusMeta(order.status).label}
                         </span>
                       </td>
                       <td className="px-4 py-4 text-caption-sm">

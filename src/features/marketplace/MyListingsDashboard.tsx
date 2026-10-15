@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, ExplorerLink, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
-import { formatDate } from '@/lib'
+import { formatDate, statusMeta } from '@/lib'
 
 interface Listing {
   id: string
@@ -18,19 +18,7 @@ interface Listing {
   updatedAt: string
 }
 
-const STATUS_LABELS: Record<Listing['status'], string> = {
-  draft: 'Draft',
-  active: 'Active',
-  sold: 'Sold',
-  unpublished: 'Unpublished',
-}
 
-const STATUS_COLORS: Record<Listing['status'], string> = {
-  draft: 'bg-muted text-muted',
-  active: 'bg-success/10 text-success',
-  sold: 'bg-primary/10 text-primary',
-  unpublished: 'bg-warning/10 text-warning',
-}
 
 export default function MyListingsDashboard() {
   const { user } = useAuth()
@@ -174,7 +162,7 @@ export default function MyListingsDashboard() {
             {statusFilter === 'all' ? (
               <p className="text-caption">No listings yet. Create your first artwork listing!</p>
             ) : (
-              <p className="text-caption">No listings with status "{STATUS_LABELS[statusFilter]}".</p>
+              <p className="text-caption">No listings with status "{statusMeta(statusFilter).label}".</p>
             )}
             {statusFilter === 'all' && (
               <Button asChild className="mt-4">
@@ -229,8 +217,8 @@ export default function MyListingsDashboard() {
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-caption-sm font-medium ${STATUS_COLORS[listing.status]}`}>
-                          {STATUS_LABELS[listing.status]}
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-caption-sm font-medium ${statusMeta(listing.status).className}`}>
+                          {statusMeta(listing.status).label}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-caption-sm font-mono text-foreground">

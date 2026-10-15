@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Input } from '@/components/ui'
+import { DISPLAY_FALLBACK_PRECISION, getAssetMeta } from '@/config'
 
 interface LineItem {
   label: string
@@ -25,19 +26,7 @@ interface PaymentSummaryAndFeeBreakdownProps {
   onReconfirm?: () => void
 }
 
-const ASSET_PRECISION: Record<string, number> = {
-  XLM: 7,
-  USDC: 2,
-  NGNT: 2,
-  EURC: 2,
-}
 
-const ASSET_SYMBOLS: Record<string, string> = {
-  XLM: '✦',
-  USDC: '$',
-  NGNT: '₦',
-  EURC: '€',
-}
 
 export default function PaymentSummaryAndFeeBreakdown({
   price,
@@ -48,8 +37,9 @@ export default function PaymentSummaryAndFeeBreakdown({
   editable = false,
   onReconfirm,
 }: PaymentSummaryAndFeeBreakdownProps) {
-  const precision = ASSET_PRECISION[asset] ?? 7
-  const symbol = ASSET_SYMBOLS[asset] ?? ''
+  const meta = getAssetMeta(asset)
+  const precision = meta?.precision ?? DISPLAY_FALLBACK_PRECISION
+  const symbol = meta?.symbol ?? ''
 
   const lineItems = useMemo((): LineItem[] => {
     const priceNum = parseFloat(price)

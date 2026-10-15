@@ -3,9 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button, ExplorerLink, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useUiStore } from '@/stores'
-import { formatDate } from '@/lib'
+import { ESCROW_STEPS, formatDate, statusMeta, type EscrowStatus } from '@/lib'
 
-type EscrowStatus = 'funded' | 'in_progress' | 'delivered' | 'released' | 'refunded' | 'disputed' | 'cancelled'
 
 interface EscrowData {
   id: string
@@ -34,44 +33,8 @@ interface Milestone {
   completedAt: string | null
 }
 
-const STATUS_LABELS: Record<EscrowStatus, string> = {
-  funded: 'Funded',
-  in_progress: 'In Progress',
-  delivered: 'Delivered',
-  released: 'Released',
-  refunded: 'Refunded',
-  disputed: 'Disputed',
-  cancelled: 'Cancelled',
-}
 
-const STATUS_COLORS: Record<EscrowStatus, string> = {
-  funded: 'bg-primary/10 text-primary',
-  in_progress: 'bg-blue/10 text-blue',
-  delivered: 'bg-warning/10 text-warning',
-  released: 'bg-success/10 text-success',
-  refunded: 'bg-muted text-muted',
-  disputed: 'bg-danger/10 text-danger',
-  cancelled: 'bg-muted text-muted',
-}
 
-const STATUS_ORDER: EscrowStatus[] = ['funded', 'in_progress', 'delivered', 'released', 'refunded', 'disputed']
-
-// ---------------------------------------------------------------------------
-// Commission status timeline (#736)
-// ---------------------------------------------------------------------------
-
-export type TimelineStepState = 'completed' | 'current' | 'pending'
-
-export interface TimelineStep {
-  key: string
-  label: string
-  state: TimelineStepState
-  /** When the step happened, if it has happened. */
-  at?: string | null
-  /** Who performed the step. */
-  actor?: string | null
-  detail?: string | null
-}
 
 export interface CommissionStatusTimelineProps {
   steps: TimelineStep[]
@@ -285,7 +248,7 @@ export default function EscrowStatusWidget({ escrowId, onRelease, onRefundReques
   })
 
   const currentStatus = escrow?.status ?? 'funded'
-  const currentIndex = STATUS_ORDER.indexOf(currentStatus)
+  const currentIndex = ESCROW_STEPS.indexOf(currentStatus)
   const [showReleaseConfirm, setShowReleaseConfirm] = useState(false)
   const [showRefundConfirm, setShowRefundConfirm] = useState(false)
   const [showCancelModal, setShowCancelModal] = useState(false)
@@ -350,9 +313,9 @@ export default function EscrowStatusWidget({ escrowId, onRelease, onRefundReques
         </div>
         <div className="flex items-center gap-3">
           <span
-            className={`inline-flex items-center rounded-full px-3 py-1 text-caption-sm font-semibold ${STATUS_COLORS[currentStatus]}`}
+            className={`inline-flex items-center rounded-full px-3 py-1 text-caption-sm font-semibold ${statusMeta(currentStatus).className}`}
           >
-            {STATUS_LABELS[currentStatus]}
+            {statusMeta(currentStatus).label}
           </span>
           <ExplorerLink value={escrow.txHash} type="tx" className="ml-2" />
         </div>
@@ -360,7 +323,7 @@ export default function EscrowStatusWidget({ escrowId, onRelease, onRefundReques
 
       <div className="mt-6">
         <div className="flex items-center gap-2 overflow-x-auto pb-2">
-          {STATUS_ORDER.map((status, index) => (
+          {ESCROW_STEPS.map((status, index) => (
             <div key={status} className="flex flex-col items-center shrink-0">
               <div
                 className={`relative flex h-8 w-8 items-center justify-center rounded-full text-caption-sm font-medium transition-colors ${
@@ -382,9 +345,9 @@ export default function EscrowStatusWidget({ escrowId, onRelease, onRefundReques
                 )}
               </div>
               <span className={`mt-1.5 text-caption-xs text-center whitespace-nowrap ${index <= currentIndex ? 'text-foreground' : 'text-muted'}`}>
-                {STATUS_LABELS[status].replace(' ', '\n')}
+                {statusMeta(status).label.replace(' ', '\n')}
               </span>
-              {index < STATUS_ORDER.length - 1 && (
+              {index < ESCROW_STEPS.length - 1 && (
                 <div
                   className={`absolute top-3 left-full h-0.5 w-16 -ml-8 ${
                     index < currentIndex ? 'bg-primary' : 'bg-line'
