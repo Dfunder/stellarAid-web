@@ -196,6 +196,24 @@ function reportUnexpectedError(error: ApiError, request: AxiosRequestConfig | un
   }
 }
 
+/** Upper bound so a hostile or broken `Retry-After` cannot park a request for hours. */
+const MAX_RETRY_AFTER_MS = 30_000
+
+/**
+ * Delay before the next retry: a `Retry-After` header (expressed in seconds)
+ * wins when the response carries one; otherwise the base delay applies.
+ */
+export function retryDelayMs(error: AxiosError, attempt: number): number {
+  const header = error.response?.headers?.['retry-after']
+  if (typeof header === 'string' || typeof header === 'number') {
+    const seconds = Number(header)
+    if (Number.isFinite(seconds) && seconds >= 0) {
+      return Math.min(seconds * 1000, MAX_RETRY_AFTER_MS)
+    }
+  }
+  return RETRY_BASE_DELAY_MS * attempt
+}
+
 function shouldRetry(error: AxiosError): boolean {
   const config = error.config
   if (!config || config.skipRetry) return false
@@ -252,7 +270,7 @@ function buildClient(): AxiosInstance {
 
       if (config && shouldRetry(error) && (config.retryCount ?? 0) < MAX_RETRIES) {
         config.retryCount = (config.retryCount ?? 0) + 1
-        await delay(RETRY_BASE_DELAY_MS * (config.retryCount ?? 1))
+        await delay(retryDelayMs(error, config.retryCount))
         return client(config)
       }
 
