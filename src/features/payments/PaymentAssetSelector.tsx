@@ -1,15 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { Button, ExplorerLink } from '@/components/ui'
-import { http } from '@/services'
 import { useWallet } from '@/features/auth/hooks/useWallet'
-import { formatDate } from '@/lib'
-
-interface AssetBalance {
-  asset: string
-  balance: string
-  hasTrustline: boolean
-}
+import { useWalletBalances } from './useWalletBalances'
 
 interface PaymentAssetSelectorProps {
   /** Artwork price in base asset (XLM) */
@@ -48,15 +39,7 @@ export default function PaymentAssetSelector({
   const { publicKey } = useWallet()
   const [warning, setWarning] = useState<string | null>(null)
 
-  const { data: balances } = useQuery({
-    queryKey: ['walletBalances', publicKey],
-    queryFn: async (): Promise<AssetBalance[]> => {
-      if (!publicKey) return []
-      const response = await http.get<{ balances: AssetBalance[] }>(`/wallets/${publicKey}/balances`)
-      return response.balances
-    },
-    enabled: !!publicKey,
-  })
+  const { data: balances } = useWalletBalances(publicKey)
 
   // Check balance when selected asset changes
   useEffect(() => {

@@ -1,16 +1,8 @@
 import { useEffect, useRef } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { Button, ExplorerLink } from '@/components/ui'
-import { http } from '@/services'
+import { Button } from '@/components/ui'
 import { useWallet } from '@/features/auth/hooks/useWallet'
-import { formatDate } from '@/lib'
-
-interface AssetBalance {
-  asset: string
-  balance: string
-  hasTrustline: boolean
-  trustlineLimit?: string
-}
+import type { WalletBalance as AssetBalance } from './useWalletBalances'
+import { useWalletBalances } from './useWalletBalances'
 
 const ASSET_LABELS: Record<string, string> = {
   XLM: 'XLM (Native)',
@@ -44,16 +36,7 @@ export default function WalletBalanceDisplay({
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [isOpen, setIsOpen] = useState(false)
 
-  const { data: balances, isPending, isError, refetch } = useQuery({
-    queryKey: ['walletBalances', publicKey],
-    queryFn: async (): Promise<AssetBalance[]> => {
-      if (!publicKey) return []
-      const response = await http.get<{ balances: AssetBalance[] }>(`/wallets/${publicKey}/balances`)
-      return response.balances
-    },
-    enabled: !!publicKey,
-    refetchOnWindowFocus: true,
-  })
+  const { data: balances, isPending, isError, refetch } = useWalletBalances(publicKey)
 
   // Refresh on window focus
   useEffect(() => {

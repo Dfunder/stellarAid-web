@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
+import { Button, ExplorerLink, Input } from '@/components/ui'
 import { http } from '@/services'
-import { useAuth } from '@/features/auth'
+import { authKeys, useAuth } from '@/features/auth'
 import { formatDate } from '@/lib'
 import type { LinkedWallet } from '@/features/auth/types'
 
@@ -58,7 +58,9 @@ export default function ArtistWithdrawal() {
   const [showHistory, setShowHistory] = useState(false)
 
   const { data: wallets } = useQuery({
-    queryKey: ['linkedWallets'],
+    // Shared factory key: linking or unlinking a wallet invalidates
+    // authKeys.linkedWallets(), so this list must use the same key (#802).
+    queryKey: authKeys.linkedWallets(),
     queryFn: async (): Promise<LinkedWallet[]> => (await http.get<{ wallets: LinkedWallet[] }>('/wallets')).wallets,
   })
 
