@@ -1,8 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, Input, Modal, Spinner } from '@/components/ui'
+import { Button, Spinner } from '@/components/ui'
 import { http } from '@/services'
-import { useAuth } from '@/features/auth'
 import { uploadToPresignedUrl } from './deliverableUpload'
 
 export type DeliverableKind = 'wip' | 'final'
@@ -91,7 +90,6 @@ export default function DeliverableUpload({
   onSubmitForReview,
   initialFiles = [],
 }: DeliverableUploadProps) {
-  const { user } = useAuth()
   const queryClient = useQueryClient()
   const [files, setFiles] = useState<DeliverableFile[]>(initialFiles)
   const [dragActive, setDragActive] = useState(false)
@@ -435,13 +433,15 @@ export default function DeliverableUpload({
 
                 <div className="flex items-center gap-2 sm:w-48">
                   {file.uploadStatus === 'uploading' && (
-                    <div className="flex-1 h-1.5 bg-line rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-primary transition-all duration-300"
-                        style={{ width: `${file.progress}%` }}
-                      />
-                    </div>
-                    <span className="text-caption-xs text-muted w-10 text-right">{file.progress}%</span>
+                    <>
+                      <div className="flex-1 h-1.5 bg-line rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-primary transition-all duration-300"
+                          style={{ width: `${file.progress}%` }}
+                        />
+                      </div>
+                      <span className="text-caption-xs text-muted w-10 text-right">{file.progress}%</span>
+                    </>
                   )}
                   {file.uploadStatus === 'completed' && (
                     <span className="text-caption-xs text-success">Uploaded</span>
