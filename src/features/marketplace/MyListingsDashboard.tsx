@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, ExplorerLink, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
@@ -12,11 +13,22 @@ interface Listing {
   status: 'draft' | 'active' | 'sold' | 'unpublished'
   price: string
   asset: string
-  views: number
-  likes: number
+  views?: number
+  likes?: number
   createdAt: string
   updatedAt: string
 }
+
+type ListingSort = 'newest' | 'oldest' | 'most-viewed' | 'most-liked'
+
+const SORT_LABELS: Record<ListingSort, string> = {
+  newest: 'Newest first',
+  oldest: 'Oldest first',
+  'most-viewed': 'Most viewed',
+  'most-liked': 'Most liked',
+}
+
+const PAGE_SIZE = 10
 
 const STATUS_LABELS: Record<Listing['status'], string> = {
   draft: 'Draft',
@@ -35,22 +47,45 @@ const STATUS_COLORS: Record<Listing['status'], string> = {
 export default function MyListingsDashboard() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
-  const [statusFilter, setStatusFilter] = useState<'all' | Listing['status']>('all')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [pendingAction, setPendingAction] = useState<{ type: 'unpublish' | 'delete'; listing: Listing } | null>(null)
 
+  // #837 — filter, sort and page live in the URL so the view is shareable and the
+  // back button restores it, matching the pattern in ArtistProfilePage.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const statusFilter = (searchParams.get('status') ?? 'all') as 'all' | Listing['status']
+  const sort = (searchParams.get('sort') ?? 'newest') as ListingSort
+  const page = Math.max(1, Number(searchParams.get('page') ?? '1') || 1)
+
+  const updateParams = (patch: Record<string, string | undefined>, resetPage = false) => {
+    const next = new URLSearchParams(searchParams)
+    for (const [key, value] of Object.entries(patch)) {
+      if (value === undefined || value === '' || value === 'all') next.delete(key)
+      else next.set(key, value)
+    }
+    if (resetPage) next.delete('page')
+    setSearchParams(next)
+  }
+
   const { data, isPending, isError, error, refetch } = useQuery({
-    queryKey: ['myListings', user?.id, statusFilter],
-    queryFn: async (): Promise<Listing[]> => {
+    queryKey: ['myListings', user?.id, statusFilter, sort, page],
+    queryFn: async (): Promise<{ listings: Listing[]; total: number }> => {
       const params = new URLSearchParams()
       if (statusFilter !== 'all') params.set('status', statusFilter)
-      const response = await http.get<{ listings: Listing[] }>(`/listings/mine?${params}`)
-      return response.listings
+      params.set('sort', sort)
+      params.set('page', page.toString())
+      params.set('pageSize', PAGE_SIZE.toString())
+      const response = await http.get<{ listings: Listing[]; total: number }>(`/listings/mine?${params}`)
+      // Older backends omit `total`; fall back to the page size so pagination
+      // degrades to a single page instead of rendering a broken control.
+      return { listings: response.listings, total: response.total ?? response.listings.length }
     },
     enabled: !!user,
   })
 
-  const listings = data ?? []
+  const listings = data?.listings ?? []
+  const total = data?.total ?? 0
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
   const allSelected = listings.length > 0 && listings.every((l) => selectedIds.has(l.id))
 
   const unpublishMutation = useMutation({
@@ -157,7 +192,10 @@ export default function MyListingsDashboard() {
           <label className="text-caption-sm text-muted">Status:</label>
           <select
             value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value as typeof statusFilter); setSelectedIds(new Set()) }}
+            onChange={(e) => {
+              updateParams({ status: e.target.value }, true)
+              setSelectedIds(new Set())
+            }}
             className="rounded-control border border-line bg-background px-3 py-1.5 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <option value="all">All statuses</option>
@@ -165,6 +203,17 @@ export default function MyListingsDashboard() {
             <option value="active">Active</option>
             <option value="sold">Sold</option>
             <option value="unpublished">Unpublished</option>
+          </select>
+          <label className="ml-2 text-caption-sm text-muted" htmlFor="listings-sort">Sort:</label>
+          <select
+            id="listings-sort"
+            value={sort}
+            onChange={(e) => updateParams({ sort: e.target.value }, true)}
+            className="rounded-control border border-line bg-background px-3 py-1.5 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            {(Object.keys(SORT_LABELS) as ListingSort[]).map((key) => (
+              <option key={key} value={key}>{SORT_LABELS[key]}</option>
+            ))}
           </select>
         </div>
 
@@ -239,8 +288,8 @@ export default function MyListingsDashboard() {
                       <td className="px-4 py-3 text-caption-sm font-mono text-foreground">
                         {listing.price} {listing.asset}
                       </td>
-                      <td className="px-4 py-3 text-caption-sm text-muted">{listing.views.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-caption-sm text-muted">{listing.likes.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-caption-sm text-muted">{(listing.views ?? 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-caption-sm text-muted">{(listing.likes ?? 0).toLocaleString()}</td>
                       <td className="px-4 py-3 text-caption-sm text-muted">{formatDate(listing.createdAt)}</td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap items-center gap-2">
@@ -279,6 +328,59 @@ export default function MyListingsDashboard() {
                 </tbody>
               </table>
             </div>
+
+            {totalPages > 1 && (
+              <nav
+                aria-label="Listings pagination"
+                className="px-4 py-3 border-t border-line flex flex-wrap items-center justify-between gap-2"
+              >
+                <p className="text-caption-sm text-muted">
+                  Page {Math.min(page, totalPages)} of {totalPages} — {total} total
+                </p>
+                <ul className="flex items-center gap-2">
+                  <li>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      disabled={page <= 1}
+                      onClick={() => updateParams({ page: (page - 1).toString() })}
+                    >
+                      Previous
+                    </Button>
+                  </li>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => {
+                    const next = new URLSearchParams(searchParams)
+                    next.set('page', n.toString())
+                    const isCurrent = n === Math.min(page, totalPages)
+                    return (
+                      <li key={n}>
+                        <Link
+                          to={`?${next.toString()}`}
+                          aria-current={isCurrent ? 'page' : undefined}
+                          className={`inline-flex h-8 min-w-8 items-center justify-center rounded-control border px-2 text-caption-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                            isCurrent
+                              ? 'border-primary bg-primary/10 font-semibold text-primary'
+                              : 'border-line bg-background text-foreground hover:bg-surface-muted'
+                          }`}
+                        >
+                          {n}
+                        </Link>
+                      </li>
+                    )
+                  })}
+                  <li>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      disabled={page >= totalPages}
+                      onClick={() => updateParams({ page: (page + 1).toString() })}
+                    >
+                      Next
+                    </Button>
+                  </li>
+                </ul>
+              </nav>
+            )}
 
             {selectedIds.size > 0 && (
               <div className="p-4 border-t border-line bg-surface-muted flex flex-wrap items-center justify-between gap-4">
