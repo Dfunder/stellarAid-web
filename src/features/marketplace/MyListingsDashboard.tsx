@@ -69,6 +69,9 @@ export default function MyListingsDashboard() {
     },
   })
 
+  // Keeps the confirmation's confirm button from double-firing (#786).
+  const isActionPending = unpublishMutation.isPending || deleteMutation.isPending
+
   const handleToggleSelect = (id: string) => {
     const newSet = new Set(selectedIds)
     if (newSet.has(id)) newSet.delete(id)
@@ -292,6 +295,37 @@ export default function MyListingsDashboard() {
           </>
         )}
       </div>
+
+      {/* Unpublish and delete are irreversible, so both go through this
+          confirmation instead of firing on a single click (#786). */}
+      <Modal
+        isOpen={pendingAction !== null}
+        onClose={() => setPendingAction(null)}
+        title={pendingAction?.type === 'delete' ? 'Delete listing' : 'Unpublish listing'}
+        description={
+          pendingAction
+            ? `${pendingAction.type === 'delete' ? 'Delete' : 'Unpublish'} "${pendingAction.listing.title}"? ${
+                pendingAction.type === 'delete'
+                  ? 'This permanently removes the listing.'
+                  : 'It will no longer be visible to buyers.'
+              }`
+            : ''
+        }
+      >
+        <div className="mt-6 flex justify-end gap-2">
+          <Button variant="ghost" onClick={() => setPendingAction(null)} disabled={isActionPending}>
+            Cancel
+          </Button>
+          <Button
+            variant={pendingAction?.type === 'delete' ? 'danger' : 'primary'}
+            onClick={() => void handleConfirmAction()}
+            isLoading={isActionPending}
+            disabled={isActionPending}
+          >
+            {pendingAction?.type === 'delete' ? 'Delete' : 'Unpublish'}
+          </Button>
+        </div>
+      </Modal>
     </div>
   )
 }
