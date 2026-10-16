@@ -4,6 +4,7 @@ import { Button, Input, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { MultiStepListingWizard } from './MultiStepListingWizard'
+import { Link } from 'react-router-dom'
 
 export interface CreateArtworkListingFormProps {
   /** Callback after successful publish */
@@ -60,7 +61,7 @@ export default function CreateArtworkListingForm({
           </p>
           <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
             <Button asChild>
-              <a href="/artist/listings">View My Listings</a>
+              <Link to="/artist/listings">View My Listings</Link>
             </Button>
             <Button variant="secondary" onClick={() => setShowWizard(true)}>
               Create Another

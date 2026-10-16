@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { clampIndex, getAdjacentIndices, normalizeImageList } from './MediaLightbox'
+import { clampIndex, getAdjacentIndices, normalizeImageList } from './mediaLightbox'
 
 describe('media lightbox helpers', () => {
   it('normalizes empty and whitespace image lists', () => {

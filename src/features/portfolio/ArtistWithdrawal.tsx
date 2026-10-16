@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
+import { Button, ExplorerLink, Input, Modal, Spinner, Select } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
-import { formatDate } from '@/lib'
+import { formatDate, shortAddress } from '@/lib'
 import type { LinkedWallet } from '@/features/auth/types'
+import { DISPLAY_FALLBACK_PRECISION, getAssetMeta } from '@/config'
 
 interface Balance {
   available: string
@@ -28,26 +29,8 @@ interface WithdrawalHistoryItem {
   createdAt: string
 }
 
-const ASSET_PRECISION: Record<string, number> = {
-  XLM: 7,
-  USDC: 2,
-  NGNT: 2,
-  EURC: 2,
-}
 
-const MIN_WITHDRAWAL: Record<string, string> = {
-  XLM: '0.0000001',
-  USDC: '1.00',
-  NGNT: '100.00',
-  EURC: '1.00',
-}
 
-const WITHDRAWAL_FEE: Record<string, string> = {
-  XLM: '0.00001',
-  USDC: '0.50',
-  NGNT: '50.00',
-  EURC: '0.50',
-}
 
 export default function ArtistWithdrawal() {
   const { user } = useAuth()
@@ -83,10 +66,16 @@ export default function ArtistWithdrawal() {
 
   const selectedBalance = balances?.find((b) => b.asset === selectedAsset)
   const availableAmount = selectedBalance?.available ?? '0'
-  const precision = ASSET_PRECISION[selectedAsset] ?? 7
-  const minAmount = MIN_WITHDRAWAL[selectedAsset] ?? '0.0000001'
-  const fee = WITHDRAWAL_FEE[selectedAsset] ?? '0'
-  const isAmountValid = parseFloat(amount) > 0 && parseFloat(amount) <= parseFloat(availableAmount)
+  // Unknown assets resolve to null: they are displayed with the raw code but can never be withdrawn.
+  const assetMeta = getAssetMeta(selectedAsset)
+  const precision = assetMeta?.precision ?? DISPLAY_FALLBACK_PRECISION
+  const minAmount = assetMeta?.minWithdrawal ?? '0'
+  const fee = assetMeta?.withdrawalFee ?? '0'
+  const isAmountValid =
+    assetMeta !== null &&
+    parseFloat(amount) > 0 &&
+    parseFloat(amount) >= parseFloat(minAmount) &&
+    parseFloat(amount) <= parseFloat(availableAmount)
   const hasValidWallet = wallets?.some((w) => w.id === selectedWalletId) ?? false
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -151,6 +140,20 @@ export default function ArtistWithdrawal() {
       <div className="rounded-card border border-line bg-surface p-6 shadow-card">
         <h2 className="text-h3">Withdraw {selectedAsset}</h2>
         <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4 max-w-md">
+          <Select
+            label="Destination Wallet"
+            hint="Withdrawals only go to linked, verified wallets"
+            id="wallet"
+            value={selectedWalletId || defaultWalletId}
+            onChange={(e) => setSelectedWalletId(e.target.value)}
+            disabled={withdrawMutation.isPending}
+          >
+            {wallets?.map((wallet) => (
+              <option key={wallet.id} value={wallet.id}>
+                {wallet.publicKey.slice(0, 10)}…{wallet.publicKey.slice(-8)} ({wallet.network}){wallet.isPrimary ? ' — Primary' : ''}
+              </option>
+            ))}
+          </Select>
           <div>
             <label htmlFor="wallet" className="block text-caption-sm font-medium text-foreground mb-1">
               Destination Wallet
@@ -164,7 +167,7 @@ export default function ArtistWithdrawal() {
             >
               {wallets?.map((wallet) => (
                 <option key={wallet.id} value={wallet.id}>
-                  {wallet.publicKey.slice(0, 10)}…{wallet.publicKey.slice(-8)} ({wallet.network}){wallet.isPrimary ? ' — Primary' : ''}
+                  {shortAddress(wallet.publicKey)} ({wallet.network}){wallet.isPrimary ? ' — Primary' : ''}
                 </option>
               ))}
             </select>
@@ -249,7 +252,7 @@ export default function ArtistWithdrawal() {
                         </td>
                         <td className="px-4 py-3 text-caption-sm text-foreground">{item.asset}</td>
                         <td className="px-4 py-3 text-caption-sm text-muted">
-                          {item.destination.slice(0, 10)}…{item.destination.slice(-8)}
+                          {shortAddress(item.destination)}
                         </td>
                         <td className="px-4 py-3">
                           <span

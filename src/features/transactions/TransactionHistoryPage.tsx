@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
-import { formatDate } from '@/lib'
+import { buildCsv, formatDate, isNegativeAmount } from '@/lib'
 import { transactionKeys } from './queryKeys'
 import type { Transaction } from './types'
 
@@ -27,29 +27,47 @@ export default function TransactionHistoryPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | Transaction['status']>('all')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [page, setPage] = useState(1)
+  const pageSize = 20
+
+  /** Sends unambiguous day boundaries instead of bare `YYYY-MM-DD` (#838). */
+  const toIsoBoundary = (value: string, endOfDay: boolean): string | undefined => {
+    if (!value) return undefined
+    const date = new Date(`${value}T00:00:00`)
+    if (Number.isNaN(date.getTime())) return undefined
+    if (endOfDay) date.setDate(date.getDate() + 1)
+    return date.toISOString()
+  }
 
   const { data, isPending, isError, error, refetch } = useQuery({
-    queryKey: transactionKeys.list({ typeFilter, statusFilter, dateFrom, dateTo }),
-    queryFn: async (): Promise<Transaction[]> => {
+    queryKey: transactionKeys.list({ typeFilter, statusFilter, dateFrom, dateTo, page }),
+    queryFn: async (): Promise<{ transactions: Transaction[]; total: number }> => {
       const params = new URLSearchParams()
       if (typeFilter !== 'all') params.set('type', typeFilter)
       if (statusFilter !== 'all') params.set('status', statusFilter)
-      if (dateFrom) params.set('dateFrom', dateFrom)
-      if (dateTo) params.set('dateTo', dateTo)
-      const response = await http.get<{ transactions: Transaction[] }>(`/transactions?${params}`)
-      return response.transactions
+      const from = toIsoBoundary(dateFrom, false)
+      const to = toIsoBoundary(dateTo, true)
+      if (from) params.set('dateFrom', from)
+      if (to) params.set('dateTo', to)
+      params.set('page', page.toString())
+      params.set('pageSize', pageSize.toString())
+      const response = await http.get<{ transactions: Transaction[]; total: number }>(`/transactions?${params}`)
+      // Older backends omit `total`; fall back to the page length so the control
+      // degrades to one page rather than rendering a broken pager.
+      return { transactions: response.transactions, total: response.total ?? response.transactions.length }
     },
   })
 
-  const transactions = data ?? []
-
-  const filteredTransactions = useMemo(() => {
-    return transactions
-  }, [transactions])
+  // #838 — the no-op `useMemo` that returned its own dependency is gone: the
+  // filters are applied server-side by the query above.
+  const transactions = data?.transactions ?? []
+  const total = data?.total ?? 0
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const hasFilters = typeFilter !== 'all' || statusFilter !== 'all' || !!dateFrom || !!dateTo
 
   const exportCsv = () => {
     const headers = ['Date', 'Type', 'Amount', 'Asset', 'Status', 'Transaction Hash']
-    const rows = filteredTransactions.map((tx) => [
+    const rows = transactions.map((tx) => [
       formatDate(tx.createdAt),
       tx.type,
       tx.amount,
@@ -57,12 +75,20 @@ export default function TransactionHistoryPage() {
       tx.status,
       tx.txHash,
     ])
-    const csv = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(',')).join('\n')
+    const csv = buildCsv([headers, ...rows])
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = `transactions-${formatDate(new Date().toISOString())}.csv`
-    link.click()
+    try {
+      link.href = url
+      // Filesystem-safe filename: `transactions-YYYY-MM-DD.csv`.
+      link.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`
+      document.body.appendChild(link)
+      link.click()
+    } finally {
+      link.remove()
+      URL.revokeObjectURL(url)
+    }
   }
 
   if (isPending) {
@@ -100,7 +126,7 @@ export default function TransactionHistoryPage() {
             Unified view of all on-chain and platform activity.
           </p>
         </div>
-        <Button variant="secondary" onClick={exportCsv} disabled={filteredTransactions.length === 0}>
+        <Button variant="secondary" onClick={exportCsv} disabled={transactions.length === 0}>
           Export CSV
         </Button>
       </div>
@@ -112,7 +138,7 @@ export default function TransactionHistoryPage() {
               <label className="text-caption-sm text-muted">Type:</label>
               <select
                 value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
+                onChange={(e) => { setTypeFilter(e.target.value as typeof typeFilter); setPage(1) }}
                 className="rounded-control border border-line bg-background px-3 py-1.5 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 {TRANSACTION_TYPES.map((opt) => (
@@ -126,7 +152,7 @@ export default function TransactionHistoryPage() {
               <label className="text-caption-sm text-muted">Status:</label>
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
+                onChange={(e) => { setStatusFilter(e.target.value as typeof statusFilter); setPage(1) }}
                 className="rounded-control border border-line bg-background px-3 py-1.5 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 {STATUS_OPTIONS.map((opt) => (
@@ -141,7 +167,7 @@ export default function TransactionHistoryPage() {
               <input
                 type="date"
                 value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
+                onChange={(e) => { setDateFrom(e.target.value); setPage(1) }}
                 className="rounded-control border border-line bg-background px-3 py-1.5 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               />
             </div>
@@ -150,19 +176,19 @@ export default function TransactionHistoryPage() {
               <input
                 type="date"
                 value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
+                onChange={(e) => { setDateTo(e.target.value); setPage(1) }}
                 className="rounded-control border border-line bg-background px-3 py-1.5 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               />
             </div>
             {(typeFilter !== 'all' || statusFilter !== 'all' || dateFrom || dateTo) && (
-              <Button variant="ghost" size="sm" onClick={() => { setTypeFilter('all'); setStatusFilter('all'); setDateFrom(''); setDateTo(''); }}>
+              <Button variant="ghost" size="sm" onClick={() => { setTypeFilter('all'); setStatusFilter('all'); setDateFrom(''); setDateTo(''); setPage(1); }}>
                 Clear filters
               </Button>
             )}
           </div>
         </div>
 
-        {filteredTransactions.length === 0 ? (
+        {transactions.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-12 text-muted">
             <svg className="h-12 w-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -170,7 +196,21 @@ export default function TransactionHistoryPage() {
               <line x1="8" y1="2" x2="8" y2="6" />
               <line x1="3" y1="10" x2="21" y2="10" />
             </svg>
-            <p className="text-caption">No transactions found.</p>
+            {/* #838 — distinguish "nothing yet" from "nothing matched". */}
+            <p className="text-caption">
+              {hasFilters
+                ? 'No transactions match these filters.'
+                : 'No transactions yet.'}
+            </p>
+            {hasFilters && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => { setTypeFilter('all'); setStatusFilter('all'); setDateFrom(''); setDateTo(''); setPage(1); }}
+              >
+                Clear filters
+              </Button>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -186,7 +226,7 @@ export default function TransactionHistoryPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredTransactions.map((tx) => (
+                {transactions.map((tx) => (
                   <tr key={tx.id} className="border-b border-line/50 hover:bg-surface-muted/50">
                     <td className="px-4 py-3 text-caption-sm text-foreground">
                       {formatDate(tx.createdAt)}
@@ -195,7 +235,7 @@ export default function TransactionHistoryPage() {
                       <span className="capitalize">{tx.type}</span>
                     </td>
                     <td className="px-4 py-3 text-caption-sm font-mono text-foreground">
-                      {tx.amount >= 0 ? '+' : ''}{tx.amount}
+                      {isNegativeAmount(tx.amount) ? '' : '+'}{tx.amount}
                     </td>
                     <td className="px-4 py-3 text-caption-sm text-foreground">{tx.asset}</td>
                     <td className="px-4 py-3">
@@ -218,6 +258,35 @@ export default function TransactionHistoryPage() {
               </tbody>
             </table>
           </div>
+        )}
+
+        {totalPages > 1 && transactions.length > 0 && (
+          <nav
+            aria-label="Transaction history pagination"
+            className="mt-4 flex flex-wrap items-center justify-between gap-2"
+          >
+            <p className="text-caption-sm text-muted">
+              Page {Math.min(page, totalPages)} of {totalPages} — {total} total
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                Previous
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          </nav>
         )}
       </div>
     </div>

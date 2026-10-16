@@ -2,8 +2,6 @@ import { useCallback, useRef, useState } from 'react'
 import { ApiError, getErrorMessage } from '@/services'
 import { authApi } from '../services/authApi'
 import { isWalletError, signWithConnectedWallet, WalletError } from '../services/wallets'
-import { authStore } from '../stores/authStore'
-import { writeTokens } from '../stores/tokenStore'
 import { useAuthStore } from '../stores/useAuthStore'
 import { getWalletConnection } from '../stores/walletStore'
 import type { User, WalletRegisterPayload } from '../types'
@@ -114,15 +112,9 @@ export function useWalletAuth(): UseWalletAuth {
           })
 
           // Save session
-          writeTokens(session.tokens)
-          authStore.setSession(session.user)
           useAuthStore.getState().setSession({
-            accessToken: session.tokens.accessToken,
-            refreshToken: session.tokens.refreshToken,
-            user: {
-              ...session.user,
-              avatarUrl: session.user.avatarUrl ?? null,
-            },
+            tokens: session.tokens,
+            user: { ...session.user, avatarUrl: session.user.avatarUrl ?? null },
           })
 
           pendingAuthRef.current = null
@@ -149,15 +141,9 @@ export function useWalletAuth(): UseWalletAuth {
                   role: regDetails.role || 'client',
                 })
 
-                writeTokens(regSession.tokens)
-                authStore.setSession(regSession.user)
                 useAuthStore.getState().setSession({
-                  accessToken: regSession.tokens.accessToken,
-                  refreshToken: regSession.tokens.refreshToken,
-                  user: {
-                    ...regSession.user,
-                    avatarUrl: regSession.user.avatarUrl ?? null,
-                  },
+                  tokens: regSession.tokens,
+                  user: { ...regSession.user, avatarUrl: regSession.user.avatarUrl ?? null },
                 })
 
                 pendingAuthRef.current = null
@@ -217,15 +203,9 @@ export function useWalletAuth(): UseWalletAuth {
           role: 'client',
         })
 
-        writeTokens(session.tokens)
-        authStore.setSession(session.user)
         useAuthStore.getState().setSession({
-          accessToken: session.tokens.accessToken,
-          refreshToken: session.tokens.refreshToken,
-          user: {
-            ...session.user,
-            avatarUrl: session.user.avatarUrl ?? null,
-          },
+          tokens: session.tokens,
+          user: { ...session.user, avatarUrl: session.user.avatarUrl ?? null },
         })
 
         pendingAuthRef.current = null

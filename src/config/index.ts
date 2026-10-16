@@ -16,3 +16,10 @@ export {
   STELLAR_NETWORK_LABELS,
   stellarAccountExplorerUrl,
 } from './stellar'
+export {
+  ASSETS,
+  DISPLAY_FALLBACK_PRECISION,
+  getAssetMeta,
+  isSupportedAsset,
+} from './assets'
+export type { AssetMeta, SupportedAssetCode } from './assets'

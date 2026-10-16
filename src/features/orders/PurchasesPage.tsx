@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Button, ExplorerLink, Spinner } from '@/components/ui'
+import { Button, ExplorerLink, Spinner, Select } from '@/components/ui'
 import { http } from '@/services'
-import { formatDate } from '@/lib'
+import { formatDate, statusMeta } from '@/lib'
 import { orderKeys } from './queryKeys'
+import type { PurchaseOrder } from '@/types'
+import { Link } from 'react-router-dom'
 
 interface Order {
   id: string
@@ -27,7 +29,8 @@ interface Deliverable {
   expiresAt: string
 }
 
-const STATUS_LABELS: Record<Order['status'], string> = {
+
+const STATUS_LABELS: Record<PurchaseOrder['status'], string> = {
   pending: 'Pending',
   processing: 'Processing',
   completed: 'Completed',
@@ -35,7 +38,7 @@ const STATUS_LABELS: Record<Order['status'], string> = {
   refunded: 'Refunded',
 }
 
-const STATUS_COLORS: Record<Order['status'], string> = {
+const STATUS_COLORS: Record<PurchaseOrder['status'], string> = {
   pending: 'bg-warning/10 text-warning',
   processing: 'bg-blue/10 text-blue',
   completed: 'bg-success/10 text-success',
@@ -44,18 +47,18 @@ const STATUS_COLORS: Record<Order['status'], string> = {
 }
 
 export default function PurchasesPage() {
-  const [statusFilter, setStatusFilter] = useState<'all' | Order['status']>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | PurchaseOrder['status']>('all')
   const [page, setPage] = useState(1)
   const pageSize = 10
 
   const { data, isPending, isError, error, refetch } = useQuery({
     queryKey: orderKeys.list({ status: statusFilter, page, pageSize }),
-    queryFn: async (): Promise<{ orders: Order[]; total: number }> => {
+    queryFn: async (): Promise<{ orders: PurchaseOrder[]; total: number }> => {
       const params = new URLSearchParams()
       if (statusFilter !== 'all') params.set('status', statusFilter)
       params.set('page', page.toString())
       params.set('pageSize', pageSize.toString())
-      const response = await http.get<{ orders: Order[]; total: number }>(`/orders/purchases?${params}`)
+      const response = await http.get<{ orders: PurchaseOrder[]; total: number }>(`/orders/purchases?${params}`)
       return response
     },
   })
@@ -100,11 +103,11 @@ export default function PurchasesPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <label className="text-caption-sm text-muted">Status:</label>
-          <select
+          <Select
+            label="Status"
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value as typeof statusFilter); setPage(1); }}
-            className="rounded-control border border-line bg-background px-3 py-1.5 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="py-1.5 text-caption-sm"
           >
             <option value="all">All statuses</option>
             <option value="pending">Pending</option>
@@ -112,7 +115,7 @@ export default function PurchasesPage() {
             <option value="completed">Completed</option>
             <option value="failed">Failed</option>
             <option value="refunded">Refunded</option>
-          </select>
+          </Select>
         </div>
       </div>
 
@@ -128,7 +131,7 @@ export default function PurchasesPage() {
             When you buy artwork or commission creators, your orders will appear here.
           </p>
           <Button className="mt-6" asChild>
-            <a href="/artists/elena_art">Explore artists</a>
+            <Link to="/artists/elena_art">Explore artists</Link>
           </Button>
         </div>
       ) : (
@@ -172,8 +175,8 @@ export default function PurchasesPage() {
                         {order.amount} {order.asset}
                       </td>
                       <td className="px-4 py-4">
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-caption-sm font-medium ${STATUS_COLORS[order.status]}`}>
-                          {STATUS_LABELS[order.status]}
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-caption-sm font-medium ${statusMeta(order.status).className}`}>
+                          {statusMeta(order.status).label}
                         </span>
                       </td>
                       <td className="px-4 py-4 text-caption-sm">
@@ -193,11 +196,11 @@ export default function PurchasesPage() {
                             </Button>
                           )}
                           <Button size="sm" variant="ghost" asChild>
-                            <a href={`/artists/${order.sellerUsername}`}>Contact</a>
+                            <Link to={`/artists/${order.sellerUsername}`}>Contact</Link>
                           </Button>
                           {order.status === 'completed' && (
                             <Button size="sm" variant="ghost" asChild>
-                              <a href={`/artists/${order.sellerUsername}`}>Reorder</a>
+                              <Link to={`/artists/${order.sellerUsername}`}>Reorder</Link>
                             </Button>
                           )}
                         </div>

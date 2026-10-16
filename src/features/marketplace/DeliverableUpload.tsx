@@ -5,48 +5,15 @@ import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { applyFileCap, uploadToPresignedUrl } from './deliverableUpload'
 
-export type DeliverableKind = 'wip' | 'final'
+import type { DeliverableFile, DeliverableKind } from './types'
+import {
+  ALLOWED_DELIVERABLE_TYPES as ALLOWED_TYPES,
+  MAX_DELIVERABLE_FILE_SIZE as MAX_FILE_SIZE,
+  MAX_DELIVERABLE_FILE_SIZE_LABEL,
+  MAX_DELIVERABLE_FILES as MAX_FILES,
+} from './constants'
 
-export interface DeliverableFile {
-  id: string
-  name: string
-  size: number
-  type: string
-  url: string
-  uploadStatus: 'pending' | 'uploading' | 'completed' | 'failed'
-  progress: number
-  error?: string
-  /** WIP uploads are work-in-progress; finals are the deliverable. */
-  kind: DeliverableKind
-  /** Revision round this file belongs to, stacked per submission. */
-  revision: number
-  note?: string
-  /**
-   * Raw browser `File` kept so the upload can send real bytes (#775) —
-   * `XMLHttpRequest.send` rejects anything that is not a Blob. Absent for
-   * server-loaded `initialFiles`, which cannot be re-uploaded from this
-   * session.
-   */
-  file?: File
-}
-
-const ALLOWED_TYPES = [
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'image/gif',
-  'application/pdf',
-  'application/zip',
-  'application/x-zip-compressed',
-  'application/octet-stream',
-  'video/mp4',
-  'video/webm',
-  'audio/mpeg',
-  'audio/wav',
-] as const
-
-const MAX_FILE_SIZE = 500 * 1024 * 1024 // 500MB
-const MAX_FILES = 20
+export type { DeliverableFile, DeliverableKind } from './types'
 
 /** Default revision budget when the caller does not supply one. */
 const DEFAULT_MAX_REVISIONS = 3
@@ -269,7 +236,7 @@ export default function DeliverableUpload({
           <h2 className="text-h3">Digital Deliverables</h2>
           <p className="mt-1 text-caption text-muted">
             Upload source files, high-res exports, and other assets buyers receive after purchase.
-            Max {MAX_FILES} files, 500MB each.
+            Max {MAX_FILES} files, {MAX_DELIVERABLE_FILE_SIZE_LABEL} each.
           </p>
         </div>
         <Button
