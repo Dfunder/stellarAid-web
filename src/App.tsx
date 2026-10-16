@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useRef } from 'react'
 import { BrowserRouter, Link, Outlet, Route, Routes, useNavigate } from 'react-router-dom'
 import { Button, ThemeToggle } from '@/components/ui'
 import {
@@ -32,19 +33,40 @@ import { useUiStore } from '@/stores'
 const NAV_LINK_CLASSES =
   'text-caption font-semibold text-muted transition-colors hover:text-foreground'
 
+/** Tone is conveyed by glyph as well as colour (#843). */
+const TOAST_GLYPHS: Record<'error' | 'success' | 'info', string> = {
+  error: '✕',
+  success: '✓',
+  info: 'ℹ',
+}
+
 function ToastViewport() {
   const toasts = useUiStore((state) => state.toasts)
   const dismissToast = useUiStore((state) => state.dismissToast)
+  const pauseToast = useUiStore((state) => state.pauseToast)
+  const resumeToast = useUiStore((state) => state.resumeToast)
 
+  // #843 — tone was rendered, but only as colour, so a success and a failure were
+  // indistinguishable without colour vision. Each tone now also carries a glyph,
+  // and the container is one live region rather than one per toast.
   return (
-    <div className="fixed right-4 top-4 z-50 grid w-[min(24rem,calc(100vw-2rem))] gap-2">
+    <div
+      aria-live="polite"
+      aria-atomic="false"
+      className="fixed right-4 top-4 z-50 grid w-[min(24rem,calc(100vw-2rem))] gap-2"
+    >
       {toasts.map((toast) => (
         <button
           key={toast.id}
           type="button"
           role={toast.tone === 'error' ? 'alert' : 'status'}
           onClick={() => dismissToast(toast.id)}
-          className={`rounded-control border bg-surface px-4 py-3 text-left text-caption shadow-card ${
+          // Pause on hover/focus so a toast is readable before it disappears.
+          onMouseEnter={() => pauseToast(toast.id)}
+          onMouseLeave={() => resumeToast(toast.id)}
+          onFocus={() => pauseToast(toast.id)}
+          onBlur={() => resumeToast(toast.id)}
+          className={`flex items-start gap-2 rounded-control border bg-surface px-4 py-3 text-left text-caption shadow-card ${
             toast.tone === 'error'
               ? 'border-danger/40 text-danger'
               : toast.tone === 'success'
@@ -52,7 +74,10 @@ function ToastViewport() {
                 : 'border-line text-foreground'
           }`}
         >
-          {toast.message}
+          <span aria-hidden="true" className="font-semibold leading-5">
+            {TOAST_GLYPHS[toast.tone]}
+          </span>
+          <span>{toast.message}</span>
         </button>
       ))}
     </div>
@@ -62,6 +87,28 @@ function ToastViewport() {
 function AppShell() {
   const { isAuthenticated } = useAuth()
   const navigate = useNavigate()
+  // #845 — the header nav is `hidden sm:flex`, so below the `sm` breakpoint there
+  // was no navigation at all. This drives a disclosure panel from the store state
+  // that already existed but was never wired up.
+  const isMobileMenuOpen = useUiStore((state) => state.isMobileMenuOpen)
+  const setMobileMenuOpen = useUiStore((state) => state.setMobileMenuOpen)
+  const toggleRef = useRef<HTMLButtonElement>(null)
+
+  const closeMobileMenu = useCallback(() => {
+    setMobileMenuOpen(false)
+    // Focus must not be left on an unmounted link, so return it to the toggle.
+    toggleRef.current?.focus()
+  }, [setMobileMenuOpen])
+
+  // Escape closes the panel and hands focus back to the toggle.
+  useEffect(() => {
+    if (!isMobileMenuOpen) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeMobileMenu()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [isMobileMenuOpen, closeMobileMenu])
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col justify-between">
@@ -83,6 +130,27 @@ function AppShell() {
                 Explore Creators
               </Link>
             </nav>
+
+            {/* #845 — below `sm` the nav above is display:none, so this toggle is
+                the only way to reach those routes. `sm:hidden` keeps it out of the
+                desktop layout entirely. */}
+            <button
+              ref={toggleRef}
+              type="button"
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-nav"
+              onClick={() => setMobileMenuOpen(!isMobileMenuOpen)}
+              className="sm:hidden inline-flex h-9 w-9 items-center justify-center rounded-control border border-line text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <span className="sr-only">{isMobileMenuOpen ? 'Close menu' : 'Open menu'}</span>
+              <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                {isMobileMenuOpen ? (
+                  <path d="M6 6l12 12M18 6L6 18" />
+                ) : (
+                  <path d="M4 7h16M4 12h16M4 17h16" />
+                )}
+              </svg>
+            </button>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
@@ -99,6 +167,38 @@ function AppShell() {
             <ThemeToggle />
           </div>
         </div>
+
+        {/* #845 — disclosure panel mirroring the desktop nav links. `sm:hidden`
+            means it is never in the layout on desktop, so it cannot trap focus
+            there. */}
+        {isMobileMenuOpen && (
+          <nav
+            id="mobile-nav"
+            aria-label="Mobile"
+            className="sm:hidden border-t border-line bg-surface px-4 py-2"
+          >
+            <ul className="flex flex-col">
+              <li>
+                <Link
+                  to="/artists/elena_art"
+                  className={`block py-3 ${NAV_LINK_CLASSES}`}
+                  onClick={closeMobileMenu}
+                >
+                  Featured Artist
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/artists/stellar_nova"
+                  className={`block py-3 ${NAV_LINK_CLASSES}`}
+                  onClick={closeMobileMenu}
+                >
+                  Explore Creators
+                </Link>
+              </li>
+            </ul>
+          </nav>
+        )}
       </header>
 
       <main className="flex-1">
