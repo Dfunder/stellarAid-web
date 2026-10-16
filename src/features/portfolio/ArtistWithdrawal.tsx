@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, ExplorerLink, Input, Modal, Spinner, Select } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
-import { formatDate } from '@/lib'
+import { formatDate, shortAddress } from '@/lib'
 import type { LinkedWallet } from '@/features/auth/types'
 
 interface Balance {
@@ -165,6 +165,25 @@ export default function ArtistWithdrawal() {
               </option>
             ))}
           </Select>
+          <div>
+            <label htmlFor="wallet" className="block text-caption-sm font-medium text-foreground mb-1">
+              Destination Wallet
+            </label>
+            <select
+              id="wallet"
+              value={selectedWalletId || defaultWalletId}
+              onChange={(e) => setSelectedWalletId(e.target.value)}
+              disabled={withdrawMutation.isPending}
+              className="w-full rounded-control border border-line bg-background px-3 py-2 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              {wallets?.map((wallet) => (
+                <option key={wallet.id} value={wallet.id}>
+                  {shortAddress(wallet.publicKey)} ({wallet.network}){wallet.isPrimary ? ' — Primary' : ''}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-caption-xs text-muted">Withdrawals only go to linked, verified wallets</p>
+          </div>
 
           <div>
             <label htmlFor="amount" className="block text-caption-sm font-medium text-foreground mb-1">
@@ -244,7 +263,7 @@ export default function ArtistWithdrawal() {
                         </td>
                         <td className="px-4 py-3 text-caption-sm text-foreground">{item.asset}</td>
                         <td className="px-4 py-3 text-caption-sm text-muted">
-                          {item.destination.slice(0, 10)}…{item.destination.slice(-8)}
+                          {shortAddress(item.destination)}
                         </td>
                         <td className="px-4 py-3">
                           <span

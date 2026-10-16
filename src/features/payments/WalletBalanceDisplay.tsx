@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink } from '@/components/ui'
 import { http } from '@/services'
@@ -12,6 +12,7 @@ interface AssetBalance {
   hasTrustline: boolean
   trustlineLimit?: string
 }
+import { sumByAsset, type AssetBalance } from './walletBalances'
 
 const ASSET_LABELS: Record<string, string> = {
   XLM: 'XLM (Native)',
@@ -68,11 +69,10 @@ export default function WalletBalanceDisplay({
   const filteredBalances = balances?.filter((b) => assets.includes(b.asset)) ?? []
   const missingTrustlines = filteredBalances.filter((b) => !b.hasTrustline)
 
-  const totalUsdValue = filteredBalances.reduce((sum, b) => {
-    // In a real app, you'd fetch conversion rates
-    // For now, just show XLM equivalent or raw values
-    return sum + parseFloat(b.balance)
-  }, 0)
+  // Different assets are never summed into one figure (#799). Without FX rates
+  // the only honest headline number is the native-asset total.
+  const totalsByAsset = sumByAsset(filteredBalances)
+  const nativeTotal = totalsByAsset.XLM
 
   if (!isConnected) {
     return (
@@ -146,7 +146,7 @@ export default function WalletBalanceDisplay({
             <path d="M19 7v10" />
           </svg>
           <span className="font-mono text-caption-sm">
-            {totalUsdValue.toFixed(2)}
+            {nativeTotal !== undefined ? `${nativeTotal.toFixed(2)} XLM` : `${filteredBalances.length} assets`}
           </span>
           <svg className={`h-3.5 w-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <polyline points="6 9 12 15 18 9" />

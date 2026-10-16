@@ -2,9 +2,11 @@
 
 Thanks for contributing! This document explains how the codebase is organized and where new code belongs.
 
+By participating you agree to follow the [Code of Conduct](./CODE_OF_CONDUCT.md). Report security problems privately as described in [SECURITY.md](./SECURITY.md), never in a public issue.
+
 ## Prerequisites & Setup
 
-- Node.js `^20.19.0` or `>=22.12.0`
+- Node.js `^20.19.0` or `>=22.12.0` (declared in `package.json` `engines`; `.nvmrc` pins `22.12.0`, so `nvm use` picks a supported version)
 - npm
 
 ```bash
@@ -26,6 +28,25 @@ npm run build        # Production build
 
 Use `npm run format` to fix formatting automatically. Editor setup (format-on-save, ESLint autofix) is described in the [README](./README.md#editor-integrations).
 
+## Git Hooks
+
+[Husky](https://typicode.github.io/husky/) installs two git hooks from `.husky/`. The `prepare` script
+(`husky`) runs on every `npm install` / `npm ci`, so the hooks are (re)installed whenever dependencies are.
+
+| Hook         | Runs                                                                                                                                                                                                                     |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pre-commit` | `npx lint-staged`: `eslint --fix` + `prettier --write` on staged `*.ts`/`*.tsx`, `prettier --write` on staged `*.css`, `*.html`, `*.json`, `*.md`, `*.yml` / `*.yaml` (configured under `lint-staged` in `package.json`) |
+| `pre-push`   | `npm run type-check` (`tsc -b`), then `npm test --if-present`                                                                                                                                                            |
+
+**Known gap:** the hooks do **not** run `npm run lint` over the whole repo, `npm run format:check` or
+`npm run build`, even though [Before You Push](#before-you-push) lists them as required. Run those yourself. A push
+is rejected if the type check or the tests fail; if `main` itself fails the type check, every push is blocked until
+it is fixed.
+
+To skip the hooks temporarily (for example to push a work-in-progress branch), use `git push --no-verify` /
+`git commit --no-verify`, or set `HUSKY=0` for a single command (`HUSKY=0 git push`). CI-style checks still
+apply, so do not rely on this for finished work.
+
 ## Folder Structure
 
 ```text
@@ -42,7 +63,8 @@ src/
 │   ├── orders/
 │   ├── payments/
 │   ├── portfolio/
-│   └── profile/
+│   ├── profile/
+│   └── transactions/
 ├── hooks/                   # Cross-feature React hooks
 ├── lib/                     # Framework-agnostic utilities
 ├── services/                # API clients and external integrations
@@ -127,9 +149,29 @@ Lifecycle:
 2. **Ship** - turn it on via env/remote config; once stable for everyone, schedule removal.
 3. **Remove** - delete the key and env var. TypeScript then flags every remaining `useFeatureFlag('<flag>')` call; delete those checks and the disabled code path in the same PR.
 
+## Environment Variables
+
+Every `VITE_*` variable is inlined into the public client bundle at build time and can be read by any visitor. Never add a secret under that prefix; secrets belong on a server. The full variable list, defaults and validation behaviour are in the [README](./README.md#environment-variables).
+
 ## Auth Tokens
 
 Access and refresh tokens are persisted by `useAuthStore` in `localStorage` so sessions survive reloads. Trade-off: any script running on the origin can read them, so an XSS bug could leak them. This is accepted for the MVP because the API uses bearer tokens; mitigations are short-lived access tokens, transparent refresh on 401 and never rendering untrusted HTML. Move the refresh token to an httpOnly cookie once the API supports it. Do not store tokens anywhere else.
+
+## Releases
+
+Versions follow [Semantic Versioning](https://semver.org) and the changelog follows
+[Keep a Changelog](https://keepachangelog.com): see [CHANGELOG.md](./CHANGELOG.md).
+
+- **Cadence:** a release is cut when a meaningful set of changes has landed on `main` (roughly every two to four
+  weeks while the app is `0.x`); security fixes are released as soon as they are ready.
+- **Versioning:** while `0.x`, a breaking change bumps the minor version and anything else bumps the patch. After
+  `1.0.0`, breaking changes bump the major version.
+- **Updating the changelog:** every user-visible change adds a line under `## [Unreleased]` in the same PR, in
+  the matching `Added` / `Changed` / `Fixed` / `Removed` / `Security` group. Entries are derived from the
+  conventional commit type (`feat` -> Added, `fix` -> Fixed).
+- **Cutting a release:** rename `Unreleased` to the new version with the date, add a fresh empty `Unreleased`
+  section, bump `version` in `package.json`, update the compare links at the bottom of the changelog, then tag
+  `vX.Y.Z` and publish a GitHub release using that changelog section as the notes.
 
 ## Branches & Commits
 

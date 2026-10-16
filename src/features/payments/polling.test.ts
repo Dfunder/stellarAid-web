@@ -57,3 +57,36 @@ describe('txStatusRefetchInterval (#778)', () => {
     expect(txStatusRefetchInterval(pending, 3000, START)).toBe(30_000)
   })
 })
+
+describe('txStatusRefetchInterval max poll time (#799)', () => {
+  const START = 1_700_000_000_000
+  const MAX_POLL_TIME = 5 * 60 * 1000
+  const pending = { state: { data: { status: 'confirming' as const } } }
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(START)
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('keeps polling while the caller\'s budget is not spent', () => {
+    vi.setSystemTime(START + MAX_POLL_TIME)
+
+    expect(txStatusRefetchInterval(pending, 3000, START, MAX_POLL_TIME)).toBe(30_000)
+  })
+
+  it('stops polling once the budget is spent', () => {
+    vi.setSystemTime(START + MAX_POLL_TIME + 1)
+
+    expect(txStatusRefetchInterval(pending, 3000, START, MAX_POLL_TIME)).toBe(false)
+  })
+
+  it('stops at a terminal status even inside the budget', () => {
+    expect(
+      txStatusRefetchInterval({ state: { data: { status: 'confirmed' } } }, 3000, START, MAX_POLL_TIME)
+    ).toBe(false)
+  })
+})
