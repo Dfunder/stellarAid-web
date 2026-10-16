@@ -1,8 +1,13 @@
-import { Button } from './Button'
+import type { ReactNode } from 'react'
+
+// Imported as a default, not a named import: `Button.tsx` has no `Button`
+// named export, so `import { Button }` resolved to `undefined` at runtime (#832).
+// Also not from the `.` barrel, which re-exports this file.
+import Button from './Button'
 
 interface EmptyStateProps {
   /** Icon name or custom icon component */
-  icon?: React.ReactNode
+  icon?: ReactNode
   /** Title text */
   title: string
   /** Description text */
