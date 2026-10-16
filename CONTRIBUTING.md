@@ -120,7 +120,7 @@ All styling must use design tokens (see the README "Design System & Theming" sec
 | A type shared across features                | `src/types/`                           |
 | Environment variables, constants, config     | `src/config/`                          |
 
-Anything that does not fit a documented location needs this document updated first (and a discussion in the PR).
+Anything that does not fit a documented location needs this document updated first (and a discussion in the PR). See [docs/architecture.md](./docs/architecture.md) for the dependency direction behind these rules and the known exceptions.
 
 ## Review Checklist (file placement)
 

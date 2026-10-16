@@ -2,10 +2,33 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Spinner, Select } from '@/components/ui'
 import { http } from '@/services'
-import { formatDate } from '@/lib'
+import { formatDate, statusMeta } from '@/lib'
 import { orderKeys } from './queryKeys'
 import type { PurchaseOrder } from '@/types'
 import { Link } from 'react-router-dom'
+
+interface Order {
+  id: string
+  artworkTitle: string
+  artworkThumbnail?: string
+  sellerName: string
+  sellerUsername: string
+  amount: string
+  asset: string
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded'
+  txHash: string | null
+  createdAt: string
+  deliverables?: Deliverable[]
+  failureReason?: string
+}
+
+interface Deliverable {
+  id: string
+  name: string
+  url: string
+  expiresAt: string
+}
+
 
 const STATUS_LABELS: Record<PurchaseOrder['status'], string> = {
   pending: 'Pending',
@@ -152,8 +175,8 @@ export default function PurchasesPage() {
                         {order.amount} {order.asset}
                       </td>
                       <td className="px-4 py-4">
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-caption-sm font-medium ${STATUS_COLORS[order.status]}`}>
-                          {STATUS_LABELS[order.status]}
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-caption-sm font-medium ${statusMeta(order.status).className}`}>
+                          {statusMeta(order.status).label}
                         </span>
                       </td>
                       <td className="px-4 py-4 text-caption-sm">

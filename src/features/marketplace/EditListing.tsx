@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom'
 import { Button, ExplorerLink, Input, Modal, Spinner, Select } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
-import { formatDate } from '@/lib'
+import { formatDate, statusMeta } from '@/lib'
 import { z } from 'zod'
 import { LICENSE_PRESETS } from './constants'
 import { firstZodMessage, listingToFormValues } from './utils'
@@ -226,7 +226,7 @@ export default function EditListing({ listingId: listingIdProp }: { listingId?: 
       <div className="mb-6">
         <h1 className="text-h2">Edit Listing: {listing.title}</h1>
         <p className="mt-1 text-caption text-muted">
-          {STATUS_LABELS[listing.status]} • Updated {formatDate(listing.updatedAt)}
+          {statusMeta(listing.status).label} • Updated {formatDate(listing.updatedAt)}
         </p>
       </div>
 
@@ -569,9 +569,3 @@ export default function EditListing({ listingId: listingIdProp }: { listingId?: 
   )
 }
 
-const STATUS_LABELS: Record<Listing['status'], string> = {
-  draft: 'Draft',
-  active: 'Active',
-  sold: 'Sold',
-  unpublished: 'Unpublished',
-}

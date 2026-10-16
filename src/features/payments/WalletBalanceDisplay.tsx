@@ -4,6 +4,7 @@ import { Button, ExplorerLink } from '@/components/ui'
 import { http } from '@/services'
 import { useWallet } from '@/features/auth/hooks/useWallet'
 import { formatDate } from '@/lib'
+import { DISPLAY_FALLBACK_PRECISION, getAssetMeta } from '@/config'
 import { Link } from 'react-router-dom'
 
 interface AssetBalance {
@@ -14,19 +15,7 @@ interface AssetBalance {
 }
 import { sumByAsset, type AssetBalance } from './walletBalances'
 
-const ASSET_LABELS: Record<string, string> = {
-  XLM: 'XLM (Native)',
-  USDC: 'USDC',
-  NGNT: 'NGNT',
-  EURC: 'EURC',
-}
 
-const ASSET_PRECISION: Record<string, number> = {
-  XLM: 7,
-  USDC: 2,
-  NGNT: 2,
-  EURC: 2,
-}
 
 interface WalletBalanceDisplayProps {
   /** Assets to display balances for */
@@ -85,8 +74,9 @@ export default function WalletBalanceDisplay({
   }
 
   const renderBalanceItem = (balance: AssetBalance) => {
-    const precision = ASSET_PRECISION[balance.asset] ?? 7
-    const label = ASSET_LABELS[balance.asset] ?? balance.asset
+    const meta = getAssetMeta(balance.asset)
+    const precision = meta?.precision ?? DISPLAY_FALLBACK_PRECISION
+    const label = meta?.label ?? balance.asset
 
     return (
       <div
