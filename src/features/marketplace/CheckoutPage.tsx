@@ -1,40 +1,16 @@
 import { useState } from 'react'
+import { useQuery, useMutation } from '@tanstack/react-query'
+import { useNavigate, useParams } from 'react-router-dom'
+import { Button, ErrorState, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useParams } from 'react-router-dom'
+import { useParams, Link, createSearchParams } from 'react-router-dom'
 import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { PaymentAssetSelector, WalletBalanceDisplay } from '@/features/payments'
 import { formatDate } from '@/lib'
 import { LICENSE_PRESETS } from './constants'
-
-interface Artwork {
-  id: string
-  title: string
-  description: string
-  price: string
-  asset: string
-  acceptedAssets: string[]
-  seller: {
-    id: string
-    name: string
-    username: string
-    avatarUrl?: string
-  }
-  licenseTerms: string
-  images: string[]
-}
-
-interface CheckoutSession {
-  id: string
-  artworkId: string
-  amount: string
-  asset: string
-  platformFee: string
-  networkFeeEstimate: string
-  total: string
-  expiresAt: string
-}
+import type { CheckoutArtwork, CheckoutSession } from '@/types'
 
 export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?: string }) {
   // The route (`checkout/:artworkId`) never passed the prop this page
@@ -44,16 +20,17 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
   // prop keeps the page usable outside the router.
   const params = useParams()
   const artworkId = artworkIdProp ?? params.artworkId
+  // Encoded so the redirect survives the round trip through the login/register query string.
+  const authRedirect = `?${createSearchParams({ redirect: `/checkout/${artworkId}` }).toString()}`
   const { user } = useAuth()
-  const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const [selectedAsset, setSelectedAsset] = useState<string>('')
   const [agreedToTerms, setAgreedToTerms] = useState(false)
-  const [sessionId, setSessionId] = useState<string | null>(null)
   const [showLicense, setShowLicense] = useState(false)
 
-  const { data: artwork, isPending: artworkPending } = useQuery({
+  const { data: artwork, isPending: artworkPending, isError: artworkError, refetch: refetchArtwork } = useQuery({
     queryKey: ['artwork', artworkId],
-    queryFn: async (): Promise<Artwork> => (await http.get<{ artwork: Artwork }>(`/artworks/${artworkId}`)).artwork,
+    queryFn: async (): Promise<CheckoutArtwork> => (await http.get<{ artwork: CheckoutArtwork }>(`/artworks/${artworkId}`)).artwork,
     enabled: !!artworkId,
   })
 
@@ -79,18 +56,15 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
       })
       return response.session
     },
-    onSuccess: (data) => {
-      setSessionId(data.id)
-    },
   })
 
   const handleProceedToPayment = async () => {
     if (!agreedToTerms) return
-    if (!session) {
-      await createSessionMutation.mutateAsync()
-    }
-    // Navigate to wallet signing flow
-    // window.location.href = `/payment/sign?sessionId=${sessionId}`
+    // Reuse the session the summary query already created; only POST again if
+    // it has not resolved yet. Either path creates exactly one session.
+    const checkoutSession = session ?? (await createSessionMutation.mutateAsync())
+    // PaymentResultScreen reads `sessionId` from the query string.
+    navigate(`/payment/result?sessionId=${checkoutSession.id}`)
   }
 
   const canProceed = !!artwork && !!selectedAsset && agreedToTerms && !!user && !createSessionMutation.isPending
@@ -106,12 +80,25 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
     )
   }
 
+  // A failed artwork request is distinct from a genuine 404 — offer a retry
+  // instead of the "not found" dead end.
+  if (artworkError) {
+    return (
+      <div className="container py-12">
+        <ErrorState
+          message="We couldn’t load this artwork. Please try again."
+          onRetry={() => void refetchArtwork()}
+        />
+      </div>
+    )
+  }
+
   if (!artwork) {
     return (
       <div className="container py-24 text-center">
         <h1 className="text-h2">Artwork not found</h1>
         <Button className="mt-6" asChild>
-          <a href="/">Browse marketplace</a>
+          <Link to="/">Browse marketplace</Link>
         </Button>
       </div>
     )
@@ -125,10 +112,10 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
           <p className="mt-2 text-caption text-muted">You need an account to buy artwork.</p>
           <div className="mt-6 flex flex-col gap-3">
             <Button asChild>
-              <a href={`/login?redirect=/checkout/${artworkId}`}>Sign in</a>
+              <Link to={{ pathname: '/login', search: authRedirect }}>Sign in</Link>
             </Button>
             <Button variant="secondary" asChild>
-              <a href={`/register?redirect=/checkout/${artworkId}`}>Create account</a>
+              <Link to={{ pathname: '/register', search: authRedirect }}>Create account</Link>
             </Button>
           </div>
         </div>

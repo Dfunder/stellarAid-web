@@ -1,119 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { http } from '@/services'
-import { useAuth } from '@/features/auth'
-
-interface FavoriteItem {
-  id: string
-  type: 'artwork' | 'artist'
-  artworkId?: string
-  artistId?: string
-  createdAt: string
-  artwork?: {
-    id: string
-    title: string
-    thumbnail?: string
-    price: string
-    asset: string
-  }
-  artist?: {
-    id: string
-    username: string
-    name: string
-    avatarUrl?: string
-  }
-}
-
-const GUEST_STORAGE_KEY = 'guestFavorites'
-
-function getGuestFavorites(): FavoriteItem[] {
-  try {
-    const stored = localStorage.getItem(GUEST_STORAGE_KEY)
-    return stored ? JSON.parse(stored) : []
-  } catch {
-    return []
-  }
-}
-
-function setGuestFavorites(favorites: FavoriteItem[]) {
-  try {
-    localStorage.setItem(GUEST_STORAGE_KEY, JSON.stringify(favorites))
-  } catch {
-    // Ignore
-  }
-}
-
-export function useFavorites() {
-  const { user, isAuthenticated } = useAuth()
-  const queryClient = useQueryClient()
-  const [guestFavorites, setGuestFavoritesState] = useState<FavoriteItem[]>(() => getGuestFavorites())
-  const [isLoaded, setIsLoaded] = useState(false)
-
-  // Load server favorites when authenticated
-  const { data: serverFavorites, isPending } = useQuery({
-    queryKey: ['favorites', user?.id],
-    queryFn: async (): Promise<FavoriteItem[]> => {
-      const response = await http.get<{ favorites: FavoriteItem[] }>('/favorites')
-      return response.favorites
-    },
-    enabled: isAuthenticated,
-  })
-
-  // Merge guest and server favorites
-  const allFavorites = isAuthenticated ? (serverFavorites ?? []) : guestFavorites
-
-  const toggleFavorite = useMutation({
-    mutationFn: async ({ type, id }: { type: 'artwork' | 'artist'; id: string }) => {
-      if (isAuthenticated) {
-        return http.post<{ favorite: FavoriteItem }>('/favorites/toggle', { type, id })
-      } else {
-        const existing = guestFavorites.find((f) => f.type === type && (f.artworkId === id || f.artistId === id))
-        if (existing) {
-          const updated = guestFavorites.filter((f) => f !== existing)
-          setGuestFavorites(updated)
-          setGuestFavoritesState(updated)
-          return { favorite: null }
-        } else {
-          const newFav: FavoriteItem = {
-            id: `guest-${Date.now()}`,
-            type,
-            [type === 'artwork' ? 'artworkId' : 'artistId']: id,
-            createdAt: new Date().toISOString(),
-          }
-          const updated = [newFav, ...guestFavorites]
-          setGuestFavorites(updated)
-          setGuestFavoritesState(updated)
-          return { favorite: newFav }
-        }
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['favorites'] })
-    },
-  })
-
-  const isFavorite = useCallback((type: 'artwork' | 'artist', id: string) => {
-    return allFavorites.some((f) => f.type === type && (f.artworkId === id || f.artistId === id))
-  }, [allFavorites])
-
-  // Merge guest favorites on login
-  useEffect(() => {
-    if (isAuthenticated && guestFavorites.length > 0 && !isPending) {
-      guestFavorites.forEach((fav) => {
-        toggleFavorite.mutate({ type: fav.type, id: fav.artworkId ?? fav.artistId ?? '' })
-      })
-      setGuestFavorites([])
-      setGuestFavoritesState([])
-    }
-  }, [isAuthenticated, guestFavorites, isPending, toggleFavorite])
-
-  return {
-    favorites: allFavorites,
-    toggleFavorite,
-    isFavorite,
-    isPending: isPending || toggleFavorite.isPending,
-  }
-}
+import { useState } from 'react'
+import { useFavorites } from './useFavorites'
+import { Link } from 'react-router-dom'
 
 export function FavoriteButton({
   type,
@@ -240,18 +127,18 @@ export default function FavoritesPage({ defaultTab = 'artworks' }: FavoritesPage
                   {artworkFavorites.map((fav) => (
                     <tr key={fav.id} className="border-b border-line/50 hover:bg-surface-muted/50">
                       <td className="px-4 py-3">
-                        <a href={`/checkout/${fav.artwork?.id}`} className="flex items-center gap-3">
+                        <Link to={`/checkout/${fav.artwork?.id}`} className="flex items-center gap-3">
                           {fav.artwork?.thumbnail && (
                             <img src={fav.artwork.thumbnail} alt="" className="h-12 w-12 rounded-card object-cover" />
                           )}
                           <span className="text-caption font-medium text-foreground">{fav.artwork?.title}</span>
-                        </a>
+                        </Link>
                       </td>
                       <td className="px-4 py-3 text-caption text-muted">
                         {fav.artwork && (
-                          <a href={`/artists/${fav.artwork.id}`} className="hover:text-foreground">
+                          <Link to={`/artists/${fav.artwork.id}`} className="hover:text-foreground">
                             {fav.artist?.name ?? 'Unknown'}
-                          </a>
+                          </Link>
                         )}
                       </td>
                       <td className="px-4 py-3 text-caption-sm font-mono text-foreground">

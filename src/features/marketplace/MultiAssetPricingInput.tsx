@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import { Input } from '@/components/ui'
 import { DISPLAY_FALLBACK_PRECISION, getAssetMeta } from '@/config'
 
@@ -25,6 +25,9 @@ interface PriceInputProps {
 
 
 
+/** Module-level default: an inline array literal is a new identity every render. */
+const DEFAULT_ASSETS: string[] = ['XLM', 'USDC', 'NGNT', 'EURC']
+
 /**
  * Multi-asset pricing input with precision validation and conversion hints.
  *
@@ -39,7 +42,7 @@ export default function MultiAssetPricingInput({
   onChange,
   asset,
   onAssetChange,
-  assets = ['XLM', 'USDC', 'NGNT', 'EURC'],
+  assets = DEFAULT_ASSETS,
   label = 'Price',
   error,
   disabled = false,
@@ -48,15 +51,14 @@ export default function MultiAssetPricingInput({
   const precision = meta?.precision ?? DISPLAY_FALLBACK_PRECISION
   const symbol = meta?.symbol ?? ''
   const [showHint, setShowHint] = useState(false)
-  const [convertedValues, setConvertedValues] = useState<Record<string, string>>({})
 
-  // Update conversion hints when value or asset changes
-  useEffect(() => {
+  // Derived, never stored (#784): the hints are a pure function of the amount,
+  // the asset and the asset list, so no effect sets state on every render. The
+  // asset list is keyed by value so a caller's fresh array cannot re-trigger it.
+  const assetsKey = assets.join(',')
+  const convertedValues = useMemo<Record<string, string>>(() => {
     const numValue = parseFloat(value)
-    if (isNaN(numValue) || numValue === 0) {
-      setConvertedValues({})
-      return
-    }
+    if (isNaN(numValue) || numValue === 0) return {}
 
     const baseRate = meta?.conversionRate ?? 1
     const conversions: Record<string, string> = {}
@@ -64,20 +66,28 @@ export default function MultiAssetPricingInput({
     assets.forEach((a) => {
       if (a !== asset && getAssetMeta(a)?.conversionRate) {
         const targetRate = getAssetMeta(a)?.conversionRate ?? 1
+    assetsKey.split(',').forEach((a) => {
+      const targetRate = CONVERSION_RATES[a]
+      if (a !== asset && targetRate) {
         const converted = (numValue * baseRate) / targetRate
         const targetPrecision = getAssetMeta(a)?.precision ?? 2
         conversions[a] = converted.toFixed(targetPrecision)
       }
     })
 
-    setConvertedValues(conversions)
-  }, [value, asset, assets])
+    return conversions
+  }, [value, asset, assetsKey])
+
+  // Rebuilt only when the asset's precision changes, not on every keystroke.
+  const precisionPattern = useMemo(
+    () => new RegExp(`^\\d*(\\.\\d{0,${precision}})?$`),
+    [precision]
+  )
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
     // Allow empty, or valid decimal with correct precision
-    const regex = new RegExp(`^\\d*(\\.\\d{0,${precision}})?$`)
-    if (newValue === '' || regex.test(newValue)) {
+    if (newValue === '' || precisionPattern.test(newValue)) {
       onChange(newValue)
     }
   }

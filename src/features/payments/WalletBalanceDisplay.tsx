@@ -1,10 +1,11 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink } from '@/components/ui'
 import { http } from '@/services'
 import { useWallet } from '@/features/auth/hooks/useWallet'
 import { formatDate } from '@/lib'
 import { DISPLAY_FALLBACK_PRECISION, getAssetMeta } from '@/config'
+import { Link } from 'react-router-dom'
 
 interface AssetBalance {
   asset: string
@@ -12,6 +13,7 @@ interface AssetBalance {
   hasTrustline: boolean
   trustlineLimit?: string
 }
+import { sumByAsset, type AssetBalance } from './walletBalances'
 
 
 
@@ -56,17 +58,16 @@ export default function WalletBalanceDisplay({
   const filteredBalances = balances?.filter((b) => assets.includes(b.asset)) ?? []
   const missingTrustlines = filteredBalances.filter((b) => !b.hasTrustline)
 
-  const totalUsdValue = filteredBalances.reduce((sum, b) => {
-    // In a real app, you'd fetch conversion rates
-    // For now, just show XLM equivalent or raw values
-    return sum + parseFloat(b.balance)
-  }, 0)
+  // Different assets are never summed into one figure (#799). Without FX rates
+  // the only honest headline number is the native-asset total.
+  const totalsByAsset = sumByAsset(filteredBalances)
+  const nativeTotal = totalsByAsset.XLM
 
   if (!isConnected) {
     return (
       <div className={className}>
         <Button variant="ghost" size="sm" asChild>
-          <a href="/settings/wallets">Connect wallet to see balances</a>
+          <Link to="/settings/wallets">Connect wallet to see balances</Link>
         </Button>
       </div>
     )
@@ -135,7 +136,7 @@ export default function WalletBalanceDisplay({
             <path d="M19 7v10" />
           </svg>
           <span className="font-mono text-caption-sm">
-            {totalUsdValue.toFixed(2)}
+            {nativeTotal !== undefined ? `${nativeTotal.toFixed(2)} XLM` : `${filteredBalances.length} assets`}
           </span>
           <svg className={`h-3.5 w-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <polyline points="6 9 12 15 18 9" />
@@ -180,7 +181,7 @@ export default function WalletBalanceDisplay({
                     Some assets need trustlines to receive payments.
                   </p>
                   <Button size="sm" variant="secondary" className="w-full" asChild>
-                    <a href="/settings/wallets">Manage trustlines</a>
+                    <Link to="/settings/wallets">Manage trustlines</Link>
                   </Button>
                 </div>
               )}
@@ -190,7 +191,7 @@ export default function WalletBalanceDisplay({
                   Refresh
                 </Button>
                 <Button size="sm" variant="ghost" className="flex-1" asChild>
-                  <a href="/settings/wallets">Manage</a>
+                  <Link to="/settings/wallets">Manage</Link>
                 </Button>
               </div>
             </div>
@@ -233,7 +234,7 @@ export default function WalletBalanceDisplay({
             {missingTrustlines.length} asset{missingTrustlines.length > 1 ? 's' : ''} missing trustline{missingTrustlines.length > 1 ? 's' : ''}.
           </p>
           <Button size="sm" variant="secondary" className="mt-2" asChild>
-            <a href="/settings/wallets">Add trustlines</a>
+            <Link to="/settings/wallets">Add trustlines</Link>
           </Button>
         </div>
       )}

@@ -4,6 +4,19 @@ import { Button, ExplorerLink, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useUiStore } from '@/stores'
 import { ESCROW_STEPS, formatDate, statusMeta, type EscrowStatus } from '@/lib'
+import { formatDate } from '@/lib'
+import {
+  CANCEL_REASONS,
+  buildEscrowTimeline,
+  canCancelCommission,
+  type EscrowData,
+  type EscrowStatus,
+  type TimelineStep,
+  type TimelineStepState,
+} from './escrowTimeline'
+
+export type { TimelineStep, TimelineStepState } from './escrowTimeline'
+import { formatDate, shortAddress } from '@/lib'
 
 
 interface EscrowData {
@@ -35,6 +48,9 @@ interface Milestone {
 
 
 
+// ---------------------------------------------------------------------------
+// Commission status timeline (#736)
+// ---------------------------------------------------------------------------
 
 export interface CommissionStatusTimelineProps {
   steps: TimelineStep[]
@@ -137,7 +153,7 @@ export function buildEscrowTimeline(
 ): TimelineStep[] {
   const isMilestone = escrow.milestones.length > 0
   const cancelled = escrow.status === 'cancelled'
-  const short = (address: string) => `${address.slice(0, 6)}…${address.slice(-4)}`
+  const short = shortAddress
 
   const steps: TimelineStep[] = isMilestone
     ? [
@@ -417,11 +433,11 @@ export default function EscrowStatusWidget({ escrowId, onRelease, onRefundReques
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-caption-sm text-muted">Buyer</span>
-            <span className="text-caption font-mono text-foreground">{escrow.buyer.slice(0, 10)}…{escrow.buyer.slice(-8)}</span>
+            <span className="text-caption font-mono text-foreground">{shortAddress(escrow.buyer)}</span>
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-caption-sm text-muted">Seller</span>
-            <span className="text-caption font-mono text-foreground">{escrow.seller.slice(0, 10)}…{escrow.seller.slice(-8)}</span>
+            <span className="text-caption font-mono text-foreground">{shortAddress(escrow.seller)}</span>
           </div>
         </div>
       </div>

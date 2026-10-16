@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { formatDate, statusMeta } from '@/lib'
+import { formatDate, shortAddress } from '@/lib'
 import { txStatusRefetchInterval } from './polling'
 
 type TxStatus = 'submitted' | 'confirming' | 'confirmed' | 'failed'
@@ -61,7 +62,10 @@ export default function TransactionStatusPolling({
       return response.status
     },
     enabled: !!txHash,
-    refetchInterval: (query) => txStatusRefetchInterval(query, pollInterval, startTime),
+    // `maxPollTime` is handed to the interval decision so polling actually
+    // stops once the budget is spent (#799).
+    refetchInterval: (query) =>
+      txStatusRefetchInterval(query, pollInterval, startTime, maxPollTime),
   })
 
   // Update local state from query data
@@ -80,14 +84,6 @@ export default function TransactionStatusPolling({
       }
     }
   }, [data, onConfirmed, onFailed])
-
-  // Stop polling after max time
-  useEffect(() => {
-    const elapsed = Date.now() - startTime
-    if (elapsed > maxPollTime && currentStatus === 'confirming') {
-      // Show handoff screen
-    }
-  }, [currentStatus, startTime, maxPollTime])
 
   const isFinal = currentStatus === 'confirmed' || currentStatus === 'failed'
   const isSlow = Date.now() - startTime > 30000 && currentStatus === 'confirming'
@@ -127,6 +123,8 @@ export default function TransactionStatusPolling({
             <div>
               <p className="text-caption-sm font-medium text-foreground">{statusMeta(currentStatus).label}</p>
               <p className="text-caption-xs text-muted font-mono">{txHash.slice(0, 12)}…{txHash.slice(-8)}</p>
+              <p className="text-caption-sm font-medium text-foreground">{STATUS_LABELS[currentStatus]}</p>
+              <p className="text-caption-xs text-muted font-mono">{shortAddress(txHash)}</p>
             </div>
           </div>
 
@@ -220,7 +218,7 @@ export default function TransactionStatusPolling({
 
         <h1 className="text-h2">{statusMeta(currentStatus).label}</h1>
         <p className="mt-2 text-caption text-muted">
-          Transaction: <code className="font-mono">{txHash.slice(0, 16)}…{txHash.slice(-8)}</code>
+          Transaction: <code className="font-mono">{shortAddress(txHash)}</code>
         </p>
 
         {currentStatus === 'confirming' && (
