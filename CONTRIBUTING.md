@@ -2,6 +2,8 @@
 
 Thanks for contributing! This document explains how the codebase is organized and where new code belongs.
 
+By participating you agree to follow the [Code of Conduct](./CODE_OF_CONDUCT.md). Report security problems privately as described in [SECURITY.md](./SECURITY.md), never in a public issue.
+
 ## Prerequisites & Setup
 
 - Node.js `^20.19.0` or `>=22.12.0`
@@ -130,6 +132,22 @@ Lifecycle:
 ## Auth Tokens
 
 Access and refresh tokens are persisted by `useAuthStore` in `localStorage` so sessions survive reloads. Trade-off: any script running on the origin can read them, so an XSS bug could leak them. This is accepted for the MVP because the API uses bearer tokens; mitigations are short-lived access tokens, transparent refresh on 401 and never rendering untrusted HTML. Move the refresh token to an httpOnly cookie once the API supports it. Do not store tokens anywhere else.
+
+## Releases
+
+Versions follow [Semantic Versioning](https://semver.org) and the changelog follows
+[Keep a Changelog](https://keepachangelog.com): see [CHANGELOG.md](./CHANGELOG.md).
+
+- **Cadence:** a release is cut when a meaningful set of changes has landed on `main` (roughly every two to four
+  weeks while the app is `0.x`); security fixes are released as soon as they are ready.
+- **Versioning:** while `0.x`, a breaking change bumps the minor version and anything else bumps the patch. After
+  `1.0.0`, breaking changes bump the major version.
+- **Updating the changelog:** every user-visible change adds a line under `## [Unreleased]` in the same PR, in
+  the matching `Added` / `Changed` / `Fixed` / `Removed` / `Security` group. Entries are derived from the
+  conventional commit type (`feat` -> Added, `fix` -> Fixed).
+- **Cutting a release:** rename `Unreleased` to the new version with the date, add a fresh empty `Unreleased`
+  section, bump `version` in `package.json`, update the compare links at the bottom of the changelog, then tag
+  `vX.Y.Z` and publish a GitHub release using that changelog section as the notes.
 
 ## Branches & Commits
 
