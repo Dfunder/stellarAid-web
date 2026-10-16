@@ -6,6 +6,7 @@ import { activeNetworkPassphrase, activeStellarNetwork, STELLAR_NETWORK_LABELS }
 import { useWallet } from '@/features/auth/hooks/useWallet'
 import { signWithConnectedWallet } from '@/features/auth/services/wallets'
 import { getWalletConnection } from '@/features/auth/stores/walletStore'
+import { shortAddress } from '@/lib'
 
 interface TransactionSigningFlowProps {
   /** Checkout session ID */
@@ -282,11 +283,11 @@ export default function TransactionSigningFlow({
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted">TX Hash (predicted)</dt>
-                <dd className="font-mono text-caption-xs">{txHash?.slice(0, 16)}…{txHash?.slice(-8)}</dd>
+                <dd className="font-mono text-caption-xs">{txHash ? shortAddress(txHash) : ''}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted">From</dt>
-                <dd className="font-mono text-caption-xs">{publicKey?.slice(0, 10)}…{publicKey?.slice(-8)}</dd>
+                <dd className="font-mono text-caption-xs">{publicKey ? shortAddress(publicKey) : ''}</dd>
               </div>
             </dl>
           </div>

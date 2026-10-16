@@ -1,9 +1,7 @@
-import { useCallback, useSyncExternalStore } from 'react'
+import { useCallback } from 'react'
 import { getErrorMessage } from '@/services'
 import { authApi } from '../services/authApi'
 import { endSession } from '../services/session'
-import { authStore, getAuthState, subscribeAuth } from '../stores/authStore'
-import { writeTokens } from '../stores/tokenStore'
 import { useAuthStore } from '../stores/useAuthStore'
 import type { LoginCredentials, User } from '../types'
 
@@ -17,20 +15,21 @@ export interface UseAuth {
   logout: () => Promise<void>
 }
 
-/** Session state plus the two actions that change it. */
+/** Thin wrapper over the single auth store: session state plus the two actions that change it. */
 export function useAuth(): UseAuth {
-  const state = useSyncExternalStore(subscribeAuth, getAuthState)
+  const user = useAuthStore((state) => state.user)
+  const status = useAuthStore((state) => state.status)
+  const error = useAuthStore((state) => state.error)
 
   const login = useCallback(async (credentials: LoginCredentials): Promise<User> => {
-    authStore.startLoading()
+    const store = useAuthStore.getState()
+    store.startLoading()
     try {
       const session = await authApi.login(credentials)
-      writeTokens(session.tokens)
       useAuthStore.getState().setSession(session)
-      authStore.setSession(session.user)
       return session.user
     } catch (error) {
-      authStore.clearSession(getErrorMessage(error))
+      useAuthStore.getState().clearSession(getErrorMessage(error))
       throw error
     }
   }, [])
@@ -40,10 +39,10 @@ export function useAuth(): UseAuth {
   }, [])
 
   return {
-    user: state.user,
-    isAuthenticated: state.status === 'authenticated',
-    isLoading: state.status === 'loading',
-    error: state.error,
+    user,
+    isAuthenticated: status === 'authenticated',
+    isLoading: status === 'loading',
+    error,
     login,
     logout,
   }

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button, ExplorerLink, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useUiStore } from '@/stores'
-import { formatDate } from '@/lib'
+import { formatDate, shortAddress } from '@/lib'
 
 type EscrowStatus = 'funded' | 'in_progress' | 'delivered' | 'released' | 'refunded' | 'disputed' | 'cancelled'
 
@@ -174,7 +174,7 @@ export function buildEscrowTimeline(
 ): TimelineStep[] {
   const isMilestone = escrow.milestones.length > 0
   const cancelled = escrow.status === 'cancelled'
-  const short = (address: string) => `${address.slice(0, 6)}…${address.slice(-4)}`
+  const short = shortAddress
 
   const steps: TimelineStep[] = isMilestone
     ? [
@@ -454,11 +454,11 @@ export default function EscrowStatusWidget({ escrowId, onRelease, onRefundReques
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-caption-sm text-muted">Buyer</span>
-            <span className="text-caption font-mono text-foreground">{escrow.buyer.slice(0, 10)}…{escrow.buyer.slice(-8)}</span>
+            <span className="text-caption font-mono text-foreground">{shortAddress(escrow.buyer)}</span>
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-caption-sm text-muted">Seller</span>
-            <span className="text-caption font-mono text-foreground">{escrow.seller.slice(0, 10)}…{escrow.seller.slice(-8)}</span>
+            <span className="text-caption font-mono text-foreground">{shortAddress(escrow.seller)}</span>
           </div>
         </div>
       </div>

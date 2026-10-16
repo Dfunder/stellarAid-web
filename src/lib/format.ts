@@ -16,6 +16,14 @@ export function truncateMiddle(
 }
 
 /**
+ * Standard display form for Stellar addresses and transaction hashes (10 leading and 8 trailing characters), so
+ * the same value renders identically on every screen.
+ */
+export function shortAddress(value: string): string {
+  return truncateMiddle(value, 10, 8)
+}
+
+/**
  * Formats an ISO date string to a readable format.
  */
 export function formatDate(dateString: string, options?: Intl.DateTimeFormatOptions): string {

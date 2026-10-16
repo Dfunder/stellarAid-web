@@ -64,3 +64,9 @@ describe('useUiStore toasts', () => {
     clearSpy.mockRestore()
   })
 })
+
+describe('useUiStore shape', () => {
+  it('only exposes the toast state (no unused theme, mobile menu or modal slices)', () => {
+    expect(Object.keys(useUiStore.getState()).sort()).toEqual(['dismissToast', 'pushToast', 'toasts'])
+  })
+})
