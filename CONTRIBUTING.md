@@ -6,7 +6,7 @@ By participating you agree to follow the [Code of Conduct](./CODE_OF_CONDUCT.md)
 
 ## Prerequisites & Setup
 
-- Node.js `^20.19.0` or `>=22.12.0`
+- Node.js `^20.19.0` or `>=22.12.0` (declared in `package.json` `engines`; `.nvmrc` pins `22.12.0`, so `nvm use` picks a supported version)
 - npm
 
 ```bash
@@ -28,6 +28,25 @@ npm run build        # Production build
 
 Use `npm run format` to fix formatting automatically. Editor setup (format-on-save, ESLint autofix) is described in the [README](./README.md#editor-integrations).
 
+## Git Hooks
+
+[Husky](https://typicode.github.io/husky/) installs two git hooks from `.husky/`. The `prepare` script
+(`husky`) runs on every `npm install` / `npm ci`, so the hooks are (re)installed whenever dependencies are.
+
+| Hook         | Runs                                                                                                                                                                                                                     |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pre-commit` | `npx lint-staged`: `eslint --fix` + `prettier --write` on staged `*.ts`/`*.tsx`, `prettier --write` on staged `*.css`, `*.html`, `*.json`, `*.md`, `*.yml` / `*.yaml` (configured under `lint-staged` in `package.json`) |
+| `pre-push`   | `npm run type-check` (`tsc -b`), then `npm test --if-present`                                                                                                                                                            |
+
+**Known gap:** the hooks do **not** run `npm run lint` over the whole repo, `npm run format:check` or
+`npm run build`, even though [Before You Push](#before-you-push) lists them as required. Run those yourself. A push
+is rejected if the type check or the tests fail; if `main` itself fails the type check, every push is blocked until
+it is fixed.
+
+To skip the hooks temporarily (for example to push a work-in-progress branch), use `git push --no-verify` /
+`git commit --no-verify`, or set `HUSKY=0` for a single command (`HUSKY=0 git push`). CI-style checks still
+apply, so do not rely on this for finished work.
+
 ## Folder Structure
 
 ```text
@@ -44,7 +63,8 @@ src/
 │   ├── orders/
 │   ├── payments/
 │   ├── portfolio/
-│   └── profile/
+│   ├── profile/
+│   └── transactions/
 ├── hooks/                   # Cross-feature React hooks
 ├── lib/                     # Framework-agnostic utilities
 ├── services/                # API clients and external integrations
