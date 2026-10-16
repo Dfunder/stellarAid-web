@@ -55,6 +55,15 @@ export interface AnalyticsProvider {
 const noopProvider: AnalyticsProvider = { track: () => {} }
 let analyticsProvider: AnalyticsProvider = noopProvider
 
+/**
+ * #846 — provider failures used to be swallowed by an empty `catch {}`, so a
+ * broken provider dropped every event with no signal at all. They are now counted
+ * and the most recent message is retained, so a silently-dead provider is
+ * detectable instead of invisible.
+ */
+let failedEventCount = 0
+let lastProviderError: string | null = null
+
 const PII_KEY_PATTERN = /email|wallet|address|password|token|phone/i
 const EMAIL_PATTERN = /[^\s@]+@[^\s@]+\.[^\s@]+/
 const STELLAR_ADDRESS_PATTERN = /\b[GM][A-Z2-7]{55}\b/
@@ -86,8 +95,21 @@ export const analytics = {
     }
     try {
       analyticsProvider.track(event, safeProps)
-    } catch {
-      // Analytics must never break the app.
+    } catch (error) {
+      // Analytics must never break the app, but it must not vanish either.
+      failedEventCount += 1
+      lastProviderError = error instanceof Error ? error.message : String(error)
+      console.warn('[analytics] provider failed, event dropped:', event, lastProviderError)
     }
+  },
+
+  /** How many events have been dropped because the provider threw (#846). */
+  getFailedEventCount(): number {
+    return failedEventCount
+  },
+
+  /** Message from the most recent provider failure, or `null` if none (#846). */
+  getLastProviderError(): string | null {
+    return lastProviderError
   },
 }
