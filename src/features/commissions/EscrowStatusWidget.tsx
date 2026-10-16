@@ -3,6 +3,18 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button, ExplorerLink, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useUiStore } from '@/stores'
+import { formatDate } from '@/lib'
+import {
+  CANCEL_REASONS,
+  buildEscrowTimeline,
+  canCancelCommission,
+  type EscrowData,
+  type EscrowStatus,
+  type TimelineStep,
+  type TimelineStepState,
+} from './escrowTimeline'
+
+export type { TimelineStep, TimelineStepState } from './escrowTimeline'
 import { formatDate, shortAddress } from '@/lib'
 
 type EscrowStatus = 'funded' | 'in_progress' | 'delivered' | 'released' | 'refunded' | 'disputed' | 'cancelled'
@@ -59,19 +71,6 @@ const STATUS_ORDER: EscrowStatus[] = ['funded', 'in_progress', 'delivered', 'rel
 // ---------------------------------------------------------------------------
 // Commission status timeline (#736)
 // ---------------------------------------------------------------------------
-
-export type TimelineStepState = 'completed' | 'current' | 'pending'
-
-export interface TimelineStep {
-  key: string
-  label: string
-  state: TimelineStepState
-  /** When the step happened, if it has happened. */
-  at?: string | null
-  /** Who performed the step. */
-  actor?: string | null
-  detail?: string | null
-}
 
 export interface CommissionStatusTimelineProps {
   steps: TimelineStep[]

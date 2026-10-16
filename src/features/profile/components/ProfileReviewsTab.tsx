@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Skeleton, Stars, quantiseRating } from '@/components/ui'
 import type { ArtistProfileExtended } from '../types'
 import type { Review } from '@/types'
+import { REVIEW_SORT_OPTIONS, type ReviewSort } from './reviewSort'
 
 export interface ProfileReviewsTabProps {
   profile: ArtistProfileExtended
@@ -10,12 +11,6 @@ export interface ProfileReviewsTabProps {
 const RATING_SIZES = ['sm', 'md', 'lg'] as const
 export type RatingSize = (typeof RATING_SIZES)[number]
 
-export const REVIEW_SORT_OPTIONS = [
-  { value: 'recent', label: 'Most recent' },
-  { value: 'highest', label: 'Highest rated' },
-  { value: 'lowest', label: 'Lowest rated' },
-] as const
-export type ReviewSort = (typeof REVIEW_SORT_OPTIONS)[number]['value']
 
 const REVIEWS_PER_PAGE = 5
 const LONG_REVIEW_CHARS = 280
