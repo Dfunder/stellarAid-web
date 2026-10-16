@@ -6,6 +6,8 @@ export interface Toast {
   id: string
   message: string
   tone: ToastTone
+  /** How long this toast stays up. Defaults to {@link TOAST_DURATION_MS}. */
+  duration?: number
 }
 
 /** How long a toast stays on screen before it dismisses itself. */
@@ -33,6 +35,10 @@ function createToastId(): string {
 /** Auto-dismiss timers, keyed by toast id, so a manual dismiss can clear them. */
 const dismissTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
+/** Remaining ms per toast while paused, and when the current timer started. */
+const remainingMs = new Map<string, number>()
+const startedAt = new Map<string, number>()
+
 interface UiState {
   theme: 'light' | 'dark'
   isMobileMenuOpen: boolean
@@ -42,38 +48,70 @@ interface UiState {
   setMobileMenuOpen: (open: boolean) => void
   openModal: (modal: string) => void
   closeModal: () => void
-  pushToast: (message: string, tone?: ToastTone) => void
+  pushToast: (message: string, tone?: ToastTone, duration?: number) => void
   dismissToast: (id: string) => void
+  /** Freeze a toast's auto-dismiss timer, e.g. while the pointer is over it. */
+  pauseToast: (id: string) => void
+  /** Restart a paused toast's timer with whatever time it had left. */
+  resumeToast: (id: string) => void
 }
 
-export const useUiStore = create<UiState>((set, get) => ({
-  theme: 'light',
-  isMobileMenuOpen: false,
-  activeModal: null,
-  toasts: [],
-  setTheme: (theme) => set({ theme }),
-  setMobileMenuOpen: (isMobileMenuOpen) => set({ isMobileMenuOpen }),
-  openModal: (activeModal) => set({ activeModal }),
-  closeModal: () => set({ activeModal: null }),
-  pushToast: (message, tone = 'info') => {
-    const id = createToastId()
-    set((state) => ({
-      toasts: [...state.toasts, { id, message, tone }].slice(-MAX_TOASTS),
-    }))
+export const useUiStore = create<UiState>((set, get) => {
+  const clearTimer = (id: string) => {
+    const timer = dismissTimers.get(id)
+    if (timer !== undefined) clearTimeout(timer)
+    dismissTimers.delete(id)
+  }
+
+  const scheduleDismiss = (id: string, ms: number) => {
+    clearTimer(id)
+    remainingMs.set(id, ms)
+    startedAt.set(id, Date.now())
     dismissTimers.set(
       id,
       setTimeout(() => {
-        dismissTimers.delete(id)
+        clearTimer(id)
+        remainingMs.delete(id)
+        startedAt.delete(id)
         get().dismissToast(id)
-      }, TOAST_DURATION_MS),
+      }, ms),
     )
-  },
-  dismissToast: (id) => {
-    const timer = dismissTimers.get(id)
-    if (timer !== undefined) {
-      clearTimeout(timer)
-      dismissTimers.delete(id)
-    }
-    set((state) => ({ toasts: state.toasts.filter((toast) => toast.id !== id) }))
-  },
-}))
+  }
+
+  return {
+    theme: 'light',
+    isMobileMenuOpen: false,
+    activeModal: null,
+    toasts: [],
+    setTheme: (theme) => set({ theme }),
+    setMobileMenuOpen: (isMobileMenuOpen) => set({ isMobileMenuOpen }),
+    openModal: (activeModal) => set({ activeModal }),
+    closeModal: () => set({ activeModal: null }),
+    pushToast: (message, tone = 'info', duration = TOAST_DURATION_MS) => {
+      const id = createToastId()
+      set((state) => ({
+        toasts: [...state.toasts, { id, message, tone, duration }].slice(-MAX_TOASTS),
+      }))
+      scheduleDismiss(id, duration)
+    },
+    dismissToast: (id) => {
+      clearTimer(id)
+      remainingMs.delete(id)
+      startedAt.delete(id)
+      set((state) => ({ toasts: state.toasts.filter((toast) => toast.id !== id) }))
+    },
+    pauseToast: (id) => {
+      if (!dismissTimers.has(id)) return
+      const started = startedAt.get(id)
+      const left = remainingMs.get(id) ?? TOAST_DURATION_MS
+      clearTimer(id)
+      remainingMs.set(id, started === undefined ? left : Math.max(0, left - (Date.now() - started)))
+    },
+    resumeToast: (id) => {
+      // Only restart a toast that is still on screen and genuinely paused.
+      if (!get().toasts.some((toast) => toast.id === id)) return
+      if (!remainingMs.has(id)) return
+      scheduleDismiss(id, remainingMs.get(id) ?? TOAST_DURATION_MS)
+    },
+  }
+})
