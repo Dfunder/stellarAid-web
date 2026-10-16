@@ -1,65 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Skeleton, SkeletonCard, SkeletonText } from '@/components/ui'
 import { http } from '@/services'
-
-interface ArtworkCard {
-  id: string
-  title: string
-  thumbnail?: string
-  price: string
-  asset: string
-  sellerName: string
-  sellerUsername: string
-}
-
-const STORAGE_KEY = 'recentlyViewed'
-const MAX_HISTORY = 20
-
-function getStoredHistory(): string[] {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    return stored ? JSON.parse(stored) : []
-  } catch {
-    return []
-  }
-}
-
-function setStoredHistory(ids: string[]) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(ids))
-  } catch {
-    // Ignore storage errors
-  }
-}
-
-export function useRecentlyViewed() {
-  const [history, setHistory] = useState<string[]>(() => getStoredHistory())
-
-  const addToHistory = useCallback((artworkId: string) => {
-    setHistory((prev) => {
-      const filtered = prev.filter((id) => id !== artworkId)
-      const updated = [artworkId, ...filtered].slice(0, MAX_HISTORY)
-      setStoredHistory(updated)
-      return updated
-    })
-  }, [])
-
-  const removeFromHistory = useCallback((artworkId: string) => {
-    setHistory((prev) => {
-      const updated = prev.filter((id) => id !== artworkId)
-      setStoredHistory(updated)
-      return updated
-    })
-  }, [])
-
-  const clearHistory = useCallback(() => {
-    setHistory([])
-    setStoredHistory([])
-  }, [])
-
-  return { history, addToHistory, removeFromHistory, clearHistory }
-}
+import { useRecentlyViewed } from './useRecentlyViewed'
+import type { ArtworkCard } from '@/types'
+import { Link } from 'react-router-dom'
 
 interface RecentlyViewedProps {
   /** Maximum number of items to show */
@@ -98,7 +42,7 @@ export default function RecentlyViewed({
 
   const renderCard = (artwork: ArtworkCard) => (
     <div className="group">
-      <a href={`/checkout/${artwork.id}`} className="block">
+      <Link to={`/checkout/${artwork.id}`} className="block">
         <div className="relative aspect-square rounded-card overflow-hidden bg-surface-muted">
           {artwork.thumbnail ? (
             <img src={artwork.thumbnail} alt="" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
@@ -114,7 +58,7 @@ export default function RecentlyViewed({
         <h4 className="mt-2 text-caption font-medium text-foreground line-clamp-1">{artwork.title}</h4>
         <p className="text-caption-xs text-muted">{artwork.sellerName}</p>
         <p className="text-caption-sm font-mono text-foreground">{artwork.price} {artwork.asset}</p>
-      </a>
+      </Link>
     </div>
   )
 

@@ -11,6 +11,13 @@ import type { Config } from 'tailwindcss'
 
 const rgb = (variable: string): string => `rgb(var(${variable}) / <alpha-value>)`
 
+/**
+ * Literal token values, for the handful of scales that predate the CSS-variable
+ * theming scheme and have no `--color-*` variable behind them (#833). Formatted
+ * as `R G B` channels so Tailwind's `/opacity` modifier still works.
+ */
+const literal = (r: number, g: number, b: number): string => `rgb(${r} ${g} ${b} / <alpha-value>)`
+
 const semantic = {
   background: rgb('--color-background'),
   surface: rgb('--color-surface'),
@@ -27,6 +34,14 @@ const semantic = {
   success: rgb('--color-success'),
   warning: rgb('--color-warning'),
   danger: rgb('--color-danger'),
+  // Text/icon colour drawn on top of a `bg-danger` fill. White in both themes,
+  // because `--color-danger` stays a saturated red in light and dark.
+  'danger-contrast': literal(255, 255, 255),
+  // Informational status pill (`bg-blue/10 text-blue` on in-progress,
+  // processing and confirming orders).
+  blue: { DEFAULT: literal(37, 99, 235) },
+  // Gradient end stop on the profile header (`... via-neutral-900 to-amber-950`).
+  amber: { 950: literal(120, 53, 15) },
   focus: rgb('--color-focus-ring'),
 }
 
@@ -104,6 +119,17 @@ export default {
         body: ['1rem', { lineHeight: '1.6' }],
         caption: ['0.875rem', { lineHeight: '1.5', letterSpacing: '0.01em' }],
         'caption-sm': ['0.75rem', { lineHeight: '1.4', letterSpacing: '0.02em' }],
+        'caption-xs': ['0.6875rem', { lineHeight: '1.4', letterSpacing: '0.02em' }],
+      },
+      // Skeleton shimmer overlay: a gradient swept across a loading placeholder.
+      keyframes: {
+        shimmer: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+      },
+      animation: {
+        shimmer: 'shimmer 1.6s ease-in-out infinite',
       },
     },
   },

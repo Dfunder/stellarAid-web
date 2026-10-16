@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
-import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
+import { Button, ExplorerLink, Input, Modal, Spinner, Select } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { formatDate } from '@/lib'
@@ -285,23 +285,18 @@ export default function EditListing({ listingId: listingIdProp }: { listingId?: 
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label htmlFor="category" className="block text-caption-sm font-medium text-foreground mb-1">
-                  Category *
-                </label>
-                <select
-                  id="category"
-                  value={formData.category ?? ''}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
-                  className="w-full rounded-control border border-line bg-background px-3 py-2 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  error={errors.category}
-                >
-                  <option value="">Select category</option>
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
+              <Select
+                label="Category *"
+                id="category"
+                value={formData.category ?? ''}
+                onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
+                error={errors.category}
+              >
+                <option value="">Select category</option>
+                {CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </Select>
 
               <div>
                 <label htmlFor="tags" className="block text-caption-sm font-medium text-foreground mb-1">
@@ -381,24 +376,19 @@ export default function EditListing({ listingId: listingIdProp }: { listingId?: 
                 />
               </div>
 
-              <div>
-                <label htmlFor="asset" className="block text-caption-sm font-medium text-foreground mb-1">
-                  Asset *
-                </label>
-                <select
-                  id="asset"
-                  value={formData.asset ?? ''}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, asset: e.target.value as ListingFormData['asset'] }))}
-                  className="w-full rounded-control border border-line bg-background px-3 py-2 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  error={errors.asset}
-                >
-                  <option value="">Select asset</option>
-                  <option value="XLM">XLM (7 decimals)</option>
-                  <option value="USDC">USDC (2 decimals)</option>
-                  <option value="NGNT">NGNT (2 decimals)</option>
-                  <option value="EURC">EURC (2 decimals)</option>
-                </select>
-              </div>
+              <Select
+                label="Asset *"
+                id="asset"
+                value={formData.asset ?? ''}
+                onChange={(e) => setFormData((prev) => ({ ...prev, asset: e.target.value as ListingFormData['asset'] }))}
+                error={errors.asset}
+              >
+                <option value="">Select asset</option>
+                <option value="XLM">XLM (7 decimals)</option>
+                <option value="USDC">USDC (2 decimals)</option>
+                <option value="NGNT">NGNT (2 decimals)</option>
+                <option value="EURC">EURC (2 decimals)</option>
+              </Select>
             </div>
 
             <div>

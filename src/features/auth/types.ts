@@ -1,5 +1,5 @@
 import type { StellarNetwork } from '@/config'
-import type { UserRole } from '@/types/api/models'
+import type { User as ApiUser, UserRole } from '@/types/api/models'
 
 /** Roles a user can hold; mirrors the backend's role enum. */
 export type { UserRole }
@@ -12,14 +12,12 @@ export interface UserSocials {
   artstation?: string
 }
 
-/** The signed-in user's profile, as returned by `/auth/me`. */
-export interface User {
-  id: string
-  email: string
-  name: string
-  username?: string
-  role: UserRole
-  emailVerified: boolean
+/**
+ * The signed-in user's profile, as returned by `/auth/me`. It builds on the canonical `User` model in
+ * `@/types` (id, name, email, username, role, emailVerified) instead of redeclaring those fields; only the avatar is
+ * relaxed to optional because `/auth/me` may omit it.
+ */
+export interface User extends Omit<ApiUser, 'avatarUrl'> {
   avatarUrl?: string | null
   coverUrl?: string | null
   bio?: string

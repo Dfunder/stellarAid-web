@@ -44,10 +44,10 @@ export { authKeys } from './queryKeys'
 
 export { authApi } from './services/authApi'
 export { authService } from './services/authService'
+export { bindSessionToHttp } from './services/session'
 export { WalletError, isWalletError, walletAdapters } from './services/wallets'
 export type { WalletAdapter, WalletErrorCode } from './services/wallets'
 
-export { authStore, getAuthState, subscribeAuth } from './stores/authStore'
 export { useAuthStore } from './stores/useAuthStore'
 export { getWalletConnection, getWalletState, subscribeWallet, walletStore } from './stores/walletStore'
 

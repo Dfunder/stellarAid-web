@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, ExplorerLink, Modal, Spinner } from '@/components/ui'
+import { Button, ExplorerLink, Modal, Spinner, Select } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { formatDate } from '@/lib'
+import { Link } from 'react-router-dom'
 
 interface Listing {
   id: string
@@ -182,21 +183,23 @@ export default function MyListingsDashboard() {
         </div>
         {listings.length === 0 && statusFilter === 'all' && (
           <Button asChild>
-            <a href="/artist/listings/new">Create Your First Listing</a>
+            <Link to="/artist/listings/new">Create Your First Listing</Link>
           </Button>
         )}
       </div>
 
       <div className="rounded-card border border-line bg-surface shadow-card overflow-hidden">
         <div className="p-4 border-b border-line bg-surface-muted flex flex-wrap items-center gap-2">
-          <label className="text-caption-sm text-muted">Status:</label>
-          <select
+          <Select
+            label="Status"
             value={statusFilter}
             onChange={(e) => {
               updateParams({ status: e.target.value }, true)
               setSelectedIds(new Set())
             }}
             className="rounded-control border border-line bg-background px-3 py-1.5 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            onChange={(e) => { setStatusFilter(e.target.value as typeof statusFilter); setSelectedIds(new Set()) }}
+            className="py-1.5 text-caption-sm"
           >
             <option value="all">All statuses</option>
             <option value="draft">Draft</option>
@@ -215,6 +218,7 @@ export default function MyListingsDashboard() {
               <option key={key} value={key}>{SORT_LABELS[key]}</option>
             ))}
           </select>
+          </Select>
         </div>
 
         {listings.length === 0 ? (
@@ -230,7 +234,7 @@ export default function MyListingsDashboard() {
             )}
             {statusFilter === 'all' && (
               <Button asChild className="mt-4">
-                <a href="/artist/listings/new">Create Listing</a>
+                <Link to="/artist/listings/new">Create Listing</Link>
               </Button>
             )}
           </div>
@@ -295,13 +299,13 @@ export default function MyListingsDashboard() {
                         <div className="flex flex-wrap items-center gap-2">
                           {listing.status === 'draft' && (
                             <Button size="sm" variant="secondary" asChild>
-                              <a href={`/artist/listings/${listing.id}/edit`}>Edit</a>
+                              <Link to={`/artist/listings/${listing.id}/edit`}>Edit</Link>
                             </Button>
                           )}
                           {listing.status === 'active' && (
                             <>
                               <Button size="sm" variant="ghost" asChild>
-                                <a href={`/checkout/${listing.id}`}>View</a>
+                                <Link to={`/checkout/${listing.id}`}>View</Link>
                               </Button>
                               <Button
                                 size="sm"

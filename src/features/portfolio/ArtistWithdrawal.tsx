@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
+import { Button, ExplorerLink, Input, Modal, Spinner, Select } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
-import { formatDate } from '@/lib'
+import { formatDate, shortAddress } from '@/lib'
 import type { LinkedWallet } from '@/features/auth/types'
 
 interface Balance {
@@ -151,6 +151,20 @@ export default function ArtistWithdrawal() {
       <div className="rounded-card border border-line bg-surface p-6 shadow-card">
         <h2 className="text-h3">Withdraw {selectedAsset}</h2>
         <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4 max-w-md">
+          <Select
+            label="Destination Wallet"
+            hint="Withdrawals only go to linked, verified wallets"
+            id="wallet"
+            value={selectedWalletId || defaultWalletId}
+            onChange={(e) => setSelectedWalletId(e.target.value)}
+            disabled={withdrawMutation.isPending}
+          >
+            {wallets?.map((wallet) => (
+              <option key={wallet.id} value={wallet.id}>
+                {wallet.publicKey.slice(0, 10)}…{wallet.publicKey.slice(-8)} ({wallet.network}){wallet.isPrimary ? ' — Primary' : ''}
+              </option>
+            ))}
+          </Select>
           <div>
             <label htmlFor="wallet" className="block text-caption-sm font-medium text-foreground mb-1">
               Destination Wallet
@@ -164,7 +178,7 @@ export default function ArtistWithdrawal() {
             >
               {wallets?.map((wallet) => (
                 <option key={wallet.id} value={wallet.id}>
-                  {wallet.publicKey.slice(0, 10)}…{wallet.publicKey.slice(-8)} ({wallet.network}){wallet.isPrimary ? ' — Primary' : ''}
+                  {shortAddress(wallet.publicKey)} ({wallet.network}){wallet.isPrimary ? ' — Primary' : ''}
                 </option>
               ))}
             </select>
@@ -249,7 +263,7 @@ export default function ArtistWithdrawal() {
                         </td>
                         <td className="px-4 py-3 text-caption-sm text-foreground">{item.asset}</td>
                         <td className="px-4 py-3 text-caption-sm text-muted">
-                          {item.destination.slice(0, 10)}…{item.destination.slice(-8)}
+                          {shortAddress(item.destination)}
                         </td>
                         <td className="px-4 py-3">
                           <span

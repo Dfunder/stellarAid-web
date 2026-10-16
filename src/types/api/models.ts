@@ -46,7 +46,8 @@ export interface ArtistProfile {
   createdAt: Date
 }
 
-export type ArtworkStatus = 'draft' | 'published' | 'sold' | 'unpublished'
+/** Same values the listing screens use (`active`, not `published`). */
+export type ArtworkStatus = 'draft' | 'active' | 'sold' | 'unpublished'
 
 export interface Artwork {
   id: string

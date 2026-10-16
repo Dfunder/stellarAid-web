@@ -9,7 +9,7 @@ import ErrorBoundary from '@/components/ui/ErrorBoundary'
 import ThemeProvider from '@/components/ui/ThemeProvider'
 import App from '@/App'
 import { configError, loadRemoteFeatureFlags } from '@/config'
-import { AuthProvider } from '@/features/auth'
+import { AuthProvider, bindSessionToHttp } from '@/features/auth'
 import { queryClient } from '@/stores'
 
 const root = document.getElementById('root')
@@ -24,6 +24,8 @@ if (configError) {
     </StrictMode>,
   )
 } else {
+  // The one place the HTTP layer is wired to the auth session.
+  bindSessionToHttp()
   void loadRemoteFeatureFlags()
   createRoot(root).render(
     <StrictMode>
