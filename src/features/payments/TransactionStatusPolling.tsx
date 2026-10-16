@@ -2,7 +2,8 @@ import { useEffect, useState, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
-import { formatDate } from '@/lib'
+import { formatDate, statusMeta } from '@/lib'
+import { formatDate, shortAddress } from '@/lib'
 import { txStatusRefetchInterval } from './polling'
 
 type TxStatus = 'submitted' | 'confirming' | 'confirmed' | 'failed'
@@ -20,19 +21,7 @@ interface TransactionStatusData {
   confirmedAt?: string
 }
 
-const STATUS_LABELS: Record<TxStatus, string> = {
-  submitted: 'Submitted',
-  confirming: 'Confirming',
-  confirmed: 'Confirmed',
-  failed: 'Failed',
-}
 
-const STATUS_COLORS: Record<TxStatus, string> = {
-  submitted: 'bg-muted text-muted',
-  confirming: 'bg-blue/10 text-blue',
-  confirmed: 'bg-success/10 text-success',
-  failed: 'bg-danger/10 text-danger',
-}
 
 interface TransactionStatusPollingProps {
   /** Transaction hash to poll */
@@ -105,7 +94,7 @@ export default function TransactionStatusPolling({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
             <div
-              className={`h-10 w-10 rounded-full flex items-center justify-center ${STATUS_COLORS[currentStatus]}`}
+              className={`h-10 w-10 rounded-full flex items-center justify-center ${statusMeta(currentStatus).className}`}
             >
               {currentStatus === 'confirming' && <Spinner className="h-5 w-5" />}
               {currentStatus === 'confirmed' && (
@@ -132,8 +121,10 @@ export default function TransactionStatusPolling({
               )}
             </div>
             <div>
-              <p className="text-caption-sm font-medium text-foreground">{STATUS_LABELS[currentStatus]}</p>
+              <p className="text-caption-sm font-medium text-foreground">{statusMeta(currentStatus).label}</p>
               <p className="text-caption-xs text-muted font-mono">{txHash.slice(0, 12)}…{txHash.slice(-8)}</p>
+              <p className="text-caption-sm font-medium text-foreground">{STATUS_LABELS[currentStatus]}</p>
+              <p className="text-caption-xs text-muted font-mono">{shortAddress(txHash)}</p>
             </div>
           </div>
 
@@ -197,7 +188,7 @@ export default function TransactionStatusPolling({
       <div className="rounded-card border border-line bg-surface p-8 shadow-card text-center">
         <div className="mb-6">
           <div
-            className={`h-20 w-20 rounded-full mx-auto flex items-center justify-center ${STATUS_COLORS[currentStatus]}`}
+            className={`h-20 w-20 rounded-full mx-auto flex items-center justify-center ${statusMeta(currentStatus).className}`}
           >
             {currentStatus === 'confirming' && <Spinner className="h-10 w-10" />}
             {currentStatus === 'confirmed' && (
@@ -225,9 +216,9 @@ export default function TransactionStatusPolling({
           </div>
         </div>
 
-        <h1 className="text-h2">{STATUS_LABELS[currentStatus]}</h1>
+        <h1 className="text-h2">{statusMeta(currentStatus).label}</h1>
         <p className="mt-2 text-caption text-muted">
-          Transaction: <code className="font-mono">{txHash.slice(0, 16)}…{txHash.slice(-8)}</code>
+          Transaction: <code className="font-mono">{shortAddress(txHash)}</code>
         </p>
 
         {currentStatus === 'confirming' && (

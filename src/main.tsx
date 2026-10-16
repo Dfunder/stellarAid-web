@@ -11,6 +11,7 @@ import App from '@/App'
 import { configError, loadRemoteFeatureFlags } from '@/config'
 import { AuthProvider } from '@/features/auth'
 import { analytics } from '@/lib'
+import { AuthProvider, bindSessionToHttp } from '@/features/auth'
 import { queryClient } from '@/stores'
 
 // #846 — `analytics.setProvider` had no call site anywhere, so `track` ran
@@ -38,6 +39,8 @@ if (configError) {
     </StrictMode>,
   )
 } else {
+  // The one place the HTTP layer is wired to the auth session.
+  bindSessionToHttp()
   void loadRemoteFeatureFlags()
   createRoot(root).render(
     <StrictMode>

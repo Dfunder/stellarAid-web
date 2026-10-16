@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDate, formatShortDate, truncateMiddle } from './format'
+import { formatDate, formatShortDate, shortAddress, truncateMiddle } from './format'
 
 describe('truncateMiddle', () => {
   it('returns values at or below the truncation window unchanged', () => {
@@ -49,5 +49,16 @@ describe('formatShortDate', () => {
   it('returns a placeholder for an invalid date', () => {
     expect(formatShortDate('not-a-date')).toBe('Invalid date')
     expect(formatShortDate('')).toBe('Invalid date')
+  })
+})
+
+describe('shortAddress', () => {
+  it('keeps 10 leading and 8 trailing characters', () => {
+    const key = 'GABCDEFGHIJKLMNOPQRSTUVWXYZ234567ABCDEFGHIJKLMNOPQRSTUVW'
+    expect(shortAddress(key)).toBe(`${key.slice(0, 10)}…${key.slice(-8)}`)
+  })
+
+  it('returns short values unchanged instead of overlapping', () => {
+    expect(shortAddress('GABC')).toBe('GABC')
   })
 })

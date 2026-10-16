@@ -1,7 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useAuth } from '@/features/auth'
-import { authStore } from '@/features/auth/stores/authStore'
-import { useAuthStore } from '@/features/auth/stores/useAuthStore'
+import { useAuth, useAuthStore } from '@/features/auth'
 import { profileService } from '../services/profileService'
 import type { ProfileEditFormValues } from '../types'
 import { artistProfileKey } from './useArtistProfile'
@@ -15,8 +13,7 @@ export function useUpdateProfile() {
       if (!user) throw new Error('You must be signed in to update your profile.')
       const updatedUser = await profileService.updateProfile(user, values)
 
-      // Sync across all stores
-      authStore.setSession(updatedUser)
+      // The single auth store is the only copy of the signed-in user
       useAuthStore.getState().setUser({
         ...updatedUser,
         avatarUrl: updatedUser.avatarUrl ?? null,

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, Input, Modal, Spinner } from '@/components/ui'
+import { Button, Input, Modal, Spinner, Select } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { MultiAssetPricingInput, LicenseTermsField } from '.'
@@ -288,23 +288,18 @@ export default function MultiStepListingWizard({
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label htmlFor="category" className="block text-caption-sm font-medium text-foreground mb-1">
-                  Category *
-                </label>
-                <select
-                  id="category"
-                  value={formData.category ?? ''}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
-                  className="w-full rounded-control border border-line bg-background px-3 py-2 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  error={errors.category}
-                >
-                  <option value="">Select category</option>
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
+              <Select
+                label="Category *"
+                id="category"
+                value={formData.category ?? ''}
+                onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
+                error={errors.category}
+              >
+                <option value="">Select category</option>
+                {CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </Select>
 
               <div>
                 <label htmlFor="tags" className="block text-caption-sm font-medium text-foreground mb-1">

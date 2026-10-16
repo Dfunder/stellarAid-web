@@ -4,21 +4,18 @@ import { Button, ExplorerLink } from '@/components/ui'
 import { http } from '@/services'
 import { useWallet } from '@/features/auth/hooks/useWallet'
 import { formatDate } from '@/lib'
+import { DISPLAY_FALLBACK_PRECISION, getAssetMeta } from '@/config'
+import { Link } from 'react-router-dom'
+
+interface AssetBalance {
+  asset: string
+  balance: string
+  hasTrustline: boolean
+  trustlineLimit?: string
+}
 import { sumByAsset, type AssetBalance } from './walletBalances'
 
-const ASSET_LABELS: Record<string, string> = {
-  XLM: 'XLM (Native)',
-  USDC: 'USDC',
-  NGNT: 'NGNT',
-  EURC: 'EURC',
-}
 
-const ASSET_PRECISION: Record<string, number> = {
-  XLM: 7,
-  USDC: 2,
-  NGNT: 2,
-  EURC: 2,
-}
 
 interface WalletBalanceDisplayProps {
   /** Assets to display balances for */
@@ -70,15 +67,16 @@ export default function WalletBalanceDisplay({
     return (
       <div className={className}>
         <Button variant="ghost" size="sm" asChild>
-          <a href="/settings/wallets">Connect wallet to see balances</a>
+          <Link to="/settings/wallets">Connect wallet to see balances</Link>
         </Button>
       </div>
     )
   }
 
   const renderBalanceItem = (balance: AssetBalance) => {
-    const precision = ASSET_PRECISION[balance.asset] ?? 7
-    const label = ASSET_LABELS[balance.asset] ?? balance.asset
+    const meta = getAssetMeta(balance.asset)
+    const precision = meta?.precision ?? DISPLAY_FALLBACK_PRECISION
+    const label = meta?.label ?? balance.asset
 
     return (
       <div
@@ -183,7 +181,7 @@ export default function WalletBalanceDisplay({
                     Some assets need trustlines to receive payments.
                   </p>
                   <Button size="sm" variant="secondary" className="w-full" asChild>
-                    <a href="/settings/wallets">Manage trustlines</a>
+                    <Link to="/settings/wallets">Manage trustlines</Link>
                   </Button>
                 </div>
               )}
@@ -193,7 +191,7 @@ export default function WalletBalanceDisplay({
                   Refresh
                 </Button>
                 <Button size="sm" variant="ghost" className="flex-1" asChild>
-                  <a href="/settings/wallets">Manage</a>
+                  <Link to="/settings/wallets">Manage</Link>
                 </Button>
               </div>
             </div>
@@ -236,7 +234,7 @@ export default function WalletBalanceDisplay({
             {missingTrustlines.length} asset{missingTrustlines.length > 1 ? 's' : ''} missing trustline{missingTrustlines.length > 1 ? 's' : ''}.
           </p>
           <Button size="sm" variant="secondary" className="mt-2" asChild>
-            <a href="/settings/wallets">Add trustlines</a>
+            <Link to="/settings/wallets">Add trustlines</Link>
           </Button>
         </div>
       )}
