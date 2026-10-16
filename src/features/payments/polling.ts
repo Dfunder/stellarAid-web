@@ -25,15 +25,20 @@ type TxStatus = 'submitted' | 'confirming' | 'confirmed' | 'failed'
  * Transaction status polling: the base interval before the first payload,
  * exponential backoff while pending (3s, 6s, 12s, 24s, max 30s), and no
  * interval once the transaction reaches `confirmed` or `failed`.
+ *
+ * When a caller passes `maxPollTime`, a transaction that is *still* pending
+ * after that budget stops being polled instead of backing off forever (#799).
  */
 export function txStatusRefetchInterval(
   query: RefetchableQuery<{ status: TxStatus }>,
   pollInterval: number,
-  startTime: number
+  startTime: number,
+  maxPollTime?: number
 ): number | false {
   const data = query.state.data
   if (!data) return pollInterval
   if (data.status === 'confirmed' || data.status === 'failed') return false
   const elapsed = Date.now() - startTime
+  if (maxPollTime !== undefined && elapsed > maxPollTime) return false
   return Math.min(pollInterval * Math.pow(2, Math.floor(elapsed / 15000)), 30000)
 }
