@@ -1,35 +1,10 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { Button, Skeleton, SkeletonGrid, SkeletonText } from '@/components/ui'
 import { http } from '@/services'
 import { formatDate } from '@/lib'
-
-interface Category {
-  slug: string
-  name: string
-  description: string
-  image?: string
-  subCategories: SubCategory[]
-  artworkCount: number
-  artistCount: number
-}
-
-interface SubCategory {
-  slug: string
-  name: string
-  count: number
-}
-
-interface CategoryArtwork {
-  id: string
-  title: string
-  thumbnail?: string
-  price: string
-  asset: string
-  sellerName: string
-  sellerUsername: string
-}
+import type { ArtworkCard, CategorySummary } from '@/types'
 
 export interface CategoryLandingPageProps {
   /** Category slug from the route (`category/:slug`); optional for reuse outside the router. */
@@ -46,8 +21,8 @@ export default function CategoryLandingPage({ slug: slugProp }: CategoryLandingP
 
   const { data: category, isPending: categoryPending, isError: categoryError } = useQuery({
     queryKey: ['category', slug],
-    queryFn: async (): Promise<Category> => {
-      const response = await http.get<{ category: Category }>(`/categories/${slug}`)
+    queryFn: async (): Promise<CategorySummary> => {
+      const response = await http.get<{ category: CategorySummary }>(`/categories/${slug}`)
       return response.category
     },
     enabled: !!slug,
@@ -55,10 +30,10 @@ export default function CategoryLandingPage({ slug: slugProp }: CategoryLandingP
 
   const { data: artworks, isPending: artworksPending } = useQuery({
     queryKey: ['categoryArtworks', slug, subCategoryFilter],
-    queryFn: async (): Promise<CategoryArtwork[]> => {
+    queryFn: async (): Promise<ArtworkCard[]> => {
       const params = new URLSearchParams()
       if (subCategoryFilter !== 'all') params.set('subCategory', subCategoryFilter)
-      const response = await http.get<{ artworks: CategoryArtwork[] }>(`/categories/${slug}/artworks?${params}`)
+      const response = await http.get<{ artworks: ArtworkCard[] }>(`/categories/${slug}/artworks?${params}`)
       return response.artworks
     },
     enabled: !!slug,
@@ -82,15 +57,15 @@ export default function CategoryLandingPage({ slug: slugProp }: CategoryLandingP
         <h1 className="text-h2">Category not found</h1>
         <p className="mt-2 text-caption text-muted">The category "{slug}" does not exist.</p>
         <Button className="mt-6" asChild>
-          <a href="/">Browse all categories</a>
+          <Link to="/">Browse all categories</Link>
         </Button>
       </div>
     )
   }
 
-  const renderCard = (artwork: CategoryArtwork) => (
+  const renderCard = (artwork: ArtworkCard) => (
     <article className="group">
-      <a href={`/checkout/${artwork.id}`} className="block">
+      <Link to={`/checkout/${artwork.id}`} className="block">
         <div className="relative aspect-square rounded-card overflow-hidden bg-surface-muted">
           {artwork.thumbnail ? (
             <img src={artwork.thumbnail} alt="" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
@@ -106,7 +81,7 @@ export default function CategoryLandingPage({ slug: slugProp }: CategoryLandingP
         <h3 className="mt-3 text-caption font-medium text-foreground line-clamp-1">{artwork.title}</h3>
         <p className="text-caption-xs text-muted">{artwork.sellerName}</p>
         <p className="text-caption-sm font-mono text-foreground">{artwork.price} {artwork.asset}</p>
-      </a>
+      </Link>
     </article>
   )
 

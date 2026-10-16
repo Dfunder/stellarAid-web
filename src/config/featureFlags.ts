@@ -49,7 +49,9 @@ export function subscribeToFeatureFlags(listener: () => void): () => void {
 export function setRemoteFeatureFlags(overrides: Partial<Record<string, unknown>>): void {
   remoteOverrides = Object.fromEntries(
     Object.entries(overrides).filter(
-      ([flag, value]) => flag in FLAG_DEFAULTS && typeof value === 'boolean',
+      // `Object.hasOwn` (never `in`) so an inherited `Object.prototype` key
+      // such as `toString` or `constructor` cannot pass as a flag (#796).
+      ([flag, value]) => Object.hasOwn(FLAG_DEFAULTS, flag) && typeof value === 'boolean',
     ),
   ) as Partial<FeatureFlags>
   currentFlags = resolveFlags()

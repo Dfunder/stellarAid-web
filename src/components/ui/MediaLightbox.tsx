@@ -1,26 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type TouchEvent } from 'react'
 import { cn } from '@/lib'
-
-export function normalizeImageList(images: Array<string | null | undefined> | null | undefined): string[] {
-  return (images ?? [])
-    .map((image) => (typeof image === 'string' ? image.trim() : ''))
-    .filter((image) => image.length > 0)
-}
-
-export function clampIndex(index: number, total: number): number {
-  if (total <= 0) return 0
-  return Math.min(Math.max(index, 0), total - 1)
-}
-
-export function getAdjacentIndices(index: number, total: number): { previous: number; next: number } {
-  const safeTotal = total <= 0 ? 1 : total
-  const safeIndex = clampIndex(index, safeTotal)
-
-  return {
-    previous: clampIndex(safeIndex - 1, safeTotal),
-    next: clampIndex(safeIndex + 1, safeTotal),
-  }
-}
+import { clampIndex, getAdjacentIndices, normalizeImageList } from './mediaLightbox'
 
 const clampZoom = (value: number): number => Math.min(Math.max(value, 1), 3)
 const clampPan = (value: number, zoom: number): number => {

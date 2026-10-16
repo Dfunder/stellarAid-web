@@ -1,51 +1,19 @@
 import { useMemo, useState } from 'react'
-import { Skeleton } from '@/components/ui'
+import { Skeleton, Stars, quantiseRating } from '@/components/ui'
 import type { ArtistProfileExtended } from '../types'
 import type { Review } from '@/types'
+import { REVIEW_SORT_OPTIONS, type ReviewSort } from './reviewSort'
 
 export interface ProfileReviewsTabProps {
   profile: ArtistProfileExtended
 }
 
-const STAR_PATH =
-  'M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z'
-
-/** Star fills are quantised to halves, so a rating never renders as a sliver. */
-const STAR_STEPS = [0, 0.5, 1]
-
-const STAR_SIZE_CLASSES = {
-  sm: 'h-3.5 w-3.5',
-  md: 'h-4 w-4',
-  lg: 'h-5 w-5',
-} as const
-
 const RATING_SIZES = ['sm', 'md', 'lg'] as const
 export type RatingSize = (typeof RATING_SIZES)[number]
 
-export const REVIEW_SORT_OPTIONS = [
-  { value: 'recent', label: 'Most recent' },
-  { value: 'highest', label: 'Highest rated' },
-  { value: 'lowest', label: 'Lowest rated' },
-] as const
-export type ReviewSort = (typeof REVIEW_SORT_OPTIONS)[number]['value']
 
 const REVIEWS_PER_PAGE = 5
 const LONG_REVIEW_CHARS = 280
-
-/** Round to the nearest half so 4.3 -> 4.5 and 4.2 -> 4.0. */
-function quantise(value: number): number {
-  const clamped = Math.min(5, Math.max(0, value))
-  return Math.round(clamped * 2) / 2
-}
-
-function starFill(index: number, value: number): string {
-  // index is 1-based; how much of this star is lit.
-  const lit = Math.min(1, Math.max(0, value - (index - 1)))
-  const step = STAR_STEPS.reduce((best, s) => (Math.abs(s - lit) < Math.abs(best - lit) ? s : best))
-  if (step === 0) return 'text-line'
-  if (step === 1) return 'text-gold fill-current'
-  return 'text-line'
-}
 
 export interface StarRatingProps {
   /** Raw average, e.g. 4.3. Rendered at half-star precision. */
@@ -82,17 +50,11 @@ export function StarRating({
     )
   }
 
-  const rounded = quantise(value)
+  const rounded = quantiseRating(value)
 
   return (
     <span className={`inline-flex items-center gap-1 ${className}`}>
-      <span className="inline-flex items-center gap-0.5" role="img" aria-label={`${rounded.toFixed(1)} out of 5 stars`}>
-        {[1, 2, 3, 4, 5].map((i) => (
-          <svg key={i} className={`${STAR_SIZE_CLASSES[size]} ${starFill(i, rounded)}`} viewBox="0 0 20 20" aria-hidden="true">
-            <path d={STAR_PATH} />
-          </svg>
-        ))}
-      </span>
+      <Stars value={rounded} size={size} />
       {showValue && <span className="text-caption-sm font-bold text-foreground">{rounded.toFixed(1)}</span>}
     </span>
   )

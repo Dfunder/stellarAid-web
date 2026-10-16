@@ -1,4 +1,7 @@
-import { Button, Spinner } from '.'
+// Imported directly: the barrel re-exports `ErrorState` itself, so importing
+// from '.' is a circular self-import that can resolve to `undefined` (#797).
+import Button from './Button'
+import Spinner from './Spinner'
 
 interface ErrorStateProps {
   /** Error message */

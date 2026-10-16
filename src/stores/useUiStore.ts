@@ -33,28 +33,18 @@ function createToastId(): string {
 /** Auto-dismiss timers, keyed by toast id, so a manual dismiss can clear them. */
 const dismissTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
+/**
+ * Global UI state: toast notifications only. (Theme lives in `ThemeProvider` / `@/lib/theme`; there is no mobile menu
+ * or modal manager yet, so no placeholder state for them is kept here.)
+ */
 interface UiState {
-  theme: 'light' | 'dark'
-  isMobileMenuOpen: boolean
-  activeModal: string | null
   toasts: Toast[]
-  setTheme: (theme: 'light' | 'dark') => void
-  setMobileMenuOpen: (open: boolean) => void
-  openModal: (modal: string) => void
-  closeModal: () => void
   pushToast: (message: string, tone?: ToastTone) => void
   dismissToast: (id: string) => void
 }
 
 export const useUiStore = create<UiState>((set, get) => ({
-  theme: 'light',
-  isMobileMenuOpen: false,
-  activeModal: null,
   toasts: [],
-  setTheme: (theme) => set({ theme }),
-  setMobileMenuOpen: (isMobileMenuOpen) => set({ isMobileMenuOpen }),
-  openModal: (activeModal) => set({ activeModal }),
-  closeModal: () => set({ activeModal: null }),
   pushToast: (message, tone = 'info') => {
     const id = createToastId()
     set((state) => ({

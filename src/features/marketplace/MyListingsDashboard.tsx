@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, ExplorerLink, Modal, Spinner } from '@/components/ui'
+import { Button, ExplorerLink, Modal, Spinner, Select } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { formatDate } from '@/lib'
+import { Link } from 'react-router-dom'
 
 interface Listing {
   id: string
@@ -68,6 +69,9 @@ export default function MyListingsDashboard() {
       setSelectedIds(new Set())
     },
   })
+
+  // Keeps the confirmation's confirm button from double-firing (#786).
+  const isActionPending = unpublishMutation.isPending || deleteMutation.isPending
 
   const handleToggleSelect = (id: string) => {
     const newSet = new Set(selectedIds)
@@ -144,25 +148,25 @@ export default function MyListingsDashboard() {
         </div>
         {listings.length === 0 && statusFilter === 'all' && (
           <Button asChild>
-            <a href="/artist/listings/new">Create Your First Listing</a>
+            <Link to="/artist/listings/new">Create Your First Listing</Link>
           </Button>
         )}
       </div>
 
       <div className="rounded-card border border-line bg-surface shadow-card overflow-hidden">
         <div className="p-4 border-b border-line bg-surface-muted flex flex-wrap items-center gap-2">
-          <label className="text-caption-sm text-muted">Status:</label>
-          <select
+          <Select
+            label="Status"
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value as typeof statusFilter); setSelectedIds(new Set()) }}
-            className="rounded-control border border-line bg-background px-3 py-1.5 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="py-1.5 text-caption-sm"
           >
             <option value="all">All statuses</option>
             <option value="draft">Draft</option>
             <option value="active">Active</option>
             <option value="sold">Sold</option>
             <option value="unpublished">Unpublished</option>
-          </select>
+          </Select>
         </div>
 
         {listings.length === 0 ? (
@@ -178,7 +182,7 @@ export default function MyListingsDashboard() {
             )}
             {statusFilter === 'all' && (
               <Button asChild className="mt-4">
-                <a href="/artist/listings/new">Create Listing</a>
+                <Link to="/artist/listings/new">Create Listing</Link>
               </Button>
             )}
           </div>
@@ -243,13 +247,13 @@ export default function MyListingsDashboard() {
                         <div className="flex flex-wrap items-center gap-2">
                           {listing.status === 'draft' && (
                             <Button size="sm" variant="secondary" asChild>
-                              <a href={`/artist/listings/${listing.id}/edit`}>Edit</a>
+                              <Link to={`/artist/listings/${listing.id}/edit`}>Edit</Link>
                             </Button>
                           )}
                           {listing.status === 'active' && (
                             <>
                               <Button size="sm" variant="ghost" asChild>
-                                <a href={`/checkout/${listing.id}`}>View</a>
+                                <Link to={`/checkout/${listing.id}`}>View</Link>
                               </Button>
                               <Button
                                 size="sm"
@@ -292,6 +296,37 @@ export default function MyListingsDashboard() {
           </>
         )}
       </div>
+
+      {/* Unpublish and delete are irreversible, so both go through this
+          confirmation instead of firing on a single click (#786). */}
+      <Modal
+        isOpen={pendingAction !== null}
+        onClose={() => setPendingAction(null)}
+        title={pendingAction?.type === 'delete' ? 'Delete listing' : 'Unpublish listing'}
+        description={
+          pendingAction
+            ? `${pendingAction.type === 'delete' ? 'Delete' : 'Unpublish'} "${pendingAction.listing.title}"? ${
+                pendingAction.type === 'delete'
+                  ? 'This permanently removes the listing.'
+                  : 'It will no longer be visible to buyers.'
+              }`
+            : ''
+        }
+      >
+        <div className="mt-6 flex justify-end gap-2">
+          <Button variant="ghost" onClick={() => setPendingAction(null)} disabled={isActionPending}>
+            Cancel
+          </Button>
+          <Button
+            variant={pendingAction?.type === 'delete' ? 'danger' : 'primary'}
+            onClick={() => void handleConfirmAction()}
+            isLoading={isActionPending}
+            disabled={isActionPending}
+          >
+            {pendingAction?.type === 'delete' ? 'Delete' : 'Unpublish'}
+          </Button>
+        </div>
+      </Modal>
     </div>
   )
 }

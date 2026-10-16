@@ -2,39 +2,15 @@ import { useState } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button, ErrorState, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useParams, Link, createSearchParams } from 'react-router-dom'
+import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { PaymentAssetSelector, WalletBalanceDisplay } from '@/features/payments'
 import { formatDate } from '@/lib'
 import { LICENSE_PRESETS } from './constants'
-
-interface Artwork {
-  id: string
-  title: string
-  description: string
-  price: string
-  asset: string
-  acceptedAssets: string[]
-  seller: {
-    id: string
-    name: string
-    username: string
-    avatarUrl?: string
-  }
-  licenseTerms: string
-  images: string[]
-}
-
-interface CheckoutSession {
-  id: string
-  artworkId: string
-  amount: string
-  asset: string
-  platformFee: string
-  networkFeeEstimate: string
-  total: string
-  expiresAt: string
-}
+import type { CheckoutArtwork, CheckoutSession } from '@/types'
 
 export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?: string }) {
   // The route (`checkout/:artworkId`) never passed the prop this page
@@ -44,6 +20,8 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
   // prop keeps the page usable outside the router.
   const params = useParams()
   const artworkId = artworkIdProp ?? params.artworkId
+  // Encoded so the redirect survives the round trip through the login/register query string.
+  const authRedirect = `?${createSearchParams({ redirect: `/checkout/${artworkId}` }).toString()}`
   const { user } = useAuth()
   const navigate = useNavigate()
   const [selectedAsset, setSelectedAsset] = useState<string>('')
@@ -52,7 +30,7 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
 
   const { data: artwork, isPending: artworkPending, isError: artworkError, refetch: refetchArtwork } = useQuery({
     queryKey: ['artwork', artworkId],
-    queryFn: async (): Promise<Artwork> => (await http.get<{ artwork: Artwork }>(`/artworks/${artworkId}`)).artwork,
+    queryFn: async (): Promise<CheckoutArtwork> => (await http.get<{ artwork: CheckoutArtwork }>(`/artworks/${artworkId}`)).artwork,
     enabled: !!artworkId,
   })
 
@@ -120,8 +98,27 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
       <div className="container py-24 text-center">
         <h1 className="text-h2">Artwork not found</h1>
         <Button className="mt-6" asChild>
-          <a href="/">Browse marketplace</a>
+          <Link to="/">Browse marketplace</Link>
         </Button>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="container py-12 max-w-md mx-auto">
+        <div className="rounded-card border border-line bg-surface p-8 shadow-card text-center">
+          <h1 className="text-h2">Sign in to purchase</h1>
+          <p className="mt-2 text-caption text-muted">You need an account to buy artwork.</p>
+          <div className="mt-6 flex flex-col gap-3">
+            <Button asChild>
+              <Link to={{ pathname: '/login', search: authRedirect }}>Sign in</Link>
+            </Button>
+            <Button variant="secondary" asChild>
+              <Link to={{ pathname: '/register', search: authRedirect }}>Create account</Link>
+            </Button>
+          </div>
+        </div>
       </div>
     )
   }

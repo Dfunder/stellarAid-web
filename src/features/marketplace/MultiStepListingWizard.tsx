@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, Input, Modal, Spinner } from '@/components/ui'
+import { Button, Input, Modal, Spinner, Select } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { MultiAssetPricingInput, LicenseTermsField } from '.'
@@ -104,20 +104,32 @@ export default function MultiStepListingWizard({
     }
   }, [initialData])
 
-  // Auto-save draft
+  // Auto-save draft (#783): the debounce restarts on every keystroke, and only
+  // a listing that passes the full schema is persisted, so a half-filled form
+  // is never POSTed to /listings/draft. Once a draft exists that same draft is
+  // updated, and data that has not changed since the last save is skipped.
+  const lastAutoSaved = useRef<string | null>(null)
+  const canAutoSave =
+    activeStep > 0 && !isSubmitting && ListingSchema.safeParse(formData).success
+
   useEffect(() => {
+    if (!canAutoSave) return
+
+    const dataToSave = { ...formData, status: 'draft' } as ListingFormData
+    const serialized = JSON.stringify(dataToSave)
+    if (serialized === lastAutoSaved.current) return
+
     const timer = setTimeout(() => {
-      if (activeStep > 0 && (draftId || !isSubmitting)) {
-        const dataToSave = { ...formData, status: 'draft' } as ListingFormData
-        if (draftId) {
-          updateDraftMutation.mutate({ id: draftId, data: dataToSave })
-        } else {
-          saveDraftMutation.mutate(dataToSave)
-        }
+      lastAutoSaved.current = serialized
+      if (draftId) {
+        updateDraftMutation.mutate({ id: draftId, data: dataToSave })
+      } else {
+        saveDraftMutation.mutate(dataToSave)
       }
     }, 2000)
+
     return () => clearTimeout(timer)
-  }, [formData, activeStep, draftId])
+  }, [formData, activeStep, draftId, canAutoSave, saveDraftMutation, updateDraftMutation])
 
   const validateStep = (step: number): boolean => {
     const stepFields = STEPS[step].fields
@@ -195,6 +207,16 @@ export default function MultiStepListingWizard({
     }
   }
 
+  // Dismissing the dialog clears the mutation errors that opened it, so the
+  // wizard can carry on instead of being blocked forever (#785).
+  const dismissError = () => {
+    createMutation.reset()
+    updateMutation.reset()
+    saveDraftMutation.reset()
+    updateDraftMutation.reset()
+    setErrors({})
+  }
+
   const progress = ((activeStep + 1) / STEPS.length) * 100
 
   return (
@@ -266,23 +288,18 @@ export default function MultiStepListingWizard({
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label htmlFor="category" className="block text-caption-sm font-medium text-foreground mb-1">
-                  Category *
-                </label>
-                <select
-                  id="category"
-                  value={formData.category ?? ''}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
-                  className="w-full rounded-control border border-line bg-background px-3 py-2 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  error={errors.category}
-                >
-                  <option value="">Select category</option>
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
+              <Select
+                label="Category *"
+                id="category"
+                value={formData.category ?? ''}
+                onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
+                error={errors.category}
+              >
+                <option value="">Select category</option>
+                {CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </Select>
 
               <div>
                 <label htmlFor="tags" className="block text-caption-sm font-medium text-foreground mb-1">
@@ -435,12 +452,12 @@ export default function MultiStepListingWizard({
 
       <Modal
         isOpen={createMutation.isError || updateMutation.isError || saveDraftMutation.isError || updateDraftMutation.isError}
-        onClose={() => {}}
+        onClose={dismissError}
         title="Error"
         description={createMutation.error?.message ?? updateMutation.error?.message ?? saveDraftMutation.error?.message ?? updateDraftMutation.error?.message ?? 'An error occurred'}
       >
         <div className="mt-6 flex justify-end">
-          <Button variant="secondary" onClick={() => setErrors({})}>OK</Button>
+          <Button variant="secondary" onClick={dismissError}>OK</Button>
         </div>
       </Modal>
     </div>

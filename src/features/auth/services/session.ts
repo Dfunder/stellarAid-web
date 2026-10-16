@@ -1,8 +1,6 @@
 import { ApiError, getErrorMessage, setAuthTokenProvider, setUnauthorizedHandler } from '@/services'
 import { queryClient } from '@/stores'
-import { authStore } from '../stores/authStore'
-import { useAuthStore } from '../stores/useAuthStore'
-import { clearTokens, getAccessToken, readTokens, writeTokens } from '../stores/tokenStore'
+import { getAccessToken, getStoredTokens as readTokens, useAuthStore } from '../stores/useAuthStore'
 import { decodeJwtExpiry } from '../utils'
 import { authApi } from './authApi'
 
@@ -21,14 +19,13 @@ let isEndingSession = false
 async function loadProfile(): Promise<ProfileResult> {
   try {
     const { user } = await authApi.me()
-    authStore.setSession(user)
     useAuthStore.getState().setUser(user)
     return 'ok'
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) return 'unauthorized'
     // Network or server failure: keep the tokens so the user can retry, but stop
     // showing the spinner.
-    authStore.clearSession(getErrorMessage(error))
+    useAuthStore.getState().clearSession(getErrorMessage(error))
     return 'error'
   }
 }
@@ -39,7 +36,6 @@ async function performRefresh(): Promise<boolean> {
 
   try {
     const { tokens: next } = await authApi.refresh(tokens.refreshToken)
-    writeTokens(next)
     useAuthStore.getState().setTokens(next)
     return true
   } catch {
@@ -61,8 +57,6 @@ export function refreshSession(): Promise<boolean> {
 
 /** Drops the local session and every cached query. Never throws. */
 export function clearSessionState(): void {
-  clearTokens()
-  authStore.clearSession()
   useAuthStore.getState().clearSession()
   queryClient.clear()
 }
@@ -103,11 +97,11 @@ export async function bootstrapSession(): Promise<void> {
   bootstrapStarted = true
 
   if (!readTokens()) {
-    authStore.clearSession()
+    useAuthStore.getState().clearSession()
     return
   }
 
-  authStore.startLoading()
+  useAuthStore.getState().startLoading()
 
   const first = await loadProfile()
   if (first !== 'unauthorized') return
@@ -166,7 +160,10 @@ async function handleUnauthorized(): Promise<void> {
   clearSessionState()
 }
 
-/** Attaches the session to the shared HTTP client. Safe to call more than once. */
+/**
+ * Attaches the session to the shared HTTP client. This is the only place the HTTP token providers are registered;
+ * call it exactly once, from `main.tsx`, before rendering.
+ */
 export function bindSessionToHttp(): void {
   setAuthTokenProvider(() => getAccessToken())
   setUnauthorizedHandler(() => void handleUnauthorized())
