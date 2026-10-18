@@ -7,44 +7,19 @@ import { orderKeys } from './queryKeys'
 import type { PurchaseOrder } from '@/types'
 import { Link } from 'react-router-dom'
 
-interface Order {
-  id: string
-  artworkTitle: string
-  artworkThumbnail?: string
-  sellerName: string
-  sellerUsername: string
-  amount: string
-  asset: string
-  status: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded'
-  txHash: string | null
-  createdAt: string
-  deliverables?: Deliverable[]
-  failureReason?: string
-}
-
-interface Deliverable {
-  id: string
-  name: string
-  url: string
-  expiresAt: string
-}
-
-
-const STATUS_LABELS: Record<PurchaseOrder['status'], string> = {
-  pending: 'Pending',
-  processing: 'Processing',
-  completed: 'Completed',
-  failed: 'Failed',
-  refunded: 'Refunded',
-}
-
-const STATUS_COLORS: Record<PurchaseOrder['status'], string> = {
-  pending: 'bg-warning/10 text-warning',
-  processing: 'bg-blue/10 text-blue',
-  completed: 'bg-success/10 text-success',
-  failed: 'bg-danger/10 text-danger',
-  refunded: 'bg-muted text-muted',
-}
+/** Fields the purchases table actually renders. */
+type PurchaseRow = Pick<
+  PurchaseOrder,
+  | 'id'
+  | 'artworkTitle'
+  | 'artworkThumbnail'
+  | 'sellerName'
+  | 'amount'
+  | 'asset'
+  | 'status'
+  | 'txHash'
+  | 'createdAt'
+>
 
 export default function PurchasesPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | PurchaseOrder['status']>('all')
@@ -61,6 +36,22 @@ export default function PurchasesPage() {
       const response = await http.get<{ orders: PurchaseOrder[]; total: number }>(`/orders/purchases?${params}`)
       return response
     },
+    // Flow only the fields the table renders so a new server field never
+    // changes row identity (#855).
+    select: (data): { orders: PurchaseRow[]; total: number } => ({
+      total: data.total,
+      orders: data.orders.map((order) => ({
+        id: order.id,
+        artworkTitle: order.artworkTitle,
+        artworkThumbnail: order.artworkThumbnail,
+        sellerName: order.sellerName,
+        amount: order.amount,
+        asset: order.asset,
+        status: order.status,
+        txHash: order.txHash,
+        createdAt: order.createdAt,
+      })),
+    }),
   })
 
   const orders = data?.orders ?? []

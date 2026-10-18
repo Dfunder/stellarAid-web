@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { ApiError } from '@/services'
-import { shouldRetryQuery } from './queryClient'
+import { queryClient, shouldRetryQuery } from './queryClient'
+
+describe('queryClient defaults (#855)', () => {
+  it('caches for 5 minutes and leaves focus refetching off by default', () => {
+    const defaults = queryClient.getDefaultOptions()
+    expect(defaults.queries?.staleTime).toBe(5 * 60_000)
+    expect(defaults.queries?.refetchOnWindowFocus).toBe(false)
+  })
+})
 
 describe('shouldRetryQuery', () => {
   it('never retries once the failure budget is spent', () => {

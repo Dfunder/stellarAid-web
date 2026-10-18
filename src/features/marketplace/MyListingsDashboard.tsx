@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, ExplorerLink, Modal, Spinner, Select } from '@/components/ui'
+import { Button, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { formatDate, statusMeta } from '@/lib'
-import { formatDate } from '@/lib'
-import { Link } from 'react-router-dom'
 
 interface Listing {
   id: string
@@ -76,6 +74,23 @@ export default function MyListingsDashboard() {
       // degrades to a single page instead of rendering a broken control.
       return { listings: response.listings, total: response.total ?? response.listings.length }
     },
+    // Keep only the columns the table renders so a new response field does not
+    // change row identity and re-render the whole table (#855).
+    select: (data): { listings: Listing[]; total: number } => ({
+      total: data.total,
+      listings: data.listings.map((listing) => ({
+        id: listing.id,
+        title: listing.title,
+        thumbnail: listing.thumbnail,
+        status: listing.status,
+        price: listing.price,
+        asset: listing.asset,
+        views: listing.views,
+        likes: listing.likes,
+        createdAt: listing.createdAt,
+        updatedAt: listing.updatedAt,
+      })),
+    }),
     enabled: !!user,
   })
 
@@ -185,16 +200,15 @@ export default function MyListingsDashboard() {
 
       <div className="rounded-card border border-line bg-surface shadow-card overflow-hidden">
         <div className="p-4 border-b border-line bg-surface-muted flex flex-wrap items-center gap-2">
-          <Select
-            label="Status"
+          <label className="text-caption-sm text-muted" htmlFor="listings-status">Status:</label>
+          <select
+            id="listings-status"
             value={statusFilter}
             onChange={(e) => {
               updateParams({ status: e.target.value }, true)
               setSelectedIds(new Set())
             }}
             className="rounded-control border border-line bg-background px-3 py-1.5 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            onChange={(e) => { setStatusFilter(e.target.value as typeof statusFilter); setSelectedIds(new Set()) }}
-            className="py-1.5 text-caption-sm"
           >
             <option value="all">All statuses</option>
             <option value="draft">Draft</option>
@@ -213,7 +227,6 @@ export default function MyListingsDashboard() {
               <option key={key} value={key}>{SORT_LABELS[key]}</option>
             ))}
           </select>
-          </Select>
         </div>
 
         {listings.length === 0 ? (
