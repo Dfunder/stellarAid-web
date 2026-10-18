@@ -1,6 +1,7 @@
 import { stellarAccountExplorerUrl } from '@/config'
 import { useCopyToClipboard } from '@/hooks'
 import { truncateMiddle } from '@/lib'
+import { useUiStore } from '@/stores'
 import type { ArtistProfileExtended } from '../types'
 
 export interface ProfileAboutTabProps {
@@ -9,6 +10,7 @@ export interface ProfileAboutTabProps {
 
 export default function ProfileAboutTab({ profile }: ProfileAboutTabProps) {
   const { copy, isCopied } = useCopyToClipboard()
+  const pushToast = useUiStore((state) => state.pushToast)
 
   return (
     <div className="flex flex-col gap-8">
@@ -56,7 +58,10 @@ export default function ProfileAboutTab({ profile }: ProfileAboutTabProps) {
             <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
-                onClick={() => void copy(profile.publicKey!)}
+                onClick={async () => {
+                  const ok = await copy(profile.publicKey!)
+                  pushToast(ok ? 'Copied to clipboard' : 'Failed to copy to clipboard', ok ? 'success' : 'error')
+                }}
                 className="rounded-control border border-line bg-surface px-3 py-1.5 text-caption-sm font-semibold text-primary transition hover:bg-surface-muted"
               >
                 {isCopied(profile.publicKey) ? 'Copied!' : 'Copy Address'}

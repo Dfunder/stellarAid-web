@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react'
-import { BrowserRouter, Link, Outlet, Route, Routes, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Link, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { Button, ThemeToggle } from '@/components/ui'
 import {
   AccountMenu,
@@ -29,6 +29,7 @@ import { TransactionHistoryPage } from '@/features/transactions'
 import { ArtistWithdrawal } from '@/features/portfolio'
 import { PaymentResultScreen } from '@/features/payments'
 import { useUiStore } from '@/stores'
+import { analytics } from '@/lib'
 
 const NAV_LINK_CLASSES =
   'text-caption font-semibold text-muted transition-colors hover:text-foreground'
@@ -277,16 +278,38 @@ function Dashboard() {
 }
 
 function NotFoundPage() {
+  const location = useLocation()
+  const attemptedPath = location.pathname + location.search + location.hash
+  useEffect(() => {
+    analytics.track('not_found', { path: attemptedPath })
+  }, [attemptedPath])
   return (
     <div className="container py-24 text-center">
       <h1 className="text-h2 font-bold">Page not found</h1>
       <p className="mt-2 text-body text-muted">The link you followed does not exist or has been moved.</p>
-      <Link
-        to="/"
-        className="mt-8 inline-flex items-center rounded-control bg-primary px-5 py-2.5 text-body font-semibold text-primary-contrast shadow-card focus-visible:shadow-focus-ring"
-      >
-        Back home
-      </Link>
+      {attemptedPath && attemptedPath !== '*' && (
+        <p className="mt-1 text-caption text-muted break-all">Attempted path: {attemptedPath}</p>
+      )}
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <Link
+          to="/"
+          className="inline-flex items-center rounded-control bg-primary px-5 py-2.5 text-body font-semibold text-primary-contrast shadow-card focus-visible:shadow-focus-ring"
+        >
+          Back home
+        </Link>
+        <Link
+          to="/artists/stellar_nova"
+          className="inline-flex items-center rounded-control border border-line bg-surface px-5 py-2.5 text-body font-semibold text-foreground shadow-card hover:bg-surface-muted focus-visible:shadow-focus-ring"
+        >
+          Browse categories
+        </Link>
+        <Link
+          to="/dashboard"
+          className="inline-flex items-center rounded-control border border-line bg-surface px-5 py-2.5 text-body font-semibold text-foreground shadow-card hover:bg-surface-muted focus-visible:shadow-focus-ring"
+        >
+          Your profile
+        </Link>
+      </div>
     </div>
   )
 }
