@@ -3,8 +3,10 @@ interface SkeletonProps {
   width?: string | number
   /** Height of the skeleton */
   height?: string | number
+  /** CSS aspect-ratio, e.g. `1` for a square. Takes visual precedence over `height`. */
+  aspectRatio?: number
   /** Border radius */
-  radius?: 'none' | 'sm' | 'md' | 'lg' | 'full'
+  radius?: 'none' | 'sm' | 'md' | 'lg' | 'card' | 'full'
   /** Additional CSS classes */
   className?: string
 }
@@ -14,19 +16,21 @@ const RADIUS_CLASSES = {
   sm: 'rounded-sm',
   md: 'rounded-control',
   lg: 'rounded-card',
+  card: 'rounded-card',
   full: 'rounded-full',
 }
 
 export function Skeleton({
   width = '100%',
   height = '1rem',
+  aspectRatio,
   radius = 'md',
   className = '',
 }: SkeletonProps) {
   return (
     <div
       className={`animate-pulse bg-line relative overflow-hidden ${RADIUS_CLASSES[radius]} ${className}`}
-      style={{ width, height }}
+      style={{ width, height, aspectRatio }}
       aria-hidden="true"
     >
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />

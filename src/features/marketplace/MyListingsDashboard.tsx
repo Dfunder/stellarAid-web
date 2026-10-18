@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, ExplorerLink, Modal, Spinner, Select } from '@/components/ui'
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Button, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { formatDate, statusMeta } from '@/lib'
-import { formatDate } from '@/lib'
-import { Link } from 'react-router-dom'
 
 interface Listing {
   id: string
@@ -32,14 +30,6 @@ const SORT_LABELS: Record<ListingSort, string> = {
 
 const PAGE_SIZE = 10
 
-const STATUS_LABELS: Record<Listing['status'], string> = {
-  draft: 'Draft',
-  active: 'Active',
-  sold: 'Sold',
-  unpublished: 'Unpublished',
-}
-
-
 export default function MyListingsDashboard() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
@@ -63,7 +53,7 @@ export default function MyListingsDashboard() {
     setSearchParams(next)
   }
 
-  const { data, isPending, isError, error, refetch } = useQuery({
+  const { data, isPending, isFetching, isError, error, refetch } = useQuery({
     queryKey: ['myListings', user?.id, statusFilter, sort, page],
     queryFn: async (): Promise<{ listings: Listing[]; total: number }> => {
       const params = new URLSearchParams()
@@ -77,6 +67,9 @@ export default function MyListingsDashboard() {
       return { listings: response.listings, total: response.total ?? response.listings.length }
     },
     enabled: !!user,
+    // Changing status, sort or page keeps the current rows mounted while the
+    // next response loads, so paging never blanks the table (#852).
+    placeholderData: keepPreviousData,
   })
 
   const listings = data?.listings ?? []
@@ -185,16 +178,15 @@ export default function MyListingsDashboard() {
 
       <div className="rounded-card border border-line bg-surface shadow-card overflow-hidden">
         <div className="p-4 border-b border-line bg-surface-muted flex flex-wrap items-center gap-2">
-          <Select
-            label="Status"
+          <label className="text-caption-sm text-muted" htmlFor="listings-status">Status:</label>
+          <select
+            id="listings-status"
             value={statusFilter}
             onChange={(e) => {
               updateParams({ status: e.target.value }, true)
               setSelectedIds(new Set())
             }}
             className="rounded-control border border-line bg-background px-3 py-1.5 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            onChange={(e) => { setStatusFilter(e.target.value as typeof statusFilter); setSelectedIds(new Set()) }}
-            className="py-1.5 text-caption-sm"
           >
             <option value="all">All statuses</option>
             <option value="draft">Draft</option>
@@ -213,8 +205,15 @@ export default function MyListingsDashboard() {
               <option key={key} value={key}>{SORT_LABELS[key]}</option>
             ))}
           </select>
-          </Select>
         </div>
+
+        {/* Keeps stale rows visible on a page/filter change and only flags the
+            background refetch (#852). */}
+        {isFetching && !isPending && (
+          <p role="status" className="px-4 py-2 text-caption-sm text-muted border-b border-line">
+            Updating…
+          </p>
+        )}
 
         {listings.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-12 text-muted">

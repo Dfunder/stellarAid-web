@@ -1,9 +1,8 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useParams, Link } from 'react-router-dom'
 import { Button, Skeleton, SkeletonGrid, SkeletonText } from '@/components/ui'
 import { http } from '@/services'
-import { formatDate } from '@/lib'
 import type { ArtworkCard, CategorySummary } from '@/types'
 
 export interface CategoryLandingPageProps {
@@ -28,7 +27,7 @@ export default function CategoryLandingPage({ slug: slugProp }: CategoryLandingP
     enabled: !!slug,
   })
 
-  const { data: artworks, isPending: artworksPending } = useQuery({
+  const { data: artworks, isPending: artworksPending, isFetching: artworksFetching } = useQuery({
     queryKey: ['categoryArtworks', slug, subCategoryFilter],
     queryFn: async (): Promise<ArtworkCard[]> => {
       const params = new URLSearchParams()
@@ -37,6 +36,9 @@ export default function CategoryLandingPage({ slug: slugProp }: CategoryLandingP
       return response.artworks
     },
     enabled: !!slug,
+    // Changing the subcategory filter keeps the previous results mounted while
+    // the next page loads, instead of blanking the grid to a skeleton (#852).
+    placeholderData: keepPreviousData,
   })
 
   if (categoryPending) {
@@ -145,8 +147,18 @@ export default function CategoryLandingPage({ slug: slugProp }: CategoryLandingP
         </nav>
       )}
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" role="list">
-        {artworksPending ? (
+      {/* Distinguishes stale-but-visible content from fresh content (#852). */}
+      {artworksFetching && !artworksPending && (
+        <p role="status" className="mb-2 text-caption-sm text-muted">
+          Updating…
+        </p>
+      )}
+
+      <div
+        className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        role="list"
+        aria-busy={artworksFetching || undefined}
+      >
           Array.from({ length: 8 }, (_, i) => <article key={i} role="listitem">{renderSkeleton()}</article>)
         ) : artworks?.length === 0 ? (
           <div className="col-span-full flex flex-col items-center gap-3 py-12 text-muted">
