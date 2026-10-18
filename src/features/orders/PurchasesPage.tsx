@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Spinner, Select } from '@/components/ui'
 import { http } from '@/services'
 import { formatDate, statusMeta } from '@/lib'
@@ -20,13 +20,35 @@ type PurchaseRow = Pick<
   | 'txHash'
   | 'createdAt'
 >
+interface Order {
+  id: string
+  artworkTitle: string
+  artworkThumbnail?: string
+  sellerName: string
+  sellerUsername: string
+  amount: string
+  asset: string
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded'
+  txHash: string | null
+  createdAt: string
+  deliverables?: Deliverable[]
+  failureReason?: string
+}
+
+interface Deliverable {
+  id: string
+  name: string
+  url: string
+  expiresAt: string
+}
+
 
 export default function PurchasesPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | PurchaseOrder['status']>('all')
   const [page, setPage] = useState(1)
   const pageSize = 10
 
-  const { data, isPending, isError, error, refetch } = useQuery({
+  const { data, isPending, isFetching, isError, error, refetch } = useQuery({
     queryKey: orderKeys.list({ status: statusFilter, page, pageSize }),
     queryFn: async (): Promise<{ orders: PurchaseOrder[]; total: number }> => {
       const params = new URLSearchParams()
@@ -52,6 +74,9 @@ export default function PurchasesPage() {
         createdAt: order.createdAt,
       })),
     }),
+    // Incrementing the page or changing the filter keeps the current rows visible
+    // while the next page loads, instead of collapsing to a spinner (#852).
+    placeholderData: keepPreviousData,
   })
 
   const orders = data?.orders ?? []
@@ -109,6 +134,14 @@ export default function PurchasesPage() {
           </Select>
         </div>
       </div>
+
+      {/* Stale-but-visible rows stay mounted; this only signals a background
+          refetch so a page change does not blank the table (#852). */}
+      {isFetching && !isPending && (
+        <p role="status" className="mb-3 text-caption-sm text-muted">
+          Updating…
+        </p>
+      )}
 
       {orders.length === 0 ? (
         <div className="rounded-card border border-line bg-surface p-12 shadow-card text-center">

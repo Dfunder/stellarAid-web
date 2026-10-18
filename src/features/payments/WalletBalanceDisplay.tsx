@@ -5,9 +5,9 @@ import { http } from '@/services'
 import { useWallet } from '@/features/auth/hooks/useWallet'
 import { DISPLAY_FALLBACK_PRECISION, getAssetMeta } from '@/config'
 import { Link } from 'react-router-dom'
+
 import { sumByAsset, type AssetBalance } from './walletBalances'
-
-
+import { paymentKeys } from './queryKeys'
 
 interface WalletBalanceDisplayProps {
   /** Assets to display balances for */
@@ -28,7 +28,7 @@ export default function WalletBalanceDisplay({
   const [isOpen, setIsOpen] = useState(false)
 
   const { data: balances, isPending, isError, refetch } = useQuery({
-    queryKey: ['walletBalances', publicKey],
+    queryKey: paymentKeys.walletBalances(publicKey),
     queryFn: async (): Promise<AssetBalance[]> => {
       if (!publicKey) return []
       const response = await http.get<{ balances: AssetBalance[] }>(`/wallets/${publicKey}/balances`)

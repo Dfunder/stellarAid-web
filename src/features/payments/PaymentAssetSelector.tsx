@@ -1,16 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Button, ExplorerLink } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { http } from '@/services'
 import { useWallet } from '@/features/auth/hooks/useWallet'
-import { formatDate } from '@/lib'
 import { DISPLAY_FALLBACK_PRECISION, getAssetMeta } from '@/config'
-
-interface AssetBalance {
-  asset: string
-  balance: string
-  hasTrustline: boolean
-}
+import { paymentKeys } from './queryKeys'
+import type { AssetBalance } from './walletBalances'
 
 interface PaymentAssetSelectorProps {
   /** Artwork price in base asset (XLM) */
@@ -38,7 +33,7 @@ export default function PaymentAssetSelector({
   const [warning, setWarning] = useState<string | null>(null)
 
   const { data: balances } = useQuery({
-    queryKey: ['walletBalances', publicKey],
+    queryKey: paymentKeys.selectableAssets(publicKey),
     queryFn: async (): Promise<AssetBalance[]> => {
       if (!publicKey) return []
       const response = await http.get<{ balances: AssetBalance[] }>(`/wallets/${publicKey}/balances`)

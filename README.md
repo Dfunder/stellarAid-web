@@ -23,7 +23,7 @@ for signed-out users. `src/docs.test.ts` fails if this table and the router drif
 
 | Path                               | Access | Screen                   |
 | ---------------------------------- | ------ | ------------------------ |
-| `/`                                | Public | Home / style guide       |
+| `/`                                | Public | Landing page             |
 | `/login`                           | Guest  | Sign in                  |
 | `/register`                        | Guest  | Create an account        |
 | `/forgot-password`                 | Guest  | Request a password reset |
@@ -45,6 +45,7 @@ for signed-out users. `src/docs.test.ts` fails if this table and the router drif
 | `/transactions`                    | Auth   | Transaction history      |
 | `/earnings/withdraw`               | Auth   | Withdraw earnings        |
 | `/settings/wallets`                | Auth   | Linked wallets           |
+| `/style-guide`                     | Dev only | Design system reference |
 | `*`                                | Public | Not found                |
 
 ## Tech Stack
@@ -71,13 +72,16 @@ The app is served at `http://localhost:5173`.
 | Script                 | Description                                                                       |
 | ---------------------- | --------------------------------------------------------------------------------- |
 | `npm run dev`          | Start the Vite dev server with HMR                                                |
-| `npm run build`        | Type-check and build the production bundle                                        |
+| `npm run build`        | Build the production bundle with Vite (run `type-check` separately)               |
 | `npm run preview`      | Serve the production build locally                                                |
 | `npm run lint`         | Lint the codebase with ESLint                                                     |
 | `npm run format`       | Format the codebase with Prettier                                                 |
 | `npm run format:check` | Check formatting without writing (CI-friendly)                                    |
-| `npm run type-check`   | Run `tsc -b` (a project-references build; the same type check `build` runs first) |
+| `npm run type-check`   | Run `tsc -b` (a project-references build)                                         |
 | `npm run test`         | Run the Vitest unit and component tests once                                      |
+| `npm run test:watch`   | Run Vitest in watch mode                                                          |
+| `npm run test:coverage`| Run the tests once and collect a coverage report                                  |
+| `npm run check`        | Run every gate CONTRIBUTING.md mandates (lint, format, types, test, build)        |
 | `npm run prepare`      | Installs the Husky git hooks (runs automatically on `npm install` / `npm ci`)     |
 
 ## Environment Variables

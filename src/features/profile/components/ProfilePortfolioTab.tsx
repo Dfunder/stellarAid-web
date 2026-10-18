@@ -18,7 +18,9 @@ export default function ProfilePortfolioTab({ profile }: ProfilePortfolioTabProp
   const filteredArtworks =
     filterCategory === 'all'
       ? artworks
-      : artworks.filter((a) => a.category.toLowerCase() === filterCategory.toLowerCase())
+      : artworks.filter(
+          (a) => a.category?.toLowerCase() === filterCategory.toLowerCase(),
+        )
 
   const selectedImageUrls = useMemo(
     () => selectedArtwork?.imageUrls ?? [],
@@ -35,7 +37,8 @@ export default function ProfilePortfolioTab({ profile }: ProfilePortfolioTabProp
               key={cat}
               type="button"
               onClick={() => setFilterCategory(cat)}
-              className={`rounded-control px-3 py-1.5 text-caption font-semibold transition ${
+              aria-pressed={filterCategory === cat}
+              className={`rounded-control px-3 py-1.5 text-caption font-semibold transition focus-visible:outline-none focus-visible:shadow-focus-ring ${
                 filterCategory === cat
                   ? 'bg-primary text-primary-contrast'
                   : 'bg-surface-muted text-muted hover:text-foreground'
@@ -58,10 +61,12 @@ export default function ProfilePortfolioTab({ profile }: ProfilePortfolioTabProp
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredArtworks.map((artwork) => (
-            <div
+            <button
               key={artwork.id}
+              type="button"
               onClick={() => setSelectedArtwork(artwork)}
-              className="group cursor-pointer overflow-hidden rounded-card border border-line bg-surface shadow-card transition duration-200 hover:-translate-y-1 hover:shadow-elevated"
+              aria-label={`Open artwork ${artwork.title}`}
+              className="group cursor-pointer overflow-hidden rounded-card border border-line bg-surface text-left shadow-card transition duration-200 hover:-translate-y-1 hover:shadow-elevated focus-visible:outline-none focus-visible:shadow-focus-ring"
             >
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-surface-muted">
                 <img
@@ -95,7 +100,7 @@ export default function ProfilePortfolioTab({ profile }: ProfilePortfolioTabProp
                   </p>
                 )}
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}

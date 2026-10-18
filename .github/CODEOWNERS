@@ -1,0 +1,17 @@
+# Default owner for everything in the repo. Owners are requested for review
+# automatically on pull requests, and protected-branch rules can require a
+# CODEOWNERS review before merge.
+* @Dfunder
+
+# Security-sensitive surfaces: authentication, payments and the HTTP/API layer
+# must be reviewed by a maintainer before merge.
+/src/features/auth/ @Dfunder
+/src/features/payments/ @Dfunder
+/src/services/ @Dfunder
+/src/config/ @Dfunder
+
+# CI, dependency automation and repository policy files.
+/.github/ @Dfunder
+/package.json @Dfunder
+/package-lock.json @Dfunder
+/SECURITY.md @Dfunder

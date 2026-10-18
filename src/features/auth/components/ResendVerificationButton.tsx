@@ -17,6 +17,7 @@ export default function ResendVerificationButton({
   const [cooldown, setCooldown] = useState(0)
   const [sending, setSending] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [isError, setIsError] = useState(false)
 
   useEffect(() => {
     if (cooldown <= 0) return
@@ -27,12 +28,15 @@ export default function ResendVerificationButton({
   const handleClick = async () => {
     setSending(true)
     setMessage(null)
+    setIsError(false)
     try {
       await authService.resendVerification(email)
       setMessage('If your email still needs verifying, a new link is on its way.')
       setCooldown(COOLDOWN_SECONDS)
     } catch (error) {
       setMessage(getErrorMessage(error))
+      // A failure is an assertive announcement, not a passive status (#860).
+      setIsError(true)
     } finally {
       setSending(false)
     }
@@ -53,7 +57,10 @@ export default function ResendVerificationButton({
             : 'Resend verification email'}
       </button>
       {message && (
-        <span role="status" className="text-caption-sm text-muted">
+        <span
+          role={isError ? 'alert' : 'status'}
+          className={`text-caption-sm ${isError ? 'text-danger' : 'text-muted'}`}
+        >
           {message}
         </span>
       )}
