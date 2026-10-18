@@ -1,0 +1,46 @@
+name: Feature request
+description: Propose a new capability or an improvement to Lumora Web
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user problem does this solve? Describe the pain, not the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: |
+        Describe the change. If it touches a feature module, note where the code
+        would live (see the "Where Does New Code Go?" table in CONTRIBUTING.md).
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: A short checklist a reviewer can verify.
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues and discussions and this is not a duplicate.
+          required: true
+        - label: I am willing to open a pull request for this.
+          required: false
