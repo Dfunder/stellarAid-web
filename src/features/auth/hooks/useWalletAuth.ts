@@ -64,6 +64,11 @@ export function useWalletAuth(): UseWalletAuth {
       abortControllerRef.current = abortController
 
       try {
+                // Step 1: Request a server-issued challenge nonce.
+        // Never synthesise a client-side fallback — that disables replay protection
+        // and lets captured signatures be reused (#934).
+        const nonceData = await authApi.requestWalletNonce(connection.publicKey)
+        }
         // Step 1: Request challenge nonce from backend.
         //
         // A server-issued, single-use nonce is what makes this flow replay-safe.
