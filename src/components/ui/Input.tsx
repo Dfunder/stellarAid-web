@@ -45,11 +45,12 @@ export default function Input({
         id={inputId}
         {...rest}
         aria-invalid={error ? true : undefined}
+        aria-required={rest.required ? true : undefined}
         aria-describedby={describedBy}
         className={cn(BASE_CLASSES, error ? 'border-danger' : 'border-line', className)}
       />
       {error ? (
-        <p id={errorId} className="text-caption-sm text-danger">
+        <p id={errorId} role="alert" className="text-caption-sm text-danger">
           {error}
         </p>
       ) : null}

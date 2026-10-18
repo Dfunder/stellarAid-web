@@ -180,6 +180,13 @@
     outline-offset: 2px;
   }
 
+  @keyframes fall {
+    to {
+      transform: translateY(120vh) rotate(720deg);
+      opacity: 0;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -188,6 +195,12 @@
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
+    }
+    .animate-pulse {
+      animation: none !important;
+    }
+    .animate-shimmer {
+      animation: none !important;
     }
   }
 }

@@ -1,3 +1,36 @@
+import type { ReactNode } from 'react'
+
+interface LoadingRegionProps {
+  /** Accessible label announced while the region is busy. */
+  label?: string
+  className?: string
+  children: ReactNode
+}
+
+/**
+ * Wraps a loading region so assistive technology is told the region is busy and
+ * hears a label, rather than total silence (#860). The skeletons it contains
+ * stay `aria-hidden`; this element carries the announcement.
+ */
+export function LoadingRegion({
+  label = 'Loading…',
+  className = '',
+  children,
+}: LoadingRegionProps) {
+  return (
+    <div
+      role="status"
+      aria-busy="true"
+      aria-live="polite"
+      aria-atomic="true"
+      className={className}
+    >
+      <span className="sr-only">{label}</span>
+      {children}
+    </div>
+  )
+}
+
 interface SkeletonProps {
   /** Width of the skeleton */
   width?: string | number
@@ -7,8 +40,11 @@ interface SkeletonProps {
   aspectRatio?: number
   /** Border radius */
   radius?: 'none' | 'sm' | 'md' | 'lg' | 'card' | 'full'
+  radius?: 'none' | 'sm' | 'md' | 'lg' | 'full' | 'card'
   /** Additional CSS classes */
   className?: string
+  /** Aspect ratio (e.g., '1 / 1' or 1) */
+  aspectRatio?: string | number
 }
 
 const RADIUS_CLASSES = {
@@ -18,19 +54,26 @@ const RADIUS_CLASSES = {
   lg: 'rounded-card',
   card: 'rounded-card',
   full: 'rounded-full',
+  card: 'rounded-card',
 }
 
 export function Skeleton({
   width = '100%',
   height = '1rem',
   aspectRatio,
+  height,
   radius = 'md',
   className = '',
+  aspectRatio,
 }: SkeletonProps) {
+  const style: React.CSSProperties = { width }
+  if (height !== undefined) style.height = height
+  if (aspectRatio !== undefined) style.aspectRatio = aspectRatio as any
   return (
     <div
       className={`animate-pulse bg-line relative overflow-hidden ${RADIUS_CLASSES[radius]} ${className}`}
       style={{ width, height, aspectRatio }}
+      style={style}
       aria-hidden="true"
     >
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />

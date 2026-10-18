@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
@@ -122,7 +122,11 @@ export default function OrderConfirmationScreen() {
           </div>
         )}
 
-        <div className="rounded-card border border-line bg-surface p-8 shadow-card text-center">
+        <div
+          aria-live="polite"
+          aria-atomic="true"
+          className="rounded-card border border-line bg-surface p-8 shadow-card text-center"
+        >
           {isConfirming ? (
             <>
               <div className="flex justify-center mb-6">
@@ -258,17 +262,18 @@ export default function OrderConfirmationScreen() {
 }
 
 function Confetti() {
-  const [particles] = useState(
-    Array.from({ length: 50 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: -10 - Math.random() * 50,
-      size: 6 + Math.random() * 8,
-      color: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'][Math.floor(Math.random() * 5)],
-      speed: 1 + Math.random() * 3,
-      rotation: Math.random() * 360,
-      rotationSpeed: (Math.random() - 0.5) * 10,
-    }))
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 50 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        y: -10 - Math.random() * 50,
+        size: 6 + Math.random() * 8,
+        color: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'][Math.floor(Math.random() * 5)],
+        rotation: Math.random() * 360,
+        duration: 3 + Math.random() * 2,
+      })),
+    [],
   )
 
   return (
@@ -284,18 +289,10 @@ function Confetti() {
             height: `${p.size}px`,
             backgroundColor: p.color,
             transform: `rotate(${p.rotation}deg)`,
-            animation: `fall ${3 + Math.random() * 2}s linear forwards`,
+            animation: `fall ${p.duration}s linear forwards`,
           }}
         />
       ))}
-      <style jsx global>{`
-        @keyframes fall {
-          to {
-            transform: translateY(120vh) rotate(720deg);
-            opacity: 0;
-          }
-        }
-      `}</style>
     </>
   )
 }

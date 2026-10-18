@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCopyToClipboard } from '@/hooks'
 import { truncateMiddle } from '@/lib'
+import { useUiStore } from '@/stores'
 import { useAuth } from '../hooks/useAuth'
 import { useWallet } from '../hooks/useWallet'
 
@@ -28,6 +29,7 @@ export default function AccountMenu() {
   const { user, isAuthenticated, isLoading, logout } = useAuth()
   const { publicKey: connectedPublicKey } = useWallet()
   const { copy, isCopied } = useCopyToClipboard()
+  const pushToast = useUiStore((state) => state.pushToast)
 
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -211,12 +213,16 @@ export default function AccountMenu() {
                   </span>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => void copy(displayPublicKey)}
-                  className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-caption-sm font-semibold text-primary transition hover:bg-surface focus-visible:shadow-focus-ring"
-                  title="Copy address to clipboard"
-                >
+            <button
+              type="button"
+              onClick={async () => {
+                const ok = await copy(displayPublicKey)
+                pushToast(ok ? 'Copied to clipboard' : 'Failed to copy to clipboard', ok ? 'success' : 'error')
+              }}
+              className="flex items-center gap-1.5 rounded-control border border-line bg-surface px-2 py-1 text-caption-xs font-semibold text-foreground hover:bg-surface-muted"
+              title="Copy Stellar address"
+              aria-label="Copy Stellar address"
+            >
                   {isCopied(displayPublicKey) ? (
                     <>
                       <svg
