@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Skeleton, SkeletonCard, SkeletonText } from '@/components/ui'
+import { LoadingRegion, Skeleton, SkeletonCard, SkeletonText } from '@/components/ui'
 import { http } from '@/services'
 import { useRecentlyViewed } from './useRecentlyViewed'
 import type { ArtworkCard } from '@/types'
@@ -75,19 +75,21 @@ export default function RecentlyViewed({
         <div className="flex items-center justify-between mb-4">
           <h2 id="recently-viewed-heading" className="text-h3">{title}</h2>
         </div>
-        <div className="flex gap-4 overflow-x-auto pb-4 -mx-3 px-3" role="list">
-          {isPending ? (
-            Array.from({ length: maxItems }, (_, i) => <div key={i} role="listitem">{renderSkeleton()}</div>)
-          ) : artworks?.length === 0 ? (
-            <p className="text-caption text-muted">No recently viewed artworks found.</p>
-          ) : (
-            artworks?.map((artwork) => (
-              <div key={artwork.id} role="listitem" className="w-40 flex-shrink-0">
-                {renderCard(artwork)}
-              </div>
-            ))
-          )}
-        </div>
+        <LoadingRegion label="Loading recently viewed artworks…">
+          <div className="flex gap-4 overflow-x-auto pb-4 -mx-3 px-3" role="list" aria-busy={isPending || undefined}>
+            {isPending ? (
+              Array.from({ length: maxItems }, (_, i) => <div key={i} role="listitem">{renderSkeleton()}</div>)
+            ) : artworks?.length === 0 ? (
+              <p className="text-caption text-muted">No recently viewed artworks found.</p>
+            ) : (
+              artworks?.map((artwork) => (
+                <div key={artwork.id} role="listitem" className="w-40 flex-shrink-0">
+                  {renderCard(artwork)}
+                </div>
+              ))
+            )}
+          </div>
+        </LoadingRegion>
       </section>
     )
   }
@@ -97,17 +99,21 @@ export default function RecentlyViewed({
       <div className="flex items-center justify-between mb-4">
         <h2 id="recently-viewed-heading" className="text-h3">{title}</h2>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="list">
-        {isPending ? (
-          Array.from({ length: maxItems }, (_, i) => <SkeletonCard key={i} />)
-        ) : artworks?.length === 0 ? (
-          <p className="text-caption text-muted col-span-full text-center py-8">No recently viewed artworks found.</p>
-        ) : (
-          artworks?.map((artwork) => (
-            <div key={artwork.id} role="listitem">{renderCard(artwork)}</div>
-          ))
-        )}
-      </div>
+      <LoadingRegion label="Loading recently viewed artworks…">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" role="list" aria-busy={isPending || undefined}>
+          {isPending ? (
+            Array.from({ length: maxItems }, (_, i) => <div key={i} role="listitem"><SkeletonCard /></div>)
+          ) : artworks?.length === 0 ? (
+            <p className="text-caption text-muted">No recently viewed artworks found.</p>
+          ) : (
+            artworks?.map((artwork) => (
+              <div key={artwork.id} role="listitem">
+                {renderCard(artwork)}
+              </div>
+            ))
+          )}
+        </div>
+      </LoadingRegion>
     </section>
   )
 }

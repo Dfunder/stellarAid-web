@@ -122,7 +122,11 @@ export default function OrderConfirmationScreen() {
           </div>
         )}
 
-        <div className="rounded-card border border-line bg-surface p-8 shadow-card text-center">
+        <div
+          aria-live="polite"
+          aria-atomic="true"
+          className="rounded-card border border-line bg-surface p-8 shadow-card text-center"
+        >
           {isConfirming ? (
             <>
               <div className="flex justify-center mb-6">

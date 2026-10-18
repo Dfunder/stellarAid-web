@@ -1,3 +1,36 @@
+import type { ReactNode } from 'react'
+
+interface LoadingRegionProps {
+  /** Accessible label announced while the region is busy. */
+  label?: string
+  className?: string
+  children: ReactNode
+}
+
+/**
+ * Wraps a loading region so assistive technology is told the region is busy and
+ * hears a label, rather than total silence (#860). The skeletons it contains
+ * stay `aria-hidden`; this element carries the announcement.
+ */
+export function LoadingRegion({
+  label = 'Loading…',
+  className = '',
+  children,
+}: LoadingRegionProps) {
+  return (
+    <div
+      role="status"
+      aria-busy="true"
+      aria-live="polite"
+      aria-atomic="true"
+      className={className}
+    >
+      <span className="sr-only">{label}</span>
+      {children}
+    </div>
+  )
+}
+
 interface SkeletonProps {
   /** Width of the skeleton */
   width?: string | number
