@@ -89,38 +89,38 @@ the `VITE_` prefix and are defined in a `.env` file - copy `.env.example` to get
 > anyone who loads the site can read them. Never put a secret (API keys, signing keys, passwords) in a `VITE_*`
 > variable; secrets belong on a server.
 
-| Variable                   | Default                 | Required           | Description                                                   |
+| Variable                   | Dev default             | Required           | Description                                                   |
 | -------------------------- | ----------------------- | ------------------ | ------------------------------------------------------------- |
-| `VITE_API_URL`             | `http://localhost:4000` | Dev: yes. Prod: no | Base URL of the Lumora backend API                            |
-| `VITE_STELLAR_NETWORK`     | `testnet`               | Dev: yes. Prod: no | Stellar network: `testnet` or `mainnet`                       |
-| `VITE_APP_URL`             | `http://localhost:5173` | Dev: yes. Prod: no | Public URL the web app is served from                         |
+| `VITE_API_URL`             | `http://localhost:4000` | Yes                | Base URL of the Lumora backend API. Must be `https://` in prod |
+| `VITE_STELLAR_NETWORK`     | `testnet`               | Yes                | Stellar network: `testnet` or `mainnet`                       |
+| `VITE_APP_URL`             | `http://localhost:5173` | Yes                | Public URL the web app is served from                         |
 | `VITE_FF_MESSAGING`        | unset (flag is off)     | No                 | Feature flag override for messaging: `true` or `false`        |
 | `VITE_FF_NOTIFICATIONS`    | unset (flag is off)     | No                 | Feature flag override for notifications: `true` or `false`    |
 | `VITE_FF_ADVANCED_FILTERS` | unset (flag is off)     | No                 | Feature flag override for advanced filters: `true` or `false` |
+
+The three required variables fall back to the dev defaults above **only while developing**. A production build has no
+fallback: set all three explicitly in your deployment environment.
 
 The flag variables accept only `true` or `false`; anything else counts as unset, which leaves the flag at its safe
 default (off). See `src/config/featureFlags.ts`.
 
 ### How validation actually behaves
 
-Validation is gated on `import.meta.env.DEV` in `src/config/env.ts`:
+`src/config/env.ts` resolves the configuration once and exposes the outcome as `loadResult` (`env`, `configError`,
+`invalidKeys`). It never throws at module scope, so an invalid build reaches `main.tsx` and renders
+`ConfigErrorScreen`, which lists the offending variable names:
 
-- **Development (`npm run dev`)**: a missing or invalid `VITE_API_URL`, `VITE_STELLAR_NETWORK` or `VITE_APP_URL` is
-  reported with a clear message and `main.tsx` renders `ConfigErrorScreen` instead of the app. The dev server itself
-  still starts; it is the page that refuses to render.
-- **Production builds**: nothing is required. Anything missing falls back to its default. An invalid value (for
-  example a malformed URL) makes `envSchema.parse` throw while the module loads, **before** `main.tsx` can read
-  `configError`, so the user gets a blank page rather than `ConfigErrorScreen`.
+- **Development (`npm run dev`)**: an unset required variable falls back to the dev default; a value that is present
+  but invalid (a malformed URL, an unknown network) is reported and `main.tsx` renders `ConfigErrorScreen`. The dev
+  server itself still starts; it is the page that refuses to render.
+- **Production builds**: a missing `VITE_API_URL`, `VITE_STELLAR_NETWORK` or `VITE_APP_URL` **fails closed** — the app
+  renders `ConfigErrorScreen` rather than silently starting against `localhost` or `testnet`.
+- **Production builds** additionally reject an `http://` `VITE_API_URL`: session tokens would otherwise travel over
+  the wire in plaintext.
 
-Two defaults are footguns in production:
-
-- `VITE_STELLAR_NETWORK` silently defaults to **`testnet`**. A mainnet deployment that forgets this variable runs on
-  testnet with no warning.
-- `VITE_API_URL` defaults to **`http://localhost:4000`**, so a production build without it points every request at
-  the visitor's own machine.
-
-Always set all three explicitly in your deployment environment. Making production fail closed is tracked as a
-follow-up.
+The supported network passphrases are an explicit allow-list (`SUPPORTED_NETWORK_PASSPHRASES` in
+`src/config/stellar.ts`), so a wallet that reports an unknown network is refused rather than producing a transaction
+that can never settle.
 
 `.env` is git-ignored; only `.env.example` is committed. Never read `import.meta.env` directly outside
 `src/config/env.ts` - import `{ env }` from `@/config` instead.

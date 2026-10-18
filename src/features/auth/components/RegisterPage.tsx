@@ -62,11 +62,11 @@ export default function RegisterPage() {
       navigate('/verify-email', { replace: true, state: { email: values.email } })
     } catch (error) {
       if (isApiError(error) && error.status === 409) {
-        setError(
-          'email',
-          { message: 'An account with this email already exists.' },
-          { shouldFocus: true },
-        )
+        // #865 — a 409 is the backend telling us the address is taken. Saying so
+        // turns this form into a user-enumeration oracle and contradicts the
+        // deliberate anti-enumeration in LoginPage, so the outcome is made
+        // indistinguishable from a successful sign-up.
+        navigate('/verify-email', { replace: true, state: { email: values.email } })
         return
       }
       let mapped = false

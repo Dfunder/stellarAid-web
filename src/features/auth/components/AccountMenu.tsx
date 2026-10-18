@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCopyToClipboard } from '@/hooks'
-import { truncateMiddle } from '@/lib'
+import { safeExternalUrl, truncateMiddle } from '@/lib'
 import { useAuth } from '../hooks/useAuth'
 import { useWallet } from '../hooks/useWallet'
 
@@ -107,6 +107,8 @@ export default function AccountMenu() {
   }
 
   const displayPublicKey = user.publicKey || connectedPublicKey
+  // The avatar comes from the API, so it is validated before it reaches `src`.
+  const avatarUrl = safeExternalUrl(user.avatarUrl)
   const profileHandle = user.username || user.id
   const displayName = user.name || 'Lumora Creator'
   const initials = getInitials(user.name, user.email)
@@ -128,9 +130,9 @@ export default function AccountMenu() {
         onClick={() => setIsOpen((prev) => !prev)}
         className="flex items-center gap-2.5 rounded-control border border-line/60 bg-surface px-2.5 py-1.5 text-body text-foreground shadow-card transition hover:border-line hover:bg-surface-muted focus-visible:shadow-focus-ring"
       >
-        {user.avatarUrl ? (
+        {avatarUrl ? (
           <img
-            src={user.avatarUrl}
+            src={avatarUrl}
             alt={displayName}
             className="h-7 w-7 rounded-full object-cover border border-line"
           />
@@ -165,9 +167,9 @@ export default function AccountMenu() {
           {/* User Header Section */}
           <div className="border-b border-line px-3 py-3">
             <div className="flex items-center gap-3">
-              {user.avatarUrl ? (
+              {avatarUrl ? (
                 <img
-                  src={user.avatarUrl}
+                  src={avatarUrl}
                   alt={displayName}
                   className="h-10 w-10 rounded-full object-cover border border-line"
                 />
@@ -260,7 +262,7 @@ export default function AccountMenu() {
           {/* Navigation Items: Profile, Dashboard, Settings, Wallet, Logout */}
           <div className="py-1">
             <Link
-              to={`/artists/${profileHandle}`}
+              to={`/artists/${encodeURIComponent(profileHandle)}`}
               role="menuitem"
               ref={(el) => {
                 menuItemsRef.current[0] = el

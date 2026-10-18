@@ -1,9 +1,8 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
-import { formatDate, statusMeta } from '@/lib'
-import { formatDate, shortAddress } from '@/lib'
+import { formatDate, shortAddress, statusMeta } from '@/lib'
 import { txStatusRefetchInterval } from './polling'
 
 type TxStatus = 'submitted' | 'confirming' | 'confirmed' | 'failed'
@@ -58,7 +57,11 @@ export default function TransactionStatusPolling({
   const { data, isPending, isError, error, refetch } = useQuery({
     queryKey: ['txStatus', txHash],
     queryFn: async (): Promise<TransactionStatusData> => {
-      const response = await http.get<{ status: TransactionStatusData }>(`/transactions/${txHash}/status`)
+      const response = await http.get<{ status: TransactionStatusData }>(
+        `/transactions/${encodeURIComponent(txHash)}/status`,
+        // A background poll must not raise a toast every few seconds (#865).
+        { skipToast: true },
+      )
       return response.status
     },
     enabled: !!txHash,
@@ -122,8 +125,6 @@ export default function TransactionStatusPolling({
             </div>
             <div>
               <p className="text-caption-sm font-medium text-foreground">{statusMeta(currentStatus).label}</p>
-              <p className="text-caption-xs text-muted font-mono">{txHash.slice(0, 12)}…{txHash.slice(-8)}</p>
-              <p className="text-caption-sm font-medium text-foreground">{STATUS_LABELS[currentStatus]}</p>
               <p className="text-caption-xs text-muted font-mono">{shortAddress(txHash)}</p>
             </div>
           </div>

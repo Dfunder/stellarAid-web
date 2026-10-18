@@ -2,20 +2,25 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Button, Input } from '@/components/ui'
 import { useAuth } from '../hooks/useAuth'
-import { emailSchema } from '../utils'
+import { emailSchema, resolvePostLoginRedirect } from '../utils'
 import WalletAuthModal from './WalletAuthModal'
 
-/** Passed through navigation from the reset flow and the route guard. */
-interface NavigationState {
-  from?: string
-  notice?: string
+/**
+ * Router state is attacker-influenceable, so it is narrowed field by field
+ * rather than asserted, and only a string `notice` is ever rendered (#862).
+ */
+function readNavigationNotice(state: unknown): string | null {
+  if (typeof state === 'object' && state !== null) {
+    const notice = (state as { notice?: unknown }).notice
+    if (typeof notice === 'string') return notice
+  }
+  return null
 }
 
 export default function SignInPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams] = useSearchParams()
-  const navigationState = (location.state ?? {}) as NavigationState
   const { login, isAuthenticated, isLoading, error: authError } = useAuth()
 
   const [email, setEmail] = useState('')
@@ -23,8 +28,8 @@ export default function SignInPage() {
   const [emailError, setEmailError] = useState<string | null>(null)
   const [isWalletModalOpen, setWalletModalOpen] = useState(false)
 
-  const notice = navigationState.notice ?? null
-  const redirectTo = navigationState.from ?? searchParams.get('redirect') ?? '/'
+  const notice = readNavigationNotice(location.state)
+  const redirectTo = resolvePostLoginRedirect(location.state, searchParams.get('redirect'))
 
   useEffect(() => {
     if (isAuthenticated) navigate(redirectTo, { replace: true })

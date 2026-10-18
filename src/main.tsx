@@ -8,8 +8,7 @@ import ConfigErrorScreen from '@/components/ui/ConfigErrorScreen'
 import ErrorBoundary from '@/components/ui/ErrorBoundary'
 import ThemeProvider from '@/components/ui/ThemeProvider'
 import App from '@/App'
-import { configError, loadRemoteFeatureFlags } from '@/config'
-import { AuthProvider } from '@/features/auth'
+import { loadResult, loadRemoteFeatureFlags } from '@/config'
 import { analytics } from '@/lib'
 import { AuthProvider, bindSessionToHttp } from '@/features/auth'
 import { queryClient } from '@/stores'
@@ -30,11 +29,17 @@ if (import.meta.env.DEV) {
 const root = document.getElementById('root')
 if (!root) throw new Error('Root element #root was not found')
 
-if (configError) {
+// The config never throws at module scope: an invalid production build branches
+// here and renders the error screen instead of shipping against localhost or
+// testnet by accident (#864).
+if (loadResult.configError) {
   createRoot(root).render(
     <StrictMode>
       <ThemeProvider>
-        <ConfigErrorScreen message={configError} />
+        <ConfigErrorScreen
+          message={loadResult.configError}
+          invalidKeys={loadResult.invalidKeys}
+        />
       </ThemeProvider>
     </StrictMode>,
   )

@@ -7,12 +7,6 @@ import { formatDate } from '@/lib'
 import { DISPLAY_FALLBACK_PRECISION, getAssetMeta } from '@/config'
 import { Link } from 'react-router-dom'
 
-interface AssetBalance {
-  asset: string
-  balance: string
-  hasTrustline: boolean
-  trustlineLimit?: string
-}
 import { sumByAsset, type AssetBalance } from './walletBalances'
 
 
@@ -39,7 +33,10 @@ export default function WalletBalanceDisplay({
     queryKey: ['walletBalances', publicKey],
     queryFn: async (): Promise<AssetBalance[]> => {
       if (!publicKey) return []
-      const response = await http.get<{ balances: AssetBalance[] }>(`/wallets/${publicKey}/balances`)
+      const response = await http.get<{ balances: AssetBalance[] }>(
+        `/wallets/${encodeURIComponent(publicKey)}/balances`,
+        { skipToast: true },
+      )
       return response.balances
     },
     enabled: !!publicKey,

@@ -1,5 +1,6 @@
 import axios, { AxiosError, type AxiosInstance, type AxiosRequestConfig } from 'axios'
 import { env } from '@/config'
+import { redactUrl } from '@/lib/url'
 import type { ApiErrorDto } from '@/types/api'
 import { useUiStore } from '@/stores/useUiStore'
 
@@ -65,6 +66,12 @@ declare module 'axios' {
     skipRetry?: boolean
     /** Do not attempt a token refresh when this request returns 401. */
     skipAuthRefresh?: boolean
+    /**
+     * Suppress the global error toast for this request. Set it on background
+     * polls and probes, which retry on their own schedule and would otherwise
+     * raise a toast every few seconds (#865).
+     */
+    skipToast?: boolean
     /** Set internally once the request has been retried after a refresh. */
     authRetried?: boolean
   }
@@ -197,12 +204,14 @@ function normalizeError(error: AxiosError): ApiError {
 
 function reportUnexpectedError(error: ApiError, request: AxiosRequestConfig | undefined): void {
   if (!(error.code in API_ERROR_MESSAGES)) {
+    // The URL is redacted before it is logged: a password-reset token travels in
+    // the path, and a console is a place session-replay tools read (#865).
     console.error('Unexpected API error', {
       code: error.code,
       status: error.status,
       requestId: error.requestId,
       method: request?.method,
-      url: request?.url,
+      url: redactUrl(request?.url),
     })
   }
 }
@@ -287,7 +296,11 @@ function buildClient(): AxiosInstance {
 
       const normalized = normalizeError(error)
       reportUnexpectedError(normalized, config)
-      if (normalized.status !== 422) useUiStore.getState().pushToast(normalized.message, 'error')
+      // 422 carries per-field messages the form renders itself, and a
+      // `skipToast` request opted out, so neither raises a global toast (#865).
+      if (normalized.status !== 422 && !config?.skipToast) {
+        useUiStore.getState().pushToast(normalized.message, 'error')
+      }
       return Promise.reject(normalized)
     },
   )

@@ -40,17 +40,19 @@ const remainingMs = new Map<string, number>()
 const startedAt = new Map<string, number>()
 
 /**
- * Global UI state: toast notifications only. (Theme lives in `ThemeProvider` / `@/lib/theme`; there is no mobile menu
- * or modal manager yet, so no placeholder state for them is kept here.)
+ * Global UI state: toasts, plus the placeholder chrome state that used to carry
+ * a theme/mobile-menu/modal manager (now in `ThemeProvider` and local state).
  */
 interface UiState {
+  theme: 'light' | 'dark'
+  isMobileMenuOpen: boolean
+  activeModal: string | null
   toasts: Toast[]
   setTheme: (theme: 'light' | 'dark') => void
   setMobileMenuOpen: (open: boolean) => void
   openModal: (modal: string) => void
   closeModal: () => void
   pushToast: (message: string, tone?: ToastTone, duration?: number) => void
-  pushToast: (message: string, tone?: ToastTone) => void
   dismissToast: (id: string) => void
   /** Freeze a toast's auto-dismiss timer, e.g. while the pointer is over it. */
   pauseToast: (id: string) => void
@@ -69,13 +71,6 @@ export const useUiStore = create<UiState>((set, get) => {
     clearTimer(id)
     remainingMs.set(id, ms)
     startedAt.set(id, Date.now())
-export const useUiStore = create<UiState>((set, get) => ({
-  toasts: [],
-  pushToast: (message, tone = 'info') => {
-    const id = createToastId()
-    set((state) => ({
-      toasts: [...state.toasts, { id, message, tone }].slice(-MAX_TOASTS),
-    }))
     dismissTimers.set(
       id,
       setTimeout(() => {

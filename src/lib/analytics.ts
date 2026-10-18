@@ -64,21 +64,74 @@ let analyticsProvider: AnalyticsProvider = noopProvider
 let failedEventCount = 0
 let lastProviderError: string | null = null
 
-const PII_KEY_PATTERN = /email|wallet|address|password|token|phone/i
+/**
+ * Key names that never carry an event property, whatever the value is (#865).
+ * Extended with `secret`/`otp`/`passcode`/`authorization` so a credential added
+ * under a new name is still dropped.
+ */
+const PII_KEY_PATTERN = /email|wallet|address|password|token|phone|secret|otp|passcode|credential|authorization/i
+
 const EMAIL_PATTERN = /[^\s@]+@[^\s@]+\.[^\s@]+/
-const STELLAR_ADDRESS_PATTERN = /\b[GM][A-Z2-7]{55}\b/
+
+/** A Stellar account (`G`) or muxed account (`M`) address, in any casing. */
+const STELLAR_ADDRESS_PATTERN = /\b(?:G[A-Z2-7]{55}|M[A-Z2-7]{55,68})\b/i
+
+/** A JWT, the shape an access/refresh/reset token takes. */
+const JWT_PATTERN = /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/
+
+/** Any opaque 32+ character credential-looking blob. */
+const OPAQUE_TOKEN_PATTERN = /\b[A-Za-z0-9_-]{32,}\b/
+
+/**
+ * Value-shape check. Keys alone are not trusted: an address or an email under
+ * an unrecognised key is still personal data and must not reach a provider.
+ */
+function isSensitiveString(value: string): boolean {
+  return (
+    EMAIL_PATTERN.test(value) ||
+    STELLAR_ADDRESS_PATTERN.test(value) ||
+    JWT_PATTERN.test(value) ||
+    OPAQUE_TOKEN_PATTERN.test(value)
+  )
+}
+
+/**
+ * Recursively drops anything that looks like PII.
+ *
+ * Nested objects and arrays are walked too, so an email under an unrecognised
+ * key is stripped rather than forwarded whole (#865).
+ */
+function sanitize(value: unknown, key?: string): { keep: boolean; value?: unknown } {
+  if (key !== undefined && PII_KEY_PATTERN.test(key)) return { keep: false }
+
+  if (typeof value === 'string') {
+    return isSensitiveString(value) ? { keep: false } : { keep: true, value }
+  }
+  if (typeof value === 'number' || typeof value === 'boolean' || value === null) {
+    return { keep: true, value }
+  }
+  if (Array.isArray(value)) {
+    const kept: unknown[] = []
+    for (const item of value) {
+      const result = sanitize(item)
+      if (result.keep) kept.push(result.value)
+    }
+    return { keep: true, value: kept }
+  }
+  if (typeof value === 'object') {
+    const kept: Record<string, unknown> = {}
+    for (const [entryKey, entryValue] of Object.entries(value as Record<string, unknown>)) {
+      const result = sanitize(entryValue, entryKey)
+      if (result.keep) kept[entryKey] = result.value
+    }
+    return { keep: true, value: kept }
+  }
+  return { keep: false }
+}
 
 function stripPii(props: AnalyticsProps): AnalyticsProps {
-  return Object.fromEntries(
-    Object.entries(props).filter(
-      ([key, value]) =>
-        !PII_KEY_PATTERN.test(key) &&
-        !(
-          typeof value === 'string' &&
-          (EMAIL_PATTERN.test(value) || STELLAR_ADDRESS_PATTERN.test(value))
-        ),
-    ),
-  )
+  const result = sanitize(props)
+  return (result.value ?? {}) as AnalyticsProps
 }
 
 export const analytics = {

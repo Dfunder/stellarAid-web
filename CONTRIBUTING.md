@@ -157,6 +157,16 @@ Every `VITE_*` variable is inlined into the public client bundle at build time a
 
 Access and refresh tokens are persisted by `useAuthStore` in `localStorage` so sessions survive reloads. Trade-off: any script running on the origin can read them, so an XSS bug could leak them. This is accepted for the MVP because the API uses bearer tokens; mitigations are short-lived access tokens, transparent refresh on 401 and never rendering untrusted HTML. Move the refresh token to an httpOnly cookie once the API supports it. Do not store tokens anywhere else.
 
+## Untrusted URLs
+
+Two helpers in `src/lib/url.ts` guard every URL the app does not control. Use them instead of passing a raw string to `navigate`, `href` or `src`:
+
+- `safeRedirect` (via `resolvePostLoginRedirect`) for a post-login destination. It only accepts an app-relative path that stays on this origin, so `//evil.com`, `/\evil.com` and `/%2F%2Fevil.com` all fall back to the dashboard. Router state is attacker-influenceable: narrow it field by field instead of asserting a type.
+- `safeExternalUrl` for a server-supplied URL rendered as a link or an image source. It returns `null` for anything that is not `https:` (plus `http:` in development), so render a non-clickable fallback instead of the URL.
+- `redactUrl` before a URL reaches `console.*` or an analytics payload - a password-reset token travels in the path.
+
+Interpolate every path parameter with `encodeURIComponent`, and set `skipToast: true` on background polls and probes so a retry loop cannot spam the user with toasts.
+
 ## Releases
 
 Versions follow [Semantic Versioning](https://semver.org) and the changelog follows

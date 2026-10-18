@@ -41,7 +41,9 @@ export default function PaymentAssetSelector({
     queryKey: ['walletBalances', publicKey],
     queryFn: async (): Promise<AssetBalance[]> => {
       if (!publicKey) return []
-      const response = await http.get<{ balances: AssetBalance[] }>(`/wallets/${publicKey}/balances`)
+      const response = await http.get<{ balances: AssetBalance[] }>(
+        `/wallets/${encodeURIComponent(publicKey)}/balances`,
+      )
       return response.balances
     },
     enabled: !!publicKey,
