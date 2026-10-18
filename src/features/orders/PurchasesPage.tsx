@@ -7,6 +7,19 @@ import { orderKeys } from './queryKeys'
 import type { PurchaseOrder } from '@/types'
 import { Link } from 'react-router-dom'
 
+/** Fields the purchases table actually renders. */
+type PurchaseRow = Pick<
+  PurchaseOrder,
+  | 'id'
+  | 'artworkTitle'
+  | 'artworkThumbnail'
+  | 'sellerName'
+  | 'amount'
+  | 'asset'
+  | 'status'
+  | 'txHash'
+  | 'createdAt'
+>
 interface Order {
   id: string
   artworkTitle: string
@@ -45,6 +58,22 @@ export default function PurchasesPage() {
       const response = await http.get<{ orders: PurchaseOrder[]; total: number }>(`/orders/purchases?${params}`)
       return response
     },
+    // Flow only the fields the table renders so a new server field never
+    // changes row identity (#855).
+    select: (data): { orders: PurchaseRow[]; total: number } => ({
+      total: data.total,
+      orders: data.orders.map((order) => ({
+        id: order.id,
+        artworkTitle: order.artworkTitle,
+        artworkThumbnail: order.artworkThumbnail,
+        sellerName: order.sellerName,
+        amount: order.amount,
+        asset: order.asset,
+        status: order.status,
+        txHash: order.txHash,
+        createdAt: order.createdAt,
+      })),
+    }),
     // Incrementing the page or changing the filter keeps the current rows visible
     // while the next page loads, instead of collapsing to a spinner (#852).
     placeholderData: keepPreviousData,

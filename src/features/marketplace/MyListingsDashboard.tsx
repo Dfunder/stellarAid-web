@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
@@ -66,6 +67,23 @@ export default function MyListingsDashboard() {
       // degrades to a single page instead of rendering a broken control.
       return { listings: response.listings, total: response.total ?? response.listings.length }
     },
+    // Keep only the columns the table renders so a new response field does not
+    // change row identity and re-render the whole table (#855).
+    select: (data): { listings: Listing[]; total: number } => ({
+      total: data.total,
+      listings: data.listings.map((listing) => ({
+        id: listing.id,
+        title: listing.title,
+        thumbnail: listing.thumbnail,
+        status: listing.status,
+        price: listing.price,
+        asset: listing.asset,
+        views: listing.views,
+        likes: listing.likes,
+        createdAt: listing.createdAt,
+        updatedAt: listing.updatedAt,
+      })),
+    }),
     enabled: !!user,
     // Changing status, sort or page keeps the current rows mounted while the
     // next response loads, so paging never blanks the table (#852).

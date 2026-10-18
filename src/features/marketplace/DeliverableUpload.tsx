@@ -1,9 +1,8 @@
-import { useState, useCallback } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, Input, Modal, Spinner } from '@/components/ui'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { Button, Spinner } from '@/components/ui'
 import { http } from '@/services'
-import { useAuth } from '@/features/auth'
-import { applyFileCap, uploadToPresignedUrl } from './deliverableUpload'
+import { applyFileCap, runWithConcurrency, uploadToPresignedUrl } from './deliverableUpload'
 
 import type { DeliverableFile, DeliverableKind } from './types'
 import {
@@ -17,6 +16,12 @@ export type { DeliverableFile, DeliverableKind } from './types'
 
 /** Default revision budget when the caller does not supply one. */
 const DEFAULT_MAX_REVISIONS = 3
+
+/** Upper bound on simultaneous deliverable uploads (#854). */
+const MAX_CONCURRENT_UPLOADS = 3
+
+/** How often buffered XHR progress is flushed to state, in ms (~4 Hz). */
+const PROGRESS_FLUSH_INTERVAL_MS = 250
 
 const PREVIEWABLE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 
@@ -58,7 +63,6 @@ export default function DeliverableUpload({
   onSubmitForReview,
   initialFiles = [],
 }: DeliverableUploadProps) {
-  const { user } = useAuth()
   const queryClient = useQueryClient()
   const [files, setFiles] = useState<DeliverableFile[]>(initialFiles)
   const [dragActive, setDragActive] = useState(false)
@@ -66,8 +70,42 @@ export default function DeliverableUpload({
   const [note, setNote] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const uploadMutation = useMutation({
-    mutationFn: async (file: DeliverableFile) => {
+  // Progress events arrive several times a second per file. Buffer the latest
+  // value per id and flush on a timer so a 20-file drop does not map the whole
+  // array hundreds of times a second (#854).
+  const progressBuffer = useRef<Record<string, number>>({})
+  const progressFlush = useRef<number | null>(null)
+
+  const flushProgress = useCallback(() => {
+    progressFlush.current = null
+    const pending = progressBuffer.current
+    progressBuffer.current = {}
+    if (Object.keys(pending).length === 0) return
+    setFiles((prev) =>
+      prev.map((f) => (f.id in pending ? { ...f, progress: pending[f.id]! } : f))
+    )
+  }, [])
+
+  const queueProgress = useCallback(
+    (id: string, progress: number) => {
+      progressBuffer.current[id] = progress
+      if (progressFlush.current === null) {
+        progressFlush.current = window.setTimeout(flushProgress, PROGRESS_FLUSH_INTERVAL_MS)
+      }
+    },
+    [flushProgress]
+  )
+
+  useEffect(
+    () => () => {
+      if (progressFlush.current !== null) window.clearTimeout(progressFlush.current)
+    },
+    []
+  )
+
+  /** Presign → PUT → confirm for a single file. Rejects so the pool can record it. */
+  const uploadSingle = useCallback(
+    async (file: DeliverableFile) => {
       // The descriptor itself is not uploadable — send the raw File it wraps.
       const rawFile = file.file
       if (!(rawFile instanceof Blob)) {
@@ -87,19 +125,12 @@ export default function DeliverableUpload({
         prev.map((f) => (f.id === file.id ? { ...f, uploadStatus: 'uploading', progress: 0 } : f))
       )
 
-      // Upload to presigned URL with progress
-      await uploadToPresignedUrl(uploadUrl, rawFile, (progress) => {
-        setFiles((prev) =>
-          prev.map((f) => (f.id === file.id ? { ...f, progress } : f))
-        )
-      })
+      // Upload to presigned URL with throttled progress
+      await uploadToPresignedUrl(uploadUrl, rawFile, (progress) => queueProgress(file.id, progress))
 
       // Confirm upload
       await http.post(`/listings/${listingId}/deliverables/${fileId}/confirm`)
 
-      return fileId
-    },
-    onSuccess: (fileId, file) => {
       setFiles((prev) =>
         prev.map((f) =>
           f.id === file.id ? { ...f, uploadStatus: 'completed', progress: 100 } : f
@@ -107,16 +138,34 @@ export default function DeliverableUpload({
       )
       queryClient.invalidateQueries({ queryKey: ['deliverables', listingId] })
     },
-    onError: (error, file) => {
-      setFiles((prev) =>
-        prev.map((f) =>
-          f.id === file.id
-            ? { ...f, uploadStatus: 'failed', error: error instanceof Error ? error.message : 'Upload failed' }
-            : f
-        )
-      )
+    [listingId, queryClient, queueProgress]
+  )
+
+  // Fan a batch out through a bounded pool so at most MAX_CONCURRENT_UPLOADS
+  // XHRs are open at once. Each file records its own status/error, so one
+  // failure does not cancel its siblings (#854).
+  const startUploads = useCallback(
+    async (batch: DeliverableFile[]) => {
+      await runWithConcurrency(batch, MAX_CONCURRENT_UPLOADS, async (file) => {
+        try {
+          await uploadSingle(file)
+        } catch (error) {
+          setFiles((prev) =>
+            prev.map((f) =>
+              f.id === file.id
+                ? {
+                    ...f,
+                    uploadStatus: 'failed',
+                    error: error instanceof Error ? error.message : 'Upload failed',
+                  }
+                : f
+            )
+          )
+        }
+      })
     },
-  })
+    [uploadSingle]
+  )
 
   const validateFile = (file: File): string | null => {
     if (!ALLOWED_TYPES.includes(file.type as typeof ALLOWED_TYPES[number])) {
@@ -161,15 +210,15 @@ export default function DeliverableUpload({
 
       if (validFiles.length > 0) {
         setFiles((prev) => [...prev, ...validFiles])
-        // Auto-upload
-        validFiles.forEach((f) => uploadMutation.mutate(f))
+        // Auto-upload through the bounded pool.
+        void startUploads(validFiles)
       }
 
       if (errors.length > 0) {
         alert(errors.join('\n'))
       }
     },
-    [files.length, listingId, uploadMutation, kind, revision, note]
+    [files.length, startUploads, kind, revision, note]
   )
 
   const handleDrop = useCallback(
@@ -195,12 +244,17 @@ export default function DeliverableUpload({
     setFiles((prev) => prev.filter((f) => f.id !== id))
   }, [])
 
-  const retryUpload = useCallback((file: DeliverableFile) => {
-    setFiles((prev) =>
-      prev.map((f) => (f.id === file.id ? { ...f, uploadStatus: 'pending', progress: 0, error: undefined } : f))
-    )
-    uploadMutation.mutate(file)
-  }, [uploadMutation])
+  const retryUpload = useCallback(
+    (file: DeliverableFile) => {
+      setFiles((prev) =>
+        prev.map((f) =>
+          f.id === file.id ? { ...f, uploadStatus: 'pending', progress: 0, error: undefined } : f
+        )
+      )
+      void startUploads([file])
+    },
+    [startUploads]
+  )
 
   const completedFiles = files.filter((f) => f.uploadStatus === 'completed')
   const hasPendingUploads = files.some((f) => f.uploadStatus === 'pending' || f.uploadStatus === 'uploading')
@@ -421,7 +475,7 @@ export default function DeliverableUpload({
                     </>
                   )}
                   {file.uploadStatus === 'pending' && (
-                    <Button size="sm" onClick={() => uploadMutation.mutate(file)}>
+                    <Button size="sm" onClick={() => void startUploads([file])}>
                       Upload
                     </Button>
                   )}

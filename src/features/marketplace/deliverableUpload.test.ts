@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { applyFileCap, uploadToPresignedUrl } from './deliverableUpload'
+import { applyFileCap, runWithConcurrency, uploadToPresignedUrl } from './deliverableUpload'
 
 type Listener = (event?: unknown) => void
 
@@ -107,6 +107,37 @@ describe('uploadToPresignedUrl (#775)', () => {
     await expect(uploadToPresignedUrl('https://storage.test/u', file, () => {})).rejects.toThrow(
       'Upload failed: network error reaching the storage host'
     )
+  })
+})
+
+describe('runWithConcurrency (#854)', () => {
+  it('never keeps more than `limit` tasks in flight', async () => {
+    let active = 0
+    let peak = 0
+    const task = async (n: number) => {
+      active += 1
+      peak = Math.max(peak, active)
+      await new Promise((resolve) => setTimeout(resolve, 5))
+      active -= 1
+      return n * 2
+    }
+
+    const results = await runWithConcurrency([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3, task)
+
+    expect(peak).toBeLessThanOrEqual(3)
+    // Sanity check: the pool actually parallelises rather than serialising.
+    expect(peak).toBeGreaterThan(1)
+    expect(results).toEqual([2, 4, 6, 8, 10, 12, 14, 16, 18, 20])
+  })
+
+  it('handles an empty list and preserves input order', async () => {
+    expect(await runWithConcurrency([], 3, async (n) => n)).toEqual([])
+    expect(await runWithConcurrency(['a', 'b', 'c', 'd'], 2, async (s) => s.toUpperCase())).toEqual([
+      'A',
+      'B',
+      'C',
+      'D',
+    ])
   })
 })
 

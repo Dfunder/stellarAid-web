@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui'
 import { http } from '@/services'
@@ -35,17 +35,12 @@ export default function WalletBalanceDisplay({
       return response.balances
     },
     enabled: !!publicKey,
+    // Balances are only stale when a transaction moves them, which we handle by
+    // invalidation; focus refetching is declared here on purpose (#855). The
+    // manual `window` focus listener is gone — it duplicated this option.
+    staleTime: Infinity,
     refetchOnWindowFocus: true,
   })
-
-  // Refresh on window focus
-  useEffect(() => {
-    const handleFocus = () => {
-      if (isConnected) void refetch()
-    }
-    window.addEventListener('focus', handleFocus)
-    return () => window.removeEventListener('focus', handleFocus)
-  }, [isConnected, refetch])
 
   const filteredBalances = balances?.filter((b) => assets.includes(b.asset)) ?? []
   const missingTrustlines = filteredBalances.filter((b) => !b.hasTrustline)
