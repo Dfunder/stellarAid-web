@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import PortfolioGrid from '@/components/PortfolioGrid'
 import { MediaLightbox, Modal } from '@/components/ui'
 import type { Artwork } from '@/types'
 import type { ArtistProfileExtended } from '../types'
@@ -56,48 +57,26 @@ export default function ProfilePortfolioTab({ profile }: ProfilePortfolioTabProp
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredArtworks.map((artwork) => (
-            <div
-              key={artwork.id}
-              onClick={() => setSelectedArtwork(artwork)}
-              className="group cursor-pointer overflow-hidden rounded-card border border-line bg-surface shadow-card transition duration-200 hover:-translate-y-1 hover:shadow-elevated"
-            >
-              <div className="relative aspect-[4/3] w-full overflow-hidden bg-surface-muted">
-                <img
-                  src={artwork.imageUrls[0] || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80'}
-                  alt={artwork.title}
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="absolute top-2.5 right-2.5">
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-caption-sm font-semibold shadow-sm ${
-                      artwork.status === 'sold'
-                        ? 'bg-neutral-800/90 text-neutral-300'
-                        : 'bg-primary/90 text-primary-contrast backdrop-blur-sm'
-                    }`}
-                  >
-                    {artwork.status === 'sold' ? 'Sold' : `${artwork.price.amount} ${artwork.price.asset.code}`}
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-4">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="truncate text-body font-semibold text-foreground group-hover:text-primary transition-colors">
-                    {artwork.title}
-                  </h3>
-                  <span className="shrink-0 text-caption-sm text-muted">{artwork.category}</span>
-                </div>
-                {artwork.description && (
-                  <p className="mt-1 line-clamp-2 text-caption text-muted">
-                    {artwork.description}
-                  </p>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+        <PortfolioGrid
+          items={filteredArtworks.map((artwork) => ({
+            id: artwork.id,
+            title: artwork.title,
+            imageUrl: artwork.imageUrls[0],
+            category: artwork.category,
+            status:
+              artwork.status === 'sold'
+                ? 'Sold'
+                : `${artwork.price.amount} ${artwork.price.asset.code}`,
+            description: artwork.description,
+          }))}
+          columns={3}
+          label={`${profile.displayName} portfolio`}
+          onItemActivate={(item) => {
+            const artwork = filteredArtworks.find((a) => a.id === item.id) ?? null
+            setSelectedArtwork(artwork)
+            setActiveMediaIndex(0)
+          }}
+        />
       )}
 
       {/* Artwork Detail Modal */}
