@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Button, ExplorerLink, Spinner, Select } from '@/components/ui'
 import { http } from '@/services'
 import { formatDate, statusMeta } from '@/lib'
@@ -30,28 +30,12 @@ interface Deliverable {
 }
 
 
-const STATUS_LABELS: Record<PurchaseOrder['status'], string> = {
-  pending: 'Pending',
-  processing: 'Processing',
-  completed: 'Completed',
-  failed: 'Failed',
-  refunded: 'Refunded',
-}
-
-const STATUS_COLORS: Record<PurchaseOrder['status'], string> = {
-  pending: 'bg-warning/10 text-warning',
-  processing: 'bg-blue/10 text-blue',
-  completed: 'bg-success/10 text-success',
-  failed: 'bg-danger/10 text-danger',
-  refunded: 'bg-muted text-muted',
-}
-
 export default function PurchasesPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | PurchaseOrder['status']>('all')
   const [page, setPage] = useState(1)
   const pageSize = 10
 
-  const { data, isPending, isError, error, refetch } = useQuery({
+  const { data, isPending, isFetching, isError, error, refetch } = useQuery({
     queryKey: orderKeys.list({ status: statusFilter, page, pageSize }),
     queryFn: async (): Promise<{ orders: PurchaseOrder[]; total: number }> => {
       const params = new URLSearchParams()
@@ -61,6 +45,9 @@ export default function PurchasesPage() {
       const response = await http.get<{ orders: PurchaseOrder[]; total: number }>(`/orders/purchases?${params}`)
       return response
     },
+    // Incrementing the page or changing the filter keeps the current rows visible
+    // while the next page loads, instead of collapsing to a spinner (#852).
+    placeholderData: keepPreviousData,
   })
 
   const orders = data?.orders ?? []
@@ -118,6 +105,14 @@ export default function PurchasesPage() {
           </Select>
         </div>
       </div>
+
+      {/* Stale-but-visible rows stay mounted; this only signals a background
+          refetch so a page change does not blank the table (#852). */}
+      {isFetching && !isPending && (
+        <p role="status" className="mb-3 text-caption-sm text-muted">
+          Updating…
+        </p>
+      )}
 
       {orders.length === 0 ? (
         <div className="rounded-card border border-line bg-surface p-12 shadow-card text-center">

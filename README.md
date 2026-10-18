@@ -23,7 +23,7 @@ for signed-out users. `src/docs.test.ts` fails if this table and the router drif
 
 | Path                               | Access | Screen                   |
 | ---------------------------------- | ------ | ------------------------ |
-| `/`                                | Public | Home / style guide       |
+| `/`                                | Public | Landing page             |
 | `/login`                           | Guest  | Sign in                  |
 | `/register`                        | Guest  | Create an account        |
 | `/forgot-password`                 | Guest  | Request a password reset |
@@ -45,6 +45,7 @@ for signed-out users. `src/docs.test.ts` fails if this table and the router drif
 | `/transactions`                    | Auth   | Transaction history      |
 | `/earnings/withdraw`               | Auth   | Withdraw earnings        |
 | `/settings/wallets`                | Auth   | Linked wallets           |
+| `/style-guide`                     | Dev only | Design system reference |
 | `*`                                | Public | Not found                |
 
 ## Tech Stack
