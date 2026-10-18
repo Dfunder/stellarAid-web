@@ -64,18 +64,10 @@ export function useWalletAuth(): UseWalletAuth {
       abortControllerRef.current = abortController
 
       try {
-        // Step 1: Request challenge nonce from backend
-        let nonceData
-        try {
-          nonceData = await authApi.requestWalletNonce(connection.publicKey)
-        } catch (nonceError) {
-          // If the backend endpoint is not reachable or returns a fallback format
-          const fallbackNonce = `lumora-auth-nonce-${connection.publicKey.slice(0, 8)}-${Date.now()}`
-          nonceData = {
-            nonce: fallbackNonce,
-            challenge: `Sign this message to authenticate with Lumora:\nNonce: ${fallbackNonce}\nTimestamp: ${new Date().toISOString()}`,
-            expiresAt: new Date(Date.now() + 5 * 60_000).toISOString(),
-          }
+                // Step 1: Request a server-issued challenge nonce.
+        // Never synthesise a client-side fallback — that disables replay protection
+        // and lets captured signatures be reused (#934).
+        const nonceData = await authApi.requestWalletNonce(connection.publicKey)
         }
 
         if (abortController.signal.aborted) return null

@@ -1,5 +1,7 @@
 export interface ErrorReportInfo {
   componentStack: string | null
+  /** When true, skip the server monitoring POST (tests). */
+  skipServer?: boolean
 }
 
 export type ErrorReporter = (error: Error, info: ErrorReportInfo) => void
@@ -14,12 +16,24 @@ export function setErrorReporter(reporter: ErrorReporter | null): void {
   errorReporter = reporter
 }
 
-/** Logs a render error to the console and forwards it to the registered reporter. */
+/** Logs a render error to the console, server monitoring (#936), and optional reporter. */
 export function reportError(error: Error, info: ErrorReportInfo): void {
   if (info.componentStack) {
     console.error('[ErrorBoundary] render error:', error, info.componentStack)
   } else {
     console.error('[ErrorBoundary] render error:', error)
+  }
+
+  if (!info.skipServer) {
+    // Dynamic import avoided for sync componentDidCatch — use fire-and-forget.
+    void import('./error-tracking')
+      .then(({ logErrorToServer }) =>
+        logErrorToServer(error, {
+          componentStack: info.componentStack,
+          source: 'error_boundary',
+        }),
+      )
+      .catch(() => {})
   }
 
   if (!errorReporter) return

@@ -16,8 +16,9 @@ interface ErrorBoundaryState {
 }
 
 /**
- * Global error boundary: catches unexpected render errors and shows a branded
- * recovery screen instead of a blank page.
+ * Global error boundary: catches unexpected render errors, reports them to
+ * server monitoring via `reportError` (#936), and shows a branded recovery
+ * screen (friendly copy only — no stack traces in the UI).
  */
 export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   state: ErrorBoundaryState = { error: null, attempt: 0 }

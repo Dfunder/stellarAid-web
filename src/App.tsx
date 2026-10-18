@@ -30,8 +30,9 @@ import { ArtistWithdrawal } from '@/features/portfolio'
 import { PaymentResultScreen } from '@/features/payments'
 import { useUiStore } from '@/stores'
 
+/** Shared nav link styles including WCAG 2.4.7 focus-visible ring (#939). */
 const NAV_LINK_CLASSES =
-  'text-caption font-semibold text-muted transition-colors hover:text-foreground'
+  'text-caption font-semibold text-muted transition-colors hover:text-foreground rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background'
 
 /** Tone is conveyed by glyph as well as colour (#843). */
 const TOAST_GLYPHS: Record<'error' | 'success' | 'info', string> = {
@@ -117,7 +118,7 @@ function AppShell() {
           <div className="flex items-center gap-6">
             <Link
               to="/"
-              className="text-caption-sm font-bold uppercase tracking-widest text-gold hover:opacity-90 transition-opacity"
+              className="text-caption-sm font-bold uppercase tracking-widest text-gold hover:opacity-90 transition-opacity rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               Lumora
             </Link>
@@ -209,9 +210,9 @@ function AppShell() {
         <div className="container flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>Lumora — transparent, borderless crowdfunding and commissions on Stellar.</p>
           <div className="flex items-center gap-4 text-caption-sm">
-            <Link to="/artists/elena_art" className="hover:text-foreground">Artists</Link>
-            <Link to="/settings/wallets" className="hover:text-foreground">Wallets</Link>
-            <a href="https://stellar.org" target="_blank" rel="noreferrer" className="hover:text-foreground">Stellar Network ↗</a>
+            <Link to="/artists/elena_art" className="hover:text-foreground rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">Artists</Link>
+            <Link to="/settings/wallets" className="hover:text-foreground rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">Wallets</Link>
+            <a href="https://stellar.org" target="_blank" rel="noreferrer" className="hover:text-foreground rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">Stellar Network ↗</a>
           </div>
         </div>
       </footer>
