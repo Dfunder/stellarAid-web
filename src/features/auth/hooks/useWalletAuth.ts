@@ -69,11 +69,24 @@ export function useWalletAuth(): UseWalletAuth {
         // and lets captured signatures be reused (#934).
         const nonceData = await authApi.requestWalletNonce(connection.publicKey)
         }
+        // Step 1: Request challenge nonce from backend.
+        //
+        // A server-issued, single-use nonce is what makes this flow replay-safe.
+        // There is deliberately no client-side fallback: if the nonce endpoint is
+        // unreachable we surface the error and let the user retry, rather than
+        // fabricating a challenge the server never issued (#861).
+        const nonceData = await authApi.requestWalletNonce(connection.publicKey)
 
         if (abortController.signal.aborted) return null
 
-        // Step 2: Request wallet signature with timeout
-        const signPromise = signWithConnectedWallet(nonceData.challenge || nonceData.nonce)
+        // An expired challenge must never be signed (#861).
+        if (nonceData.expiresAt && new Date(nonceData.expiresAt).getTime() <= Date.now()) {
+          throw new Error('Your authentication challenge has expired. Please try again.')
+        }
+
+        // Step 2: Request wallet signature with timeout. The challenge signed is
+        // always the server-issued value, never a locally generated one.
+        const signPromise = signWithConnectedWallet(nonceData.challenge)
         const timeoutPromise = new Promise<never>((_, reject) => {
           const timer = setTimeout(() => {
             reject(new WalletError('UNKNOWN', 'Signature request timed out. Please try again.'))
@@ -113,10 +126,10 @@ export function useWalletAuth(): UseWalletAuth {
           setIsSigningIn(false)
           return session.user
         } catch (loginErr) {
-          // Check for unknown address / user not found (404 or 400 with user unknown)
-          const isNotFound =
-            (loginErr instanceof ApiError && (loginErr.status === 404 || loginErr.status === 400)) ||
-            (loginErr instanceof Error && loginErr.message.toLowerCase().includes('not found'))
+          // Only a genuine "wallet not registered" 404 may create an account.
+          // A 400 (malformed request) or any error whose text merely contains
+          // "not found" must not silently register a duplicate account (#861).
+          const isNotFound = loginErr instanceof ApiError && loginErr.status === 404
 
           if (isNotFound) {
             // Check if options provides automatic or custom account registration

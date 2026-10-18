@@ -50,6 +50,7 @@ export function reportError(error: Error, info: ErrorReportInfo): void {
  * rename an event only together with its dashboards. See CONTRIBUTING.md.
  */
 export type AnalyticsEvent =
+  | 'render_error'
   | 'signup'
   | 'login'
   | 'wallet_connect'

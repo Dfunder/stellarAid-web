@@ -22,6 +22,12 @@ const STATUS_OPTIONS = [
   { value: 'refunded', label: 'Refunded' },
 ] as const
 
+/** Fields the history table and CSV export actually read. */
+type TransactionRow = Pick<
+  Transaction,
+  'id' | 'createdAt' | 'type' | 'amount' | 'asset' | 'status' | 'txHash'
+>
+
 export default function TransactionHistoryPage() {
   const [typeFilter, setTypeFilter] = useState<'all' | Transaction['type']>('all')
   const [statusFilter, setStatusFilter] = useState<'all' | Transaction['status']>('all')
@@ -56,6 +62,20 @@ export default function TransactionHistoryPage() {
       // degrades to one page rather than rendering a broken pager.
       return { transactions: response.transactions, total: response.total ?? response.transactions.length }
     },
+    // Narrow each row to the rendered fields so unrelated response additions do
+    // not churn row identity and re-render the whole table (#855).
+    select: (data): { transactions: TransactionRow[]; total: number } => ({
+      total: data.total,
+      transactions: data.transactions.map((tx) => ({
+        id: tx.id,
+        createdAt: tx.createdAt,
+        type: tx.type,
+        amount: tx.amount,
+        asset: tx.asset,
+        status: tx.status,
+        txHash: tx.txHash,
+      })),
+    }),
   })
 
   // #838 — the no-op `useMemo` that returned its own dependency is gone: the

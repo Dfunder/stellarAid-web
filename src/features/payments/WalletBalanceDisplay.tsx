@@ -1,21 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Button, ExplorerLink } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { http } from '@/services'
 import { useWallet } from '@/features/auth/hooks/useWallet'
-import { formatDate } from '@/lib'
 import { DISPLAY_FALLBACK_PRECISION, getAssetMeta } from '@/config'
 import { Link } from 'react-router-dom'
 
-interface AssetBalance {
-  asset: string
-  balance: string
-  hasTrustline: boolean
-  trustlineLimit?: string
-}
 import { sumByAsset, type AssetBalance } from './walletBalances'
-
-
+import { paymentKeys } from './queryKeys'
 
 interface WalletBalanceDisplayProps {
   /** Assets to display balances for */
@@ -36,24 +28,19 @@ export default function WalletBalanceDisplay({
   const [isOpen, setIsOpen] = useState(false)
 
   const { data: balances, isPending, isError, refetch } = useQuery({
-    queryKey: ['walletBalances', publicKey],
+    queryKey: paymentKeys.walletBalances(publicKey),
     queryFn: async (): Promise<AssetBalance[]> => {
       if (!publicKey) return []
       const response = await http.get<{ balances: AssetBalance[] }>(`/wallets/${publicKey}/balances`)
       return response.balances
     },
     enabled: !!publicKey,
+    // Balances are only stale when a transaction moves them, which we handle by
+    // invalidation; focus refetching is declared here on purpose (#855). The
+    // manual `window` focus listener is gone — it duplicated this option.
+    staleTime: Infinity,
     refetchOnWindowFocus: true,
   })
-
-  // Refresh on window focus
-  useEffect(() => {
-    const handleFocus = () => {
-      if (isConnected) void refetch()
-    }
-    window.addEventListener('focus', handleFocus)
-    return () => window.removeEventListener('focus', handleFocus)
-  }, [isConnected, refetch])
 
   const filteredBalances = balances?.filter((b) => assets.includes(b.asset)) ?? []
   const missingTrustlines = filteredBalances.filter((b) => !b.hasTrustline)

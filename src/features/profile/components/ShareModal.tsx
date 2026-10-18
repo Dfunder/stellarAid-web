@@ -1,5 +1,6 @@
 import { Button, Modal } from '@/components/ui'
 import { useCopyToClipboard } from '@/hooks'
+import { useUiStore } from '@/stores'
 import type { ArtistProfileExtended } from '../types'
 
 export interface ShareModalProps {
@@ -11,6 +12,7 @@ export interface ShareModalProps {
 export default function ShareModal({ isOpen, onClose, profile }: ShareModalProps) {
   const profileUrl = typeof window !== 'undefined' ? window.location.href : `https://lumora.io/artists/${profile.username}`
   const { copy, isCopied } = useCopyToClipboard()
+  const pushToast = useUiStore((state) => state.pushToast)
 
   const shareText = `Check out ${profile.displayName} (@${profile.username}) on Lumora - decentralized creative crowdfunding on Stellar!`
 
@@ -33,7 +35,10 @@ export default function ShareModal({ isOpen, onClose, profile }: ShareModalProps
             value={profileUrl}
             className="w-full bg-transparent text-caption-sm text-foreground focus:outline-none"
           />
-          <Button size="sm" onClick={() => void copy(profileUrl)}>
+          <Button size="sm" onClick={async () => {
+            const ok = await copy(profileUrl)
+            pushToast(ok ? 'Copied to clipboard' : 'Failed to copy to clipboard', ok ? 'success' : 'error')
+          }}>
             {isCopied(profileUrl) ? 'Copied!' : 'Copy'}
           </Button>
         </div>
