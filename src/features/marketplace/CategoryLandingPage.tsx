@@ -1,9 +1,8 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useParams, Link } from 'react-router-dom'
-import { Button, Skeleton, SkeletonGrid, SkeletonText } from '@/components/ui'
+import { Button, LoadingRegion, Skeleton, SkeletonGrid, SkeletonText } from '@/components/ui'
 import { http } from '@/services'
-import { formatDate } from '@/lib'
 import type { ArtworkCard, CategorySummary } from '@/types'
 
 export interface CategoryLandingPageProps {
@@ -28,7 +27,7 @@ export default function CategoryLandingPage({ slug: slugProp }: CategoryLandingP
     enabled: !!slug,
   })
 
-  const { data: artworks, isPending: artworksPending } = useQuery({
+  const { data: artworks, isPending: artworksPending, isFetching: artworksFetching } = useQuery({
     queryKey: ['categoryArtworks', slug, subCategoryFilter],
     queryFn: async (): Promise<ArtworkCard[]> => {
       const params = new URLSearchParams()
@@ -37,16 +36,19 @@ export default function CategoryLandingPage({ slug: slugProp }: CategoryLandingP
       return response.artworks
     },
     enabled: !!slug,
+    // Changing the subcategory filter keeps the previous results mounted while
+    // the next page loads, instead of blanking the grid to a skeleton (#852).
+    placeholderData: keepPreviousData,
   })
 
   if (categoryPending) {
     return (
       <div className="container py-12">
-        <div className="max-w-4xl mx-auto">
+        <LoadingRegion label="Loading category" className="max-w-4xl mx-auto">
           <SkeletonText lines={2} className="mb-8" />
           <SkeletonText lines={1} className="mb-8" />
           <SkeletonGrid columns={3} rows={2} />
-        </div>
+        </LoadingRegion>
       </div>
     )
   }
@@ -145,8 +147,18 @@ export default function CategoryLandingPage({ slug: slugProp }: CategoryLandingP
         </nav>
       )}
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" role="list">
-        {artworksPending ? (
+      {/* Distinguishes stale-but-visible content from fresh content (#852). */}
+      {artworksFetching && !artworksPending && (
+        <p role="status" className="mb-2 text-caption-sm text-muted">
+          Updating…
+        </p>
+      )}
+
+      <div
+        className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        role="list"
+        aria-busy={artworksFetching || undefined}
+      >
           Array.from({ length: 8 }, (_, i) => <article key={i} role="listitem">{renderSkeleton()}</article>)
         ) : artworks?.length === 0 ? (
           <div className="col-span-full flex flex-col items-center gap-3 py-12 text-muted">
@@ -162,6 +174,29 @@ export default function CategoryLandingPage({ slug: slugProp }: CategoryLandingP
           ))
         )}
       </div>
+      <LoadingRegion label="Loading artworks…">
+        <div
+          className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          role="list"
+          aria-busy={artworksPending || undefined}
+        >
+          {artworksPending ? (
+            Array.from({ length: 8 }, (_, i) => <article key={i} role="listitem">{renderSkeleton()}</article>)
+          ) : artworks?.length === 0 ? (
+            <div className="col-span-full flex flex-col items-center gap-3 py-12 text-muted">
+              <svg className="h-12 w-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <path d="M9 9h6v6H9z" />
+              </svg>
+              <p className="text-caption">No artworks in this category{subCategoryFilter !== 'all' ? ' with this subcategory' : ''}.</p>
+            </div>
+          ) : (
+            artworks?.map((artwork) => (
+              <article key={artwork.id} role="listitem">{renderCard(artwork)}</article>
+            ))
+          )}
+        </div>
+      </LoadingRegion>
     </div>
   )
 }

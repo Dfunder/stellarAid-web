@@ -3,6 +3,7 @@ import { stellarAccountExplorerUrl, STELLAR_NETWORK_LABELS } from '@/config'
 import { Button, Modal, Spinner } from '@/components/ui'
 import { useCopyToClipboard } from '@/hooks'
 import { truncateMiddle } from '@/lib'
+import { useUiStore } from '@/stores'
 import { getErrorMessage } from '@/services'
 import {
   useLinkedWallets,
@@ -35,6 +36,7 @@ export default function LinkedWalletsSection() {
   const unlinkWallet = useUnlinkWallet()
   const setVisibility = useSetWalletVisibility()
   const { copy, isCopied } = useCopyToClipboard()
+  const pushToast = useUiStore((state) => state.pushToast)
   const [pendingUnlink, setPendingUnlink] = useState<LinkedWallet | null>(null)
 
   const linkedWallets = wallets ?? []
@@ -141,7 +143,10 @@ export default function LinkedWalletsSection() {
                   <button
                     type="button"
                     className={ACTION_CLASSES}
-                    onClick={() => void copy(wallet.publicKey)}
+                    onClick={async () => {
+                      const ok = await copy(wallet.publicKey)
+                      pushToast(ok ? 'Copied to clipboard' : 'Failed to copy to clipboard', ok ? 'success' : 'error')
+                    }}
                   >
                     {isCopied(wallet.publicKey) ? 'Copied' : 'Copy'}
                   </button>

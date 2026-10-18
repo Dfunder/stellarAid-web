@@ -19,7 +19,9 @@ export default function ProfilePortfolioTab({ profile }: ProfilePortfolioTabProp
   const filteredArtworks =
     filterCategory === 'all'
       ? artworks
-      : artworks.filter((a) => a.category.toLowerCase() === filterCategory.toLowerCase())
+      : artworks.filter(
+          (a) => a.category?.toLowerCase() === filterCategory.toLowerCase(),
+        )
 
   const selectedImageUrls = useMemo(
     () => selectedArtwork?.imageUrls ?? [],
@@ -36,7 +38,8 @@ export default function ProfilePortfolioTab({ profile }: ProfilePortfolioTabProp
               key={cat}
               type="button"
               onClick={() => setFilterCategory(cat)}
-              className={`rounded-control px-3 py-1.5 text-caption font-semibold transition ${
+              aria-pressed={filterCategory === cat}
+              className={`rounded-control px-3 py-1.5 text-caption font-semibold transition focus-visible:outline-none focus-visible:shadow-focus-ring ${
                 filterCategory === cat
                   ? 'bg-primary text-primary-contrast'
                   : 'bg-surface-muted text-muted hover:text-foreground'
@@ -77,6 +80,50 @@ export default function ProfilePortfolioTab({ profile }: ProfilePortfolioTabProp
             setActiveMediaIndex(0)
           }}
         />
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredArtworks.map((artwork) => (
+            <button
+              key={artwork.id}
+              type="button"
+              onClick={() => setSelectedArtwork(artwork)}
+              aria-label={`Open artwork ${artwork.title}`}
+              className="group cursor-pointer overflow-hidden rounded-card border border-line bg-surface text-left shadow-card transition duration-200 hover:-translate-y-1 hover:shadow-elevated focus-visible:outline-none focus-visible:shadow-focus-ring"
+            >
+              <div className="relative aspect-[4/3] w-full overflow-hidden bg-surface-muted">
+                <img
+                  src={artwork.imageUrls[0] || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80'}
+                  alt={artwork.title}
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                <div className="absolute top-2.5 right-2.5">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-caption-sm font-semibold shadow-sm ${
+                      artwork.status === 'sold'
+                        ? 'bg-neutral-800/90 text-neutral-300'
+                        : 'bg-primary/90 text-primary-contrast backdrop-blur-sm'
+                    }`}
+                  >
+                    {artwork.status === 'sold' ? 'Sold' : `${artwork.price.amount} ${artwork.price.asset.code}`}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="truncate text-body font-semibold text-foreground group-hover:text-primary transition-colors">
+                    {artwork.title}
+                  </h3>
+                  <span className="shrink-0 text-caption-sm text-muted">{artwork.category}</span>
+                </div>
+                {artwork.description && (
+                  <p className="mt-1 line-clamp-2 text-caption text-muted">
+                    {artwork.description}
+                  </p>
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
       )}
 
       {/* Artwork Detail Modal */}

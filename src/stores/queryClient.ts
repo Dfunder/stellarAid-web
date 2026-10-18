@@ -18,8 +18,13 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: shouldRetryQuery,
+      // Focus refetching is opt-in per query. Turning it off globally keeps
+      // tab-switching from firing a request for every mounted list (#855).
       refetchOnWindowFocus: false,
-      staleTime: 30_000,
+      // 5 minutes: long enough that ordinary navigation between tabs does not
+      // refetch everything, short enough to still notice server-side edits.
+      // Queries that need something else declare it explicitly.
+      staleTime: 5 * 60_000,
     },
     mutations: {
       retry: false,

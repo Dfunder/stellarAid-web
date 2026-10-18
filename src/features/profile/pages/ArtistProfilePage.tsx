@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { Spinner } from '@/components/ui'
 import ProfileAboutTab from '../components/ProfileAboutTab'
@@ -15,37 +15,47 @@ const VALID_TABS: ProfileTabKey[] = ['portfolio', 'services', 'reviews', 'about'
 export default function ArtistProfilePage() {
   const { username } = useParams<{ username: string }>()
   const [searchParams, setSearchParams] = useSearchParams()
+  const baseId = useId()
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
 
   const currentTab = (searchParams.get('tab') as ProfileTabKey) || 'portfolio'
   const activeTab: ProfileTabKey = VALID_TABS.includes(currentTab) ? currentTab : 'portfolio'
 
   const { data: profile, isLoading, isError } = useArtistProfile(username)
 
-  // Update SEO meta tags dynamically
+  // Update SEO meta tags dynamically. The previous description is restored (or
+  // the tag we created is removed) on unmount so navigating artist → artist no
+  // longer leaks the previous artist's copy (#857).
   useEffect(() => {
-    if (profile) {
-      const pageTitle = `${profile.displayName} (@${profile.username}) | Lumora Artist Profile`
-      document.title = pageTitle
+    if (!profile) return
 
-      let metaDescription = document.querySelector('meta[name="description"]')
-      if (!metaDescription) {
-        metaDescription = document.createElement('meta')
-        metaDescription.setAttribute('name', 'description')
-        document.head.appendChild(metaDescription)
-      }
-      metaDescription.setAttribute(
-        'content',
-        profile.bio || `View ${profile.displayName}'s portfolio, commissions, and artworks on Lumora.`,
-      )
+    document.title = `${profile.displayName} (@${profile.username}) | Lumora Artist Profile`
+
+    const existing = document.querySelector('meta[name="description"]')
+    const previousContent = existing?.getAttribute('content') ?? null
+    const metaDescription = existing ?? document.createElement('meta')
+    if (!existing) {
+      metaDescription.setAttribute('name', 'description')
+      document.head.appendChild(metaDescription)
     }
+    metaDescription.setAttribute(
+      'content',
+      profile.bio || `View ${profile.displayName}'s portfolio, commissions, and artworks on Lumora.`,
+    )
+
     return () => {
       document.title = 'Lumora - Crowdfunding on Stellar'
+      if (previousContent === null) metaDescription.remove()
+      else metaDescription.setAttribute('content', previousContent)
     }
   }, [profile])
 
   const handleTabClick = (tab: ProfileTabKey) => {
     setSearchParams({ tab }, { replace: true })
   }
+
+  const tabId = (tab: ProfileTabKey) => `${baseId}-tab-${tab}`
+  const panelId = (tab: ProfileTabKey) => `${baseId}-panel-${tab}`
 
   if (isLoading) {
     return (
@@ -87,11 +97,39 @@ export default function ArtistProfilePage() {
   }
 
   const tabs: { key: ProfileTabKey; label: string; count?: number }[] = [
-    { key: 'portfolio', label: 'Portfolio', count: profile.portfolio?.length || profile.artworksCount },
+    { key: 'portfolio', label: 'Portfolio', count: profile.portfolio?.length },
     { key: 'services', label: 'Services', count: profile.services?.length },
-    { key: 'reviews', label: 'Reviews', count: profile.reviewCount },
+    { key: 'reviews', label: 'Reviews', count: profile.reviews?.length },
     { key: 'about', label: 'About' },
   ]
+
+  // Roving-tabindex keyboard support for the tablist (#857).
+  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const lastIndex = tabs.length - 1
+    let nextIndex: number | null = null
+    switch (event.key) {
+      case 'ArrowRight':
+        nextIndex = index === lastIndex ? 0 : index + 1
+        break
+      case 'ArrowLeft':
+        nextIndex = index === 0 ? lastIndex : index - 1
+        break
+      case 'Home':
+        nextIndex = 0
+        break
+      case 'End':
+        nextIndex = lastIndex
+        break
+      default:
+        return
+    }
+
+    event.preventDefault()
+    const nextTab = tabs[nextIndex]
+    if (!nextTab) return
+    handleTabClick(nextTab.key)
+    tabRefs.current[nextIndex]?.focus()
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-20">
@@ -108,14 +146,23 @@ export default function ArtistProfilePage() {
 
           {/* Deep-Linked Tabs Navigation */}
           <div className="border-b border-line px-4 sm:px-8">
-            <nav className="flex space-x-8" aria-label="Profile Tabs">
-              {tabs.map((tab) => {
+            <nav className="flex space-x-8" role="tablist" aria-label="Profile Tabs">
+              {tabs.map((tab, index) => {
                 const isActive = activeTab === tab.key
                 return (
                   <button
                     key={tab.key}
+                    ref={(el) => {
+                      tabRefs.current[index] = el
+                    }}
+                    id={`${baseId}-tab-${tab.key}`}
                     type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-controls={`${baseId}-panel-${tab.key}`}
+                    tabIndex={isActive ? 0 : -1}
                     onClick={() => handleTabClick(tab.key)}
+                    onKeyDown={(event) => handleTabKeyDown(event, index)}
                     className={`relative py-4 text-body font-semibold transition-colors flex items-center gap-2 ${
                       isActive
                         ? 'text-primary'
@@ -144,7 +191,13 @@ export default function ArtistProfilePage() {
           </div>
 
           {/* Tab Content Panes */}
-          <div className="p-4 sm:p-8">
+          <div
+            role="tabpanel"
+            id={`${baseId}-panel-${activeTab}`}
+            aria-labelledby={`${baseId}-tab-${activeTab}`}
+            tabIndex={0}
+            className="p-4 sm:p-8 focus-visible:shadow-focus-ring"
+          >
             {activeTab === 'portfolio' && <ProfilePortfolioTab profile={profile} />}
             {activeTab === 'services' && <ProfileServicesTab profile={profile} />}
             {activeTab === 'reviews' && <ProfileReviewsTab profile={profile} />}

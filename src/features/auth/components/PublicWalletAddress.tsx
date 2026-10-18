@@ -1,6 +1,7 @@
 import { stellarAccountExplorerUrl } from '@/config'
 import { useCopyToClipboard } from '@/hooks'
 import { truncateMiddle } from '@/lib'
+import { useUiStore } from '@/stores'
 import type { LinkedWallet } from '../types'
 
 export interface PublicWalletAddressProps {
@@ -16,6 +17,7 @@ export interface PublicWalletAddressProps {
  */
 export default function PublicWalletAddress({ wallets }: PublicWalletAddressProps) {
   const { copy, isCopied } = useCopyToClipboard()
+  const pushToast = useUiStore((state) => state.pushToast)
   const publicWallets = wallets.filter((wallet) => wallet.isPublic)
 
   if (publicWallets.length === 0) return null
@@ -34,7 +36,10 @@ export default function PublicWalletAddress({ wallets }: PublicWalletAddressProp
             </span>
             <button
               type="button"
-              onClick={() => void copy(wallet.publicKey)}
+              onClick={async () => {
+                const ok = await copy(wallet.publicKey)
+                pushToast(ok ? 'Copied to clipboard' : 'Failed to copy to clipboard', ok ? 'success' : 'error')
+              }}
               className="text-caption-sm font-semibold text-primary hover:underline"
             >
               {isCopied(wallet.publicKey) ? 'Copied' : 'Copy'}
