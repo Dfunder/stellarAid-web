@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import PortfolioGrid from '@/components/PortfolioGrid'
 import { MediaLightbox, Modal } from '@/components/ui'
 import type { Artwork } from '@/types'
 import type { ArtistProfileExtended } from '../types'
@@ -59,6 +60,26 @@ export default function ProfilePortfolioTab({ profile }: ProfilePortfolioTabProp
           </p>
         </div>
       ) : (
+        <PortfolioGrid
+          items={filteredArtworks.map((artwork) => ({
+            id: artwork.id,
+            title: artwork.title,
+            imageUrl: artwork.imageUrls[0],
+            category: artwork.category,
+            status:
+              artwork.status === 'sold'
+                ? 'Sold'
+                : `${artwork.price.amount} ${artwork.price.asset.code}`,
+            description: artwork.description,
+          }))}
+          columns={3}
+          label={`${profile.displayName} portfolio`}
+          onItemActivate={(item) => {
+            const artwork = filteredArtworks.find((a) => a.id === item.id) ?? null
+            setSelectedArtwork(artwork)
+            setActiveMediaIndex(0)
+          }}
+        />
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredArtworks.map((artwork) => (
             <button
