@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { invalidateSession, rotateSession } from '@/lib/session'
 import type { AuthSession, AuthTokens, SessionStatus, User } from '../types'
 
 interface PersistedAuth {
@@ -46,19 +47,35 @@ export const useAuthStore = create<AuthStoreState>()(
       status: 'unauthenticated',
       error: null,
       startLoading: () => set({ status: 'loading', error: null }),
-      setSession: ({ tokens, user }) =>
+      setSession: ({ tokens, user }) => {
+        // Sign-in always starts a new session; any pre-authentication identifier
+        // is invalidated so it cannot be fixated and reused (#986).
+        rotateSession()
         set({
           accessToken: tokens.accessToken,
           refreshToken: tokens.refreshToken,
           user,
           status: 'authenticated',
           error: null,
-        }),
-      setTokens: ({ accessToken, refreshToken }) =>
-        set((state) => ({ accessToken, refreshToken: refreshToken ?? state.refreshToken })),
+        })
+      },
+      setTokens: ({ accessToken, refreshToken }) => {
+        // Rotate alongside every token refresh so a leaked identifier does not
+        // outlive the token pair it belongs to (#986).
+        rotateSession()
+        set((state) => ({ accessToken, refreshToken: refreshToken ?? state.refreshToken }))
+      },
       setUser: (user) => set({ user, status: 'authenticated', error: null }),
-      clearSession: (error = null) =>
-        set({ accessToken: null, refreshToken: null, user: null, status: 'unauthenticated', error }),
+      clearSession: (error = null) => {
+        invalidateSession()
+        set({
+          accessToken: null,
+          refreshToken: null,
+          user: null,
+          status: 'unauthenticated',
+          error,
+        })
+      },
     }),
     {
       name: 'lumora-auth',

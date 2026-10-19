@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { useSessionTimeout } from '../hooks/useSessionTimeout'
 import { bootstrapSession, startTokenRefreshLoop } from '../services/session'
 
 /**
@@ -10,6 +11,8 @@ import { bootstrapSession, startTokenRefreshLoop } from '../services/session'
  */
 export default function AuthProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuth()
+
+  useSessionTimeout()
 
   useEffect(() => {
     void bootstrapSession()
