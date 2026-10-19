@@ -2,6 +2,7 @@ import axios, { AxiosError, type AxiosInstance, type AxiosRequestConfig } from '
 import { env } from '@/config'
 import type { ApiErrorDto } from '@/types/api'
 import { useUiStore } from '@/stores/useUiStore'
+import { checkRequestRateLimit, validateRequestPath } from './requestValidation'
 
 /** Supplies the bearer token attached to every request. */
 export type AuthTokenProvider = () => string | null | Promise<string | null>
@@ -241,6 +242,16 @@ function buildClient(): AxiosInstance {
   })
 
   client.interceptors.request.use(async (config) => {
+    const pathError = validateRequestPath(config.url)
+    if (pathError) {
+      return Promise.reject(new ApiError(400, 'VALIDATION_FAILED', pathError))
+    }
+
+    const rateLimitError = checkRequestRateLimit(config.url, config.method)
+    if (rateLimitError) {
+      return Promise.reject(new ApiError(429, 'RATE_LIMITED', rateLimitError))
+    }
+
     const token = await authTokenProvider()
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
@@ -251,6 +262,12 @@ function buildClient(): AxiosInstance {
   client.interceptors.response.use(
     (response) => response,
     async (error: AxiosError) => {
+      // Request-interceptor guards already produce a normalized ApiError;
+      // preserve its status/code instead of relabelling it as a network error.
+      if (error instanceof ApiError) {
+        return Promise.reject(error)
+      }
+
       const config = error.config
 
       // Refresh only for authenticated requests; login-style 401s pass through.
