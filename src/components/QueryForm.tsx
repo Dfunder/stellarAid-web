@@ -13,6 +13,7 @@ export default function QueryForm({ onSubmit }: QueryFormProps) {
   const [email, setEmail] = useState('')
   const [query, setQuery] = useState('')
   const [emailError, setEmailError] = useState<string | null>(null)
+  const [queryError, setQueryError] = useState<string | null>(null)
 
   const { isSubmitting, submitLabel, runSubmit } = useFormSubmission(async () => {
     await onSubmit({ email: email.trim(), query: sanitizeMessage(query) })
@@ -26,6 +27,14 @@ export default function QueryForm({ onSubmit }: QueryFormProps) {
       return
     }
     setEmailError(null)
+
+    // Free text is sanitized before sending, so reject bodies that contain
+    // nothing but markup rather than submitting an empty query (#989, #991).
+    if (!query.trim() || !sanitizeMessage(query)) {
+      setQueryError('Query is required')
+      return
+    }
+    setQueryError(null)
     void runSubmit()
   }
 
@@ -45,9 +54,16 @@ export default function QueryForm({ onSubmit }: QueryFormProps) {
           name="query"
           rows={4}
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            if (queryError) setQueryError(null)
+          }}
+          aria-invalid={queryError ? true : undefined}
           className="rounded-control border border-line bg-surface px-3 py-2 text-body font-normal"
         />
+        {queryError ? (
+          <span className="text-caption-sm font-normal text-danger">{queryError}</span>
+        ) : null}
       </label>
       <Button type="submit" disabled={isSubmitting}>
         {submitLabel('Submit query')}

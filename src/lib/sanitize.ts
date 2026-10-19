@@ -7,7 +7,11 @@
  * for plain-text form bodies this is sufficient and dependency-free.
  */
 
-const SCRIPT_OR_STYLE = /<\/?(script|style)[^>]*>/gi
+// Remove the whole element, not just its tags: stripping only `<script>`
+// leaves `alert(1)` behind as message text. The unclosed variant handles a
+// payload that never closes the tag.
+const SCRIPT_OR_STYLE = /<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi
+const UNCLOSED_SCRIPT_OR_STYLE = /<(script|style)\b[^>]*>[\s\S]*$/gi
 const ALL_TAGS = /<\/?[a-zA-Z][^>]*>/g
 const EVENT_ATTR = /\son\w+\s*=\s*(['"]).*?\1/gi
 const JS_URL = /javascript\s*:/gi
@@ -17,6 +21,7 @@ const DATA_HTML = /data\s*:\s*text\/html/gi
 export function sanitizeText(input: string): string {
   return input
     .replace(SCRIPT_OR_STYLE, '')
+    .replace(UNCLOSED_SCRIPT_OR_STYLE, '')
     .replace(EVENT_ATTR, '')
     .replace(JS_URL, '')
     .replace(DATA_HTML, '')
