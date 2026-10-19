@@ -19,7 +19,11 @@ export interface UseWalletAuth {
   pendingPublicKey: string | null
   error: string | null
   loginWithConnectedWallet: (options?: WalletAuthOptions) => Promise<User | null>
-  completeRegistration: (details: { name: string; username?: string; email?: string }) => Promise<User | null>
+  completeRegistration: (details: {
+    name: string
+    username?: string
+    email?: string
+  }) => Promise<User | null>
   cancel: () => void
 }
 
@@ -32,7 +36,9 @@ export function useWalletAuth(): UseWalletAuth {
   const [isAccountRequired, setIsAccountRequired] = useState(false)
   const [pendingPublicKey, setPendingPublicKey] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const pendingAuthRef = useRef<{ nonce: string; signature: string; publicKey: string } | null>(null)
+  const pendingAuthRef = useRef<{ nonce: string; signature: string; publicKey: string } | null>(
+    null,
+  )
   const abortControllerRef = useRef<AbortController | null>(null)
 
   const cancel = useCallback(() => {
@@ -64,17 +70,12 @@ export function useWalletAuth(): UseWalletAuth {
       abortControllerRef.current = abortController
 
       try {
-                // Step 1: Request a server-issued challenge nonce.
-        // Never synthesise a client-side fallback — that disables replay protection
-        // and lets captured signatures be reused (#934).
-        const nonceData = await authApi.requestWalletNonce(connection.publicKey)
-        }
         // Step 1: Request challenge nonce from backend.
         //
         // A server-issued, single-use nonce is what makes this flow replay-safe.
         // There is deliberately no client-side fallback: if the nonce endpoint is
         // unreachable we surface the error and let the user retry, rather than
-        // fabricating a challenge the server never issued (#861).
+        // fabricating a challenge the server never issued (#861, #934).
         const nonceData = await authApi.requestWalletNonce(connection.publicKey)
 
         if (abortController.signal.aborted) return null

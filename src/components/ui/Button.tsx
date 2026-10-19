@@ -1,9 +1,15 @@
-import { cloneElement, isValidElement, type ButtonHTMLAttributes, type ReactElement, type ReactNode } from 'react'
+import {
+  cloneElement,
+  isValidElement,
+  type ButtonHTMLAttributes,
+  type ReactElement,
+  type ReactNode,
+} from 'react'
 import { cn } from '@/lib'
 import Spinner from './Spinner'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost'
-export type ButtonSize = 'sm' | 'md'
+export type ButtonSize = 'sm' | 'md' | 'lg'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant
@@ -33,6 +39,7 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
 const SIZE_CLASSES: Record<ButtonSize, string> = {
   sm: 'px-3 py-1.5 text-caption-sm',
   md: 'px-5 py-2.5 text-body',
+  lg: 'px-6 py-3 text-body',
 }
 
 /** Design-system button with the four semantic variants used across the app. */
@@ -56,16 +63,17 @@ export default function Button({
     const child = children as ReactElement<Record<string, unknown>>
     const childProps = child.props
     const childOnClick = childProps['onClick'] as
-      | ((event: React.MouseEvent) => void)
-      | undefined
+      ((event: React.MouseEvent<Element>) => void) | undefined
     const childClassName = childProps['className'] as string | false | null | undefined
-    const onClick = rest.onClick
+    // `asChild` forwards a click from an arbitrary element (usually a link),
+    // not necessarily an HTMLButtonElement.
+    const onClick = rest.onClick as ((event: React.MouseEvent<Element>) => void) | undefined
     return cloneElement(child, {
       ...childProps,
       ...rest,
       className: cn(classes, childClassName),
       'aria-busy': isLoading || undefined,
-      onClick: (event: React.MouseEvent) => {
+      onClick: (event: React.MouseEvent<Element>) => {
         childOnClick?.(event)
         onClick?.(event)
       },

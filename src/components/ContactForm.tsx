@@ -20,10 +20,7 @@ export interface ContactFormProps {
  * Contact form with email validation, message sanitization, honeypot,
  * client rate limiting, and double-submit protection (#933, #937).
  */
-export default function ContactForm({
-  onSubmit,
-  rateLimitKey = 'contact-form',
-}: ContactFormProps) {
+export default function ContactForm({ onSubmit, rateLimitKey = 'contact-form' }: ContactFormProps) {
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [message, setMessage] = useState('')
@@ -37,9 +34,7 @@ export default function ContactForm({
   const { isSubmitting, submitLabel, runSubmit } = useFormSubmission(async () => {
     const limit = checkRateLimit(rateLimitKey, { maxAttempts: 3, windowMs: 60_000 })
     if (!limit.allowed) {
-      setFormError(
-        `Please wait ${Math.ceil(limit.retryAfterMs / 1000)}s before sending again.`,
-      )
+      setFormError(`Please wait ${Math.ceil(limit.retryAfterMs / 1000)}s before sending again.`)
       return
     }
 
@@ -69,7 +64,9 @@ export default function ContactForm({
     }
     setEmailError(null)
 
-    if (!message.trim()) {
+    // Validate the sanitized body: a message made up only of markup (e.g.
+    // `<script>…</script>`) must not be sent as an empty payload.
+    if (!message.trim() || !sanitizeMessage(message)) {
       setMessageError('Message is required')
       return
     }
@@ -113,7 +110,14 @@ export default function ContactForm({
       {/* Honeypot field — visually hidden, not tabbable. */}
       <div
         aria-hidden="true"
-        style={{ position: 'absolute', left: '-9999px', top: 'auto', width: 1, height: 1, overflow: 'hidden' }}
+        style={{
+          position: 'absolute',
+          left: '-9999px',
+          top: 'auto',
+          width: 1,
+          height: 1,
+          overflow: 'hidden',
+        }}
       >
         <label>
           Company
