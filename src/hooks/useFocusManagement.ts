@@ -1,11 +1,11 @@
-import { useCallback, useRef, type KeyboardEvent, type RefObject } from 'react'
+import { useCallback, useRef, useState, type KeyboardEvent, type RefObject } from 'react'
 
 export interface UseFocusManagementOptions {
   /** Number of items in the grid. */
   itemCount: number
   /** Column count used for Up/Down navigation. Defaults to 1 (list). */
   columns?: number
-  /** Called when the focused index changes via keyboard. */
+  /** Called when the focused index changes via keyboard or focus. */
   onIndexChange?: (index: number) => void
   /** Called when Enter/Space activates the focused item. */
   onActivate?: (index: number) => void
@@ -30,44 +30,56 @@ export interface UseFocusManagementResult {
 }
 
 /**
- * Keyboard focus management for grid/list collections (#935).
+ * Keyboard focus management for grid/list collections (#935, #988).
  *
  * - Only the active cell is in the tab order (`tabIndex={0}`).
  * - Arrow keys move focus between cells (roving tabindex).
  * - Enter / Space activates the focused item.
+ *
+ * The active index is React state, not only a ref: roving tabindex depends on
+ * a re-render so the previously focused cell flips back to `tabIndex={-1}`.
  */
-export function useFocusManagement(
-  options: UseFocusManagementOptions,
-): UseFocusManagementResult {
-  const {
-    itemCount,
-    columns = 1,
-    onIndexChange,
-    onActivate,
-    homeEnd = true,
-  } = options
+export function useFocusManagement(options: UseFocusManagementOptions): UseFocusManagementResult {
+  const { itemCount, columns = 1, onIndexChange, onActivate, homeEnd = true } = options
 
+  const [focusedIndex, setFocusedIndex] = useState(0)
   const focusedRef = useRef(0)
   const containerRef = useRef<HTMLElement | null>(null)
+  const safeColumns = Math.max(1, columns)
+
+  // A shrinking item list must not leave the active index pointing past the end.
+  const activeIndex = itemCount === 0 ? 0 : Math.min(focusedIndex, itemCount - 1)
+
+  const setFocus = useCallback(
+    (index: number) => {
+      if (itemCount === 0) return
+      const next = Math.max(0, Math.min(itemCount - 1, index))
+      if (focusedRef.current === next) return
+
+      focusedRef.current = next
+      setFocusedIndex(next)
+      onIndexChange?.(next)
+    },
+    [itemCount, onIndexChange],
+  )
 
   const focusIndex = useCallback(
     (index: number) => {
       if (itemCount === 0) return
+
       const next = Math.max(0, Math.min(itemCount - 1, index))
-      focusedRef.current = next
-      onIndexChange?.(next)
-      const root = containerRef.current
-      const el = root?.querySelector<HTMLElement>(`[data-focus-index="${next}"]`)
-      el?.focus()
+      setFocus(next)
+      containerRef.current?.querySelector<HTMLElement>(`[data-focus-index="${next}"]`)?.focus()
     },
-    [itemCount, onIndexChange],
+    [itemCount, setFocus],
   )
 
   const onKeyDown = useCallback(
     (event: KeyboardEvent<HTMLElement>) => {
       if (itemCount === 0) return
-      const current = focusedRef.current
-      let next = current
+
+      const current = Math.min(focusedRef.current, itemCount - 1)
+      let next: number
 
       switch (event.key) {
         case 'ArrowRight':
@@ -77,10 +89,10 @@ export function useFocusManagement(
           next = Math.max(0, current - 1)
           break
         case 'ArrowDown':
-          next = Math.min(itemCount - 1, current + columns)
+          next = Math.min(itemCount - 1, current + safeColumns)
           break
         case 'ArrowUp':
-          next = Math.max(0, current - columns)
+          next = Math.max(0, current - safeColumns)
           break
         case 'Home':
           if (homeEnd) next = 0
@@ -104,24 +116,21 @@ export function useFocusManagement(
         focusIndex(next)
       }
     },
-    [columns, focusIndex, homeEnd, itemCount, onActivate],
+    [focusIndex, homeEnd, itemCount, onActivate, safeColumns],
   )
 
   const getItemProps = useCallback(
     (index: number) => ({
-      tabIndex: index === focusedRef.current ? 0 : -1,
+      tabIndex: index === activeIndex ? 0 : -1,
       'data-focus-index': index,
       onKeyDown,
-      onFocus: () => {
-        focusedRef.current = index
-        onIndexChange?.(index)
-      },
+      onFocus: () => setFocus(index),
     }),
-    [onIndexChange, onKeyDown],
+    [activeIndex, onKeyDown, setFocus],
   )
 
   return {
-    focusedIndex: focusedRef.current,
+    focusedIndex: activeIndex,
     containerRef,
     getItemProps,
     focusIndex,
