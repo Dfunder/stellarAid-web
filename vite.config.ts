@@ -23,10 +23,14 @@ export default defineConfig({
     chunkSizeWarningLimit: 700,
     rollupOptions: {
       output: {
-        manualChunks: {
-          react: ['react', 'react-dom', 'react-router-dom'],
-          query: ['@tanstack/react-query'],
-          stellar: ['@stellar/freighter-api'],
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined
+          if (id.includes('@tanstack/react-query')) return 'query'
+          if (id.includes('@stellar/freighter-api')) return 'stellar'
+          if (/node_modules[\\/](react|react-dom|react-router|react-router-dom)[\\/]/.test(id)) {
+            return 'react'
+          }
+          return undefined
         },
       },
     },

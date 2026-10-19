@@ -18,7 +18,11 @@ export default function CategoryLandingPage({ slug: slugProp }: CategoryLandingP
   const slug = slugProp ?? params.slug
   const [subCategoryFilter, setSubCategoryFilter] = useState<string>('all')
 
-  const { data: category, isPending: categoryPending, isError: categoryError } = useQuery({
+  const {
+    data: category,
+    isPending: categoryPending,
+    isError: categoryError,
+  } = useQuery({
     queryKey: ['category', slug],
     queryFn: async (): Promise<CategorySummary> => {
       const response = await http.get<{ category: CategorySummary }>(`/categories/${slug}`)
@@ -27,12 +31,18 @@ export default function CategoryLandingPage({ slug: slugProp }: CategoryLandingP
     enabled: !!slug,
   })
 
-  const { data: artworks, isPending: artworksPending, isFetching: artworksFetching } = useQuery({
+  const {
+    data: artworks,
+    isPending: artworksPending,
+    isFetching: artworksFetching,
+  } = useQuery({
     queryKey: ['categoryArtworks', slug, subCategoryFilter],
     queryFn: async (): Promise<ArtworkCard[]> => {
       const params = new URLSearchParams()
       if (subCategoryFilter !== 'all') params.set('subCategory', subCategoryFilter)
-      const response = await http.get<{ artworks: ArtworkCard[] }>(`/categories/${slug}/artworks?${params}`)
+      const response = await http.get<{ artworks: ArtworkCard[] }>(
+        `/categories/${slug}/artworks?${params}`,
+      )
       return response.artworks
     },
     enabled: !!slug,
@@ -70,19 +80,35 @@ export default function CategoryLandingPage({ slug: slugProp }: CategoryLandingP
       <Link to={`/checkout/${artwork.id}`} className="block">
         <div className="relative aspect-square rounded-card overflow-hidden bg-surface-muted">
           {artwork.thumbnail ? (
-            <img src={artwork.thumbnail} alt="" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+            <img
+              src={artwork.thumbnail}
+              alt=""
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              loading="lazy"
+            />
           ) : (
             <div className="h-full w-full flex items-center justify-center text-muted">
-              <svg className="h-12 w-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+              <svg
+                className="h-12 w-12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                aria-hidden="true"
+              >
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                 <path d="M9 9h6v6H9z" />
               </svg>
             </div>
           )}
         </div>
-        <h3 className="mt-3 text-caption font-medium text-foreground line-clamp-1">{artwork.title}</h3>
+        <h3 className="mt-3 text-caption font-medium text-foreground line-clamp-1">
+          {artwork.title}
+        </h3>
         <p className="text-caption-xs text-muted">{artwork.sellerName}</p>
-        <p className="text-caption-sm font-mono text-foreground">{artwork.price} {artwork.asset}</p>
+        <p className="text-caption-sm font-mono text-foreground">
+          {artwork.price} {artwork.asset}
+        </p>
       </Link>
     </article>
   )
@@ -105,7 +131,9 @@ export default function CategoryLandingPage({ slug: slugProp }: CategoryLandingP
         )}
         <div className="max-w-4xl">
           <div className="flex flex-wrap items-center gap-2 mb-2">
-            <span className="rounded-control bg-primary/10 px-2 py-0.5 text-caption-sm font-semibold text-primary">Category</span>
+            <span className="rounded-control bg-primary/10 px-2 py-0.5 text-caption-sm font-semibold text-primary">
+              Category
+            </span>
             <span className="rounded-control bg-surface-muted px-2 py-0.5 text-caption-sm text-muted">
               {category.artworkCount} artworks · {category.artistCount} artists
             </span>
@@ -154,26 +182,6 @@ export default function CategoryLandingPage({ slug: slugProp }: CategoryLandingP
         </p>
       )}
 
-      <div
-        className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-        role="list"
-        aria-busy={artworksFetching || undefined}
-      >
-          Array.from({ length: 8 }, (_, i) => <article key={i} role="listitem">{renderSkeleton()}</article>)
-        ) : artworks?.length === 0 ? (
-          <div className="col-span-full flex flex-col items-center gap-3 py-12 text-muted">
-            <svg className="h-12 w-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-              <path d="M9 9h6v6H9z" />
-            </svg>
-            <p className="text-caption">No artworks in this category{subCategoryFilter !== 'all' ? ' with this subcategory' : ''}.</p>
-          </div>
-        ) : (
-          artworks?.map((artwork) => (
-            <article key={artwork.id} role="listitem">{renderCard(artwork)}</article>
-          ))
-        )}
-      </div>
       <LoadingRegion label="Loading artworks…">
         <div
           className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
@@ -181,18 +189,34 @@ export default function CategoryLandingPage({ slug: slugProp }: CategoryLandingP
           aria-busy={artworksPending || undefined}
         >
           {artworksPending ? (
-            Array.from({ length: 8 }, (_, i) => <article key={i} role="listitem">{renderSkeleton()}</article>)
+            Array.from({ length: 8 }, (_, i) => (
+              <article key={i} role="listitem">
+                {renderSkeleton()}
+              </article>
+            ))
           ) : artworks?.length === 0 ? (
             <div className="col-span-full flex flex-col items-center gap-3 py-12 text-muted">
-              <svg className="h-12 w-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+              <svg
+                className="h-12 w-12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                aria-hidden="true"
+              >
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                 <path d="M9 9h6v6H9z" />
               </svg>
-              <p className="text-caption">No artworks in this category{subCategoryFilter !== 'all' ? ' with this subcategory' : ''}.</p>
+              <p className="text-caption">
+                No artworks in this category
+                {subCategoryFilter !== 'all' ? ' with this subcategory' : ''}.
+              </p>
             </div>
           ) : (
             artworks?.map((artwork) => (
-              <article key={artwork.id} role="listitem">{renderCard(artwork)}</article>
+              <article key={artwork.id} role="listitem">
+                {renderCard(artwork)}
+              </article>
             ))
           )}
         </div>

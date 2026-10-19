@@ -1,9 +1,7 @@
 import { useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, Input, Spinner } from '@/components/ui'
-import { http } from '@/services'
-import { useAuth } from '@/features/auth'
-import { MultiStepListingWizard } from './MultiStepListingWizard'
+import { useQueryClient } from '@tanstack/react-query'
+import { Button } from '@/components/ui'
+import MultiStepListingWizard from './MultiStepListingWizard'
 import { Link } from 'react-router-dom'
 
 export interface CreateArtworkListingFormProps {
@@ -16,7 +14,7 @@ export interface CreateArtworkListingFormProps {
     category?: string
     tags?: string[]
     price?: string
-    asset?: string
+    asset?: 'XLM' | 'USDC' | 'NGNT' | 'EURC'
     licenseTerms?: string
     images?: string[]
   }
@@ -35,7 +33,7 @@ export default function CreateArtworkListingForm({
     setShowWizard(false)
   }
 
-  const handleSaveDraft = (listingId: string) => {
+  const handleSaveDraft = () => {
     queryClient.invalidateQueries({ queryKey: ['myListings'] })
     // Stay on page to continue editing
   }
@@ -51,7 +49,14 @@ export default function CreateArtworkListingForm({
       ) : (
         <div className="rounded-card border border-line bg-surface p-12 shadow-card text-center">
           <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-success/10 flex items-center justify-center">
-            <svg className="h-8 w-8 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+            <svg
+              className="h-8 w-8 text-success"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              aria-hidden="true"
+            >
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </div>

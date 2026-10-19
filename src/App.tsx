@@ -1,9 +1,14 @@
-import { lazy, Suspense, useCallback, useEffect, useRef } from 'react'
-import { BrowserRouter, Link, Outlet, Route, Routes, useNavigate } from 'react-router-dom'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import {
+  BrowserRouter,
+  Link,
+  Outlet,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom'
 import { Button, SkeletonGrid, SkeletonText, ThemeToggle } from '@/components/ui'
-import { useCallback, useEffect, useRef } from 'react'
-import { BrowserRouter, Link, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-import { Button, ThemeToggle } from '@/components/ui'
 import {
   AccountMenu,
   ArtistRoute,
@@ -40,7 +45,9 @@ const FavoritesPage = lazy(() => import('@/features/profile/FavoritesPage'))
 // Marketplace
 const CategoryLandingPage = lazy(() => import('@/features/marketplace/CategoryLandingPage'))
 const CheckoutPage = lazy(() => import('@/features/marketplace/CheckoutPage'))
-const CreateArtworkListingForm = lazy(() => import('@/features/marketplace/CreateArtworkListingForm'))
+const CreateArtworkListingForm = lazy(
+  () => import('@/features/marketplace/CreateArtworkListingForm'),
+)
 const EditListing = lazy(() => import('@/features/marketplace/EditListing'))
 const MyListingsDashboard = lazy(() => import('@/features/marketplace/MyListingsDashboard'))
 
@@ -115,9 +122,10 @@ function ToastViewport() {
 function AppShell() {
   const { isAuthenticated } = useAuth()
   const navigate = useNavigate()
-  const isMobileMenuOpen = useUiStore((state) => state.isMobileMenuOpen)
-  const setMobileMenuOpen = useUiStore((state) => state.setMobileMenuOpen)
-  const closeMenu = useCallback(() => setMobileMenuOpen(false), [setMobileMenuOpen])
+  // The mobile disclosure is shell-local: the global UI store only owns toasts.
+  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const closeMenu = useCallback(() => setMobileMenuOpen(false), [])
+
   const toggleRef = useRef<HTMLButtonElement>(null)
 
   // Escape closes the mobile disclosure and returns focus is handled by the
@@ -140,7 +148,6 @@ function AppShell() {
               to="/"
               className="text-caption-sm font-bold uppercase tracking-widest text-gold hover:opacity-90 transition-opacity rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
-            <Link to="/" className="text-caption-sm font-bold uppercase tracking-widest text-gold hover:opacity-90 transition-opacity">
               Lumora
             </Link>
 
@@ -162,8 +169,19 @@ function AppShell() {
               className="sm:hidden inline-flex h-9 w-9 items-center justify-center rounded-control border border-line text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <span className="sr-only">{isMobileMenuOpen ? 'Close menu' : 'Open menu'}</span>
-              <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                {isMobileMenuOpen ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+              <svg
+                aria-hidden="true"
+                className="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
+                {isMobileMenuOpen ? (
+                  <path d="M6 6l12 12M18 6L6 18" />
+                ) : (
+                  <path d="M4 7h16M4 12h16M4 17h16" />
+                )}
               </svg>
             </button>
           </div>
@@ -191,22 +209,38 @@ function AppShell() {
           >
             <ul className="flex flex-col">
               <li>
-                <Link to="/artists/elena_art" className={`block py-3 ${NAV_LINK_CLASSES}`} onClick={closeMenu}>
+                <Link
+                  to="/artists/elena_art"
+                  className={`block py-3 ${NAV_LINK_CLASSES}`}
+                  onClick={closeMenu}
+                >
                   Featured Artist
                 </Link>
               </li>
               <li>
-                <Link to="/artists/stellar_nova" className={`block py-3 ${NAV_LINK_CLASSES}`} onClick={closeMenu}>
+                <Link
+                  to="/artists/stellar_nova"
+                  className={`block py-3 ${NAV_LINK_CLASSES}`}
+                  onClick={closeMenu}
+                >
                   Explore Creators
                 </Link>
               </li>
               <li>
-                <Link to="/artist/listings" className={`block py-3 ${NAV_LINK_CLASSES}`} onClick={closeMenu}>
+                <Link
+                  to="/artist/listings"
+                  className={`block py-3 ${NAV_LINK_CLASSES}`}
+                  onClick={closeMenu}
+                >
                   My Listings
                 </Link>
               </li>
               <li>
-                <Link to="/purchases" className={`block py-3 ${NAV_LINK_CLASSES}`} onClick={closeMenu}>
+                <Link
+                  to="/purchases"
+                  className={`block py-3 ${NAV_LINK_CLASSES}`}
+                  onClick={closeMenu}
+                >
                   Purchases
                 </Link>
               </li>
@@ -225,12 +259,31 @@ function AppShell() {
         <div className="container flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>Lumora — transparent, borderless crowdfunding and commissions on Stellar.</p>
           <div className="flex items-center gap-4 text-caption-sm">
-            <Link to="/artists/elena_art" className="hover:text-foreground rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">Artists</Link>
-            <Link to="/settings/wallets" className="hover:text-foreground rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">Wallets</Link>
-            <a href="https://stellar.org" target="_blank" rel="noreferrer" className="hover:text-foreground rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">Stellar Network ↗</a>
+            <Link
+              to="/artists/elena_art"
+              className="hover:text-foreground rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              Artists
+            </Link>
+            <Link
+              to="/settings/wallets"
+              className="hover:text-foreground rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              Wallets
+            </Link>
+            <a
+              href="https://stellar.org"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-foreground rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              Stellar Network ↗
+            </a>
           </div>
         </div>
       </footer>
+
+      <ToastViewport />
     </div>
   )
 }
@@ -244,10 +297,18 @@ function Dashboard() {
   const { user } = useAuth()
 
   const links = [
-    { to: '/artist/listings', label: 'My listings', description: 'Create and manage artwork listings.' },
+    {
+      to: '/artist/listings',
+      label: 'My listings',
+      description: 'Create and manage artwork listings.',
+    },
     { to: '/purchases', label: 'My purchases', description: 'Track your orders and deliverables.' },
     { to: '/transactions', label: 'Transactions', description: 'Review on-chain activity.' },
-    { to: '/earnings/withdraw', label: 'Withdraw earnings', description: 'Move available funds to a linked wallet.' },
+    {
+      to: '/earnings/withdraw',
+      label: 'Withdraw earnings',
+      description: 'Move available funds to a linked wallet.',
+    },
   ]
 
   return (
@@ -271,7 +332,7 @@ function Dashboard() {
             to={link.to}
             className="rounded-card border border-line bg-surface p-6 shadow-card transition-colors hover:bg-surface-muted focus-visible:shadow-focus-ring"
           >
-            <h2 className="text-h3">{link.label}</h3>
+            <h2 className="text-h3">{link.label}</h2>
             <p className="mt-1 text-caption text-muted">{link.description}</p>
           </Link>
         ))}
@@ -289,7 +350,9 @@ function NotFoundPage() {
   return (
     <div className="container py-24 text-center">
       <h1 className="text-h2 font-bold">Page not found</h1>
-      <p className="mt-2 text-body text-muted">The link you followed does not exist or has been moved.</p>
+      <p className="mt-2 text-body text-muted">
+        The link you followed does not exist or has been moved.
+      </p>
       {attemptedPath && attemptedPath !== '*' && (
         <p className="mt-1 text-caption text-muted break-all">Attempted path: {attemptedPath}</p>
       )}
@@ -341,21 +404,112 @@ function AppRoutes() {
         <Route path="category/:slug" element={<CategoryLandingPage />} />
 
         {/* Protected Routes (#677 & #675) */}
-        <Route path="profile/edit" element={<RequireAuth><ProfileEditPage /></RequireAuth>} />
-        <Route path="dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
-        <Route path="favorites" element={<RequireAuth><FavoritesPage /></RequireAuth>} />
-        <Route path="transactions" element={<RequireAuth><TransactionHistoryPage /></RequireAuth>} />
-        <Route path="earnings/withdraw" element={<RequireAuth><ArtistWithdrawal /></RequireAuth>} />
-        <Route path="purchases" element={<RequireAuth><PurchasesPage /></RequireAuth>} />
-        <Route path="order/confirmation" element={<RequireAuth><OrderConfirmationScreen /></RequireAuth>} />
-        <Route path="checkout/:artworkId" element={<RequireAuth><CheckoutPage /></RequireAuth>} />
-        <Route path="payment/result" element={<RequireAuth><PaymentResultScreen /></RequireAuth>} />
-        <Route path="artist/listings" element={<RequireAuth><MyListingsDashboard /></RequireAuth>} />
-        <Route path="artist/listings/new" element={<RequireAuth><CreateArtworkListingForm /></RequireAuth>} />
-        <Route path="artist/listings/:listingId/edit" element={<RequireAuth><EditListing /></RequireAuth>} />
+        <Route
+          path="profile/edit"
+          element={
+            <RequireAuth>
+              <ProfileEditPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="dashboard"
+          element={
+            <RequireAuth>
+              <Dashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="favorites"
+          element={
+            <RequireAuth>
+              <FavoritesPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="transactions"
+          element={
+            <RequireAuth>
+              <TransactionHistoryPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="earnings/withdraw"
+          element={
+            <RequireAuth>
+              <ArtistWithdrawal />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="purchases"
+          element={
+            <RequireAuth>
+              <PurchasesPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="order/confirmation"
+          element={
+            <RequireAuth>
+              <OrderConfirmationScreen />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="checkout/:artworkId"
+          element={
+            <RequireAuth>
+              <CheckoutPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="payment/result"
+          element={
+            <RequireAuth>
+              <PaymentResultScreen />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="artist/listings"
+          element={
+            <RequireAuth>
+              <MyListingsDashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="artist/listings/new"
+          element={
+            <RequireAuth>
+              <CreateArtworkListingForm />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="artist/listings/:listingId/edit"
+          element={
+            <RequireAuth>
+              <EditListing />
+            </RequireAuth>
+          }
+        />
 
         {/* Wallet settings — linked from five entry points (#788) */}
-        <Route path="settings/wallets" element={<RequireAuth><WalletSettingsPage /></RequireAuth>} />
+        <Route
+          path="settings/wallets"
+          element={
+            <RequireAuth>
+              <WalletSettingsPage />
+            </RequireAuth>
+          }
+        />
 
         {/* Artist Route */}
         <Route element={<ArtistRoute />}>

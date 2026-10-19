@@ -21,7 +21,15 @@ export { default as Stars, StarIcon, quantiseRating } from './Stars'
 export type { StarsProps, StarsSize } from './Stars'
 export { default as Spinner } from './Spinner'
 export type { SpinnerProps } from './Spinner'
-export { default as Skeleton, SkeletonText, SkeletonCard, SkeletonTableRow, SkeletonList, SkeletonGrid, LoadingRegion } from './Skeleton'
+export {
+  Skeleton,
+  SkeletonText,
+  SkeletonCard,
+  SkeletonTableRow,
+  SkeletonList,
+  SkeletonGrid,
+  LoadingRegion,
+} from './Skeleton'
 export { default as ExplorerLink } from './ExplorerLink'
 export { default as ThemeProvider } from './ThemeProvider'
 export { default as ThemeToggle } from './ThemeToggle'

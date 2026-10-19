@@ -131,7 +131,9 @@ export function normalizeAttachments(payload: unknown): MessageAttachment[] {
     if (!isNonEmptyString(record.url) || !isSafePreviewUrl(record.url)) continue
 
     const size = typeof record.size === 'number' ? record.size : Number(record.size)
-    const contentType = isNonEmptyString(record.contentType) ? record.contentType : 'application/octet-stream'
+    const contentType = isNonEmptyString(record.contentType)
+      ? record.contentType
+      : 'application/octet-stream'
 
     attachments.push({
       id: record.id,
@@ -167,11 +169,6 @@ export function formatAttachmentSize(bytes: number): string {
   return unit === 0 ? `${Math.round(value)} ${UNITS[0]}` : `${value.toFixed(1)} ${UNITS[unit]}`
 }
 
-/** Chat order: oldest first. Ties keep insertion order, so it stays stable. */
-function sortByCreatedAt(messages: Message[]): Message[] {
-  return [...messages].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-}
-
 /** Builds the in-flight message the UI shows immediately, before the server replies. */
 export function createPendingMessage(
   draft: MessageDraft,
@@ -196,7 +193,9 @@ export function createPendingMessage(
  */
 export function appendPending(messages: Message[], pending: Message): Message[] {
   if (messages.some((message) => message.id === pending.id)) return messages
-  return sortByCreatedAt([...messages, pending])
+  // The optimistic entry is the newest message by definition; append it so it
+  // never jumps above older sent messages when clocks differ slightly.
+  return [...messages, pending]
 }
 
 /**
@@ -206,7 +205,11 @@ export function appendPending(messages: Message[], pending: Message): Message[] 
  * jump. A pending id that is no longer present is ignored rather than appended,
  * because a dismissed failed send must not reappear on its own.
  */
-export function confirmPending(messages: Message[], pendingId: string, saved: Omit<Message, 'status'>): Message[] {
+export function confirmPending(
+  messages: Message[],
+  pendingId: string,
+  saved: Omit<Message, 'status'>,
+): Message[] {
   const index = messages.findIndex((message) => message.id === pendingId)
   if (index === -1) return messages
 

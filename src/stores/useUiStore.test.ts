@@ -67,6 +67,12 @@ describe('useUiStore toasts', () => {
 
 describe('useUiStore shape', () => {
   it('only exposes the toast state (no unused theme, mobile menu or modal slices)', () => {
-    expect(Object.keys(useUiStore.getState()).sort()).toEqual(['dismissToast', 'pushToast', 'toasts'])
+    expect(Object.keys(useUiStore.getState()).sort()).toEqual([
+      'dismissToast',
+      'pauseToast',
+      'pushToast',
+      'resumeToast',
+      'toasts',
+    ])
   })
 })
