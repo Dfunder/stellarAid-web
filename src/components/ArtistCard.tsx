@@ -10,8 +10,12 @@ export interface ArtistCardProps {
 }
 
 /**
- * Focusable artist card for grid layouts (#935).
+ * Focusable artist card (#935, #988).
  * Supports Tab focus, Enter/Space activation, and an accessible name.
+ *
+ * `role="button"` is intentional: a card rendered on its own is not a valid
+ * `gridcell` (that role requires a `grid`/`row` ancestor). Wrap it in a row if
+ * it is ever composed into a grid.
  */
 export default function ArtistCard({
   id,
@@ -32,7 +36,7 @@ export default function ArtistCard({
 
   return (
     <div
-      role="gridcell"
+      role="button"
       aria-roledescription="artist card"
       aria-label={headline ? `${displayName}, ${headline}` : displayName}
       tabIndex={0}
@@ -42,11 +46,7 @@ export default function ArtistCard({
     >
       <div className="flex items-center gap-3">
         {avatarUrl ? (
-          <img
-            src={avatarUrl}
-            alt=""
-            className="h-12 w-12 rounded-full object-cover"
-          />
+          <img src={avatarUrl} alt="" className="h-12 w-12 rounded-full object-cover" />
         ) : (
           <div
             aria-hidden
@@ -56,12 +56,8 @@ export default function ArtistCard({
           </div>
         )}
         <div className="min-w-0">
-          <p className="truncate text-body font-semibold text-foreground">
-            {displayName}
-          </p>
-          {headline ? (
-            <p className="truncate text-caption text-muted">{headline}</p>
-          ) : null}
+          <p className="truncate text-body font-semibold text-foreground">{displayName}</p>
+          {headline ? <p className="truncate text-caption text-muted">{headline}</p> : null}
         </div>
       </div>
     </div>
