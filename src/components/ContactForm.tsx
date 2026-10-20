@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Button, Input } from '@/components/ui'
 import { validateEmail } from '@/lib/email'
-import { sanitizeMessage } from '@/lib/sanitize'
+import { sanitizeMessage, sanitizeText } from '@/lib/sanitize'
 import { checkRateLimit } from '@/utils/rate-limit'
 import { useFormSubmission } from '@/hooks/useFormSubmission'
 
@@ -18,7 +18,7 @@ export interface ContactFormProps {
 
 /**
  * Contact form with email validation, message sanitization, honeypot,
- * client rate limiting, and double-submit protection (#933, #937).
+ * client rate limiting, and double-submit protection (#933, #937, #943).
  */
 export default function ContactForm({ onSubmit, rateLimitKey = 'contact-form' }: ContactFormProps) {
   const [email, setEmail] = useState('')
@@ -44,11 +44,12 @@ export default function ContactForm({ onSubmit, rateLimitKey = 'contact-form' }:
       return
     }
 
-    const cleaned = sanitizeMessage(message)
+    const cleanedMessage = sanitizeMessage(message)
+    const cleanedName = name.trim() ? sanitizeText(name) || undefined : undefined
     await onSubmit({
       email: email.trim(),
-      name: name.trim() || undefined,
-      message: cleaned,
+      name: cleanedName,
+      message: cleanedMessage,
     })
     setDone(true)
   })
@@ -119,9 +120,10 @@ export default function ContactForm({ onSubmit, rateLimitKey = 'contact-form' }:
           overflow: 'hidden',
         }}
       >
-        <label>
+        <label htmlFor="contact-company">
           Company
           <input
+            id="contact-company"
             type="text"
             name="company"
             tabIndex={-1}
@@ -132,9 +134,13 @@ export default function ContactForm({ onSubmit, rateLimitKey = 'contact-form' }:
         </label>
       </div>
 
-      <label className="flex flex-col gap-1 text-caption-sm font-semibold text-foreground">
+      <label
+        htmlFor="contact-message"
+        className="flex flex-col gap-1 text-caption-sm font-semibold text-foreground"
+      >
         Message
         <textarea
+          id="contact-message"
           name="message"
           rows={5}
           value={message}

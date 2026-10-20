@@ -27,11 +27,19 @@
 
 @layer base {
   :root {
-    color-scheme: light;
+    color-scheme: light dark;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    /* Semantic light/dark CSS custom properties & light-dark() support (#942) */
+    --color-bg-light: #faf8f5;
+    --color-bg-dark: #12100e;
+    --color-text-light: #1c1917;
+    --color-text-dark: #f5f1ec;
+    --color-bg: light-dark(var(--color-bg-light), var(--color-bg-dark));
+    --color-text: light-dark(var(--color-text-light), var(--color-text-dark));
 
     /* Font stacks */
     --font-sans: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -94,9 +102,32 @@
     --color-focus-ring: 124 58 237;
   }
 
+  /* Semantic tokens - light explicit mode */
+  :root[data-theme='light'] {
+    color-scheme: light;
+    --color-bg: var(--color-bg-light);
+    --color-text: var(--color-text-light);
+    --color-background: 250 248 245;
+    --color-surface: 255 255 255;
+    --color-surface-muted: 245 240 235;
+    --color-foreground: 28 25 23;
+    --color-muted: 87 83 78;
+    --color-line: 231 222 210;
+    --color-primary: 109 40 217;
+    --color-primary-strong: 91 33 182;
+    --color-primary-contrast: 255 255 255;
+    --color-gold: 201 152 43;
+    --color-success: 21 128 61;
+    --color-warning: 180 83 9;
+    --color-danger: 185 28 28;
+    --color-focus-ring: 124 58 237;
+  }
+
   /* Semantic tokens - dark (activated by the theme script before first paint) */
   :root[data-theme='dark'] {
     color-scheme: dark;
+    --color-bg: var(--color-bg-dark);
+    --color-text: var(--color-text-dark);
     --color-background: 18 16 14;
     --color-surface: 28 25 23;
     --color-surface-muted: 41 37 36;
@@ -144,6 +175,20 @@
   object {
     display: block;
     vertical-align: middle;
+    /* Never invert images, icons or media elements (#942) */
+    filter: none;
+  }
+
+  /* Images, videos, canvas, and gradients retain true original colors in dark mode (#942) */
+  :root[data-theme='dark'] img,
+  :root[data-theme='dark'] video,
+  :root[data-theme='dark'] canvas,
+  :root[data-theme='dark'] svg,
+  [data-theme='dark'] img,
+  [data-theme='dark'] video,
+  [data-theme='dark'] canvas,
+  [data-theme='dark'] svg {
+    filter: none !important;
   }
 
   img,
