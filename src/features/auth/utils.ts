@@ -1,34 +1,10 @@
 import { z } from 'zod'
 
-export const DEFAULT_AUTHENTICATED_PATH = '/dashboard'
-
-/** Whitespace and control characters browsers trim or ignore inside a URL. */
-const UNSAFE_REDIRECT_CHARS = /[\s\u0000-\u001f]/
-
 /**
- * A post-login destination is only safe when it is an app-relative path.
- *
- * A leading `//` (protocol-relative) or `/\` is read by browsers as an
- * absolute URL, and an encoded variant such as `/%09/` decodes to the same
- * thing — so the value is decoded before it is checked (#798).
+ * Redirect safety lives in `@/lib/url` so it has one tested definition shared
+ * by every consumer (#862); re-exported here to keep the auth import path.
  */
-export function safeRedirect(value: string | null): string {
-  if (!value || !value.startsWith('/')) return DEFAULT_AUTHENTICATED_PATH
-
-  let decoded: string
-  try {
-    decoded = decodeURIComponent(value)
-  } catch {
-    // A malformed escape sequence is not a path we can vouch for.
-    return DEFAULT_AUTHENTICATED_PATH
-  }
-
-  if (!decoded.startsWith('/')) return DEFAULT_AUTHENTICATED_PATH
-  if (decoded.startsWith('//') || decoded.startsWith('/\\')) return DEFAULT_AUTHENTICATED_PATH
-  if (UNSAFE_REDIRECT_CHARS.test(decoded)) return DEFAULT_AUTHENTICATED_PATH
-
-  return value
-}
+export { DEFAULT_AUTHENTICATED_PATH, resolvePostLoginRedirect, safeRedirect } from '@/lib/url'
 
 export const MIN_PASSWORD_LENGTH = 8
 

@@ -31,7 +31,10 @@ export default function WalletBalanceDisplay({
     queryKey: paymentKeys.walletBalances(publicKey),
     queryFn: async (): Promise<AssetBalance[]> => {
       if (!publicKey) return []
-      const response = await http.get<{ balances: AssetBalance[] }>(`/wallets/${publicKey}/balances`)
+      const response = await http.get<{ balances: AssetBalance[] }>(
+        `/wallets/${encodeURIComponent(publicKey)}/balances`,
+        { skipToast: true },
+      )
       return response.balances
     },
     enabled: !!publicKey,

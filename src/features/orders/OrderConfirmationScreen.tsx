@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
-import { formatDate } from '@/lib'
+import { formatDate, safeExternalUrl } from '@/lib'
 import { useAuth } from '@/features/auth'
 import { orderKeys } from './queryKeys'
 import { orderRefetchInterval } from './polling'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 interface OrderConfirmationData {
   id: string
@@ -46,7 +46,10 @@ export default function OrderConfirmationScreen() {
     queryKey: orderKeys.detail(orderId ?? ''),
     queryFn: async (): Promise<OrderConfirmationData> => {
       if (!orderId) throw new Error('No order ID')
-      const response = await http.get<{ order: OrderConfirmationData }>(`/orders/${orderId}`)
+      const response = await http.get<{ order: OrderConfirmationData }>(
+        `/orders/${encodeURIComponent(orderId)}`,
+        { skipToast: true },
+      )
       return response.order
     },
     enabled: !!orderId,
@@ -196,21 +199,35 @@ export default function OrderConfirmationScreen() {
                   <h3 className="text-caption-sm font-semibold text-foreground">Your Deliverables</h3>
                   <p className="mt-1 text-caption text-muted">Download links expire on {formatDate(order.deliverables[0].expiresAt)}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {order.deliverables.map((d) => (
-                      <Button key={d.id} size="sm" variant="secondary" asChild>
-                        <a href={d.url} target="_blank" rel="noreferrer">
-                          Download {d.name}
-                        </a>
-                      </Button>
-                    ))}
+                    {order.deliverables.map((d) => {
+                      const url = safeExternalUrl(d.url)
+                      return url ? (
+                        <Button key={d.id} size="sm" variant="secondary" asChild>
+                          <a href={url} target="_blank" rel="noreferrer">
+                            Download {d.name}
+                          </a>
+                        </Button>
+                      ) : (
+                        <span
+                          key={d.id}
+                          className="rounded-control border border-line bg-surface-muted px-3 py-1.5 text-caption-sm text-muted"
+                        >
+                          {d.name} (link unavailable)
+                        </span>
+                      )
+                    })}
                   </div>
                 </div>
               )}
 
               <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
-                <Button asChild>
-                  <Link to={`/artists/${order.sellerUsername}`}>View Seller Profile</Link>
-                </Button>
+                {order.sellerUsername ? (
+                  <Button asChild>
+                    <Link to={`/artists/${encodeURIComponent(order.sellerUsername)}`}>
+                      View Seller Profile
+                    </Link>
+                  </Button>
+                ) : null}
                 <Button variant="secondary" asChild>
                   <Link to="/purchases">View All Purchases</Link>
                 </Button>

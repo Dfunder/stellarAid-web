@@ -1,11 +1,11 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { analytics } from '@/lib'
 import { validateEmail } from '@/lib/email'
 import { getErrorMessage, isApiError } from '@/services'
 import { authService } from '../services/authService'
 import { useAuthStore } from '../stores/useAuthStore'
-import { safeRedirect } from '../utils'
+import { resolvePostLoginRedirect } from '../utils'
 import { inputClass, linkClass, primaryButtonClass } from './formStyles'
 import ResendVerificationButton from './ResendVerificationButton'
 import WalletAuthModal from './WalletAuthModal'
@@ -14,8 +14,11 @@ const INVALID_CREDENTIALS = 'Invalid email or password.'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const setSession = useAuthStore((state) => state.setSession)
+  // One redirect contract app-wide: `state.from`, then `?redirect=`, defaulted.
+  const redirectTo = resolvePostLoginRedirect(location.state, searchParams.get('redirect'))
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -27,7 +30,7 @@ export default function LoginPage() {
 
   const handleWalletLoginSuccess = () => {
     analytics.track('login', { method: 'wallet' })
-    navigate(safeRedirect(searchParams.get('redirect')), { replace: true })
+    navigate(redirectTo, { replace: true })
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -45,7 +48,7 @@ export default function LoginPage() {
       const session = await authService.login({ email: email.trim(), password })
       setSession(session)
       analytics.track('login', { method: 'password' })
-      navigate(safeRedirect(searchParams.get('redirect')), { replace: true })
+      navigate(redirectTo, { replace: true })
     } catch (err) {
       const status = isApiError(err) ? err.status : null
       if (status === 403) {

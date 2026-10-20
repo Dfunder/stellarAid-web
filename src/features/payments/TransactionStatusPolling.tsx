@@ -55,6 +55,9 @@ export default function TransactionStatusPolling({
     queryKey: ['txStatus', txHash],
     queryFn: async (): Promise<TransactionStatusData> => {
       const response = await http.get<{ status: TransactionStatusData }>(
+        `/transactions/${encodeURIComponent(txHash)}/status`,
+        // A background poll must not raise a toast every few seconds (#865).
+        { skipToast: true },
         `/transactions/${txHash}/status`,
       )
       return response.status
@@ -152,9 +155,7 @@ export default function TransactionStatusPolling({
               )}
             </div>
             <div>
-              <p className="text-caption-sm font-medium text-foreground">
-                {statusMeta(currentStatus).label}
-              </p>
+              <p className="text-caption-sm font-medium text-foreground">{statusMeta(currentStatus).label}</p>
               <p className="text-caption-xs text-muted font-mono">{shortAddress(txHash)}</p>
             </div>
           </div>

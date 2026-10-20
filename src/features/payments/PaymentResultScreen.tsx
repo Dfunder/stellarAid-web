@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams, Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
-import { formatDate } from '@/lib'
+import { formatDate, safeExternalUrl } from '@/lib'
 import { paymentResultRefetchInterval } from './polling'
 import { useQuery } from '@tanstack/react-query'
 
@@ -76,7 +77,10 @@ export default function PaymentResultScreen() {
     queryKey: ['paymentResult', sessionId],
     queryFn: async (): Promise<PaymentResultData> => {
       if (!sessionId) throw new Error('No session ID')
-      const response = await http.get<{ result: PaymentResultData }>(`/payments/result/${sessionId}`)
+      const response = await http.get<{ result: PaymentResultData }>(
+        `/payments/result/${encodeURIComponent(sessionId)}`,
+        { skipToast: true },
+      )
       return response.result
     },
     enabled: !!sessionId,
@@ -198,21 +202,35 @@ export default function PaymentResultScreen() {
                   <h3 className="text-caption-sm font-semibold text-foreground">Your Deliverables</h3>
                   <p className="mt-1 text-caption text-muted">Download links expire on {formatDate(result.deliverables[0].expiresAt)}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {result.deliverables.map((d) => (
-                      <Button key={d.id} size="sm" variant="secondary" asChild>
-                        <a href={d.url} target="_blank" rel="noreferrer">
-                          Download {d.name}
-                        </a>
-                      </Button>
-                    ))}
+                    {result.deliverables.map((d) => {
+                      const url = safeExternalUrl(d.url)
+                      return url ? (
+                        <Button key={d.id} size="sm" variant="secondary" asChild>
+                          <a href={url} target="_blank" rel="noreferrer">
+                            Download {d.name}
+                          </a>
+                        </Button>
+                      ) : (
+                        <span
+                          key={d.id}
+                          className="rounded-control border border-line bg-surface-muted px-3 py-1.5 text-caption-sm text-muted"
+                        >
+                          {d.name} (link unavailable)
+                        </span>
+                      )
+                    })}
                   </div>
                 </div>
               )}
 
               <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
-                <Button asChild>
-                  <Link to={`/artists/${result.sellerUsername}`}>View Seller Profile</Link>
-                </Button>
+                {result.sellerUsername ? (
+                  <Button asChild>
+                    <Link to={`/artists/${encodeURIComponent(result.sellerUsername)}`}>
+                      View Seller Profile
+                    </Link>
+                  </Button>
+                ) : null}
                 <Button variant="secondary" asChild>
                   <Link to="/purchases">View All Purchases</Link>
                 </Button>

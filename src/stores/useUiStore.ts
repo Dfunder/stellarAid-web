@@ -40,10 +40,13 @@ const remainingMs = new Map<string, number>()
 const startedAt = new Map<string, number>()
 
 /**
- * Global UI state: toast notifications only. (Theme lives in `ThemeProvider` /
- * `@/lib/theme`; the mobile menu is local to the app shell.)
+ * Global UI state: toasts, plus the placeholder chrome state that used to carry
+ * a theme/mobile-menu/modal manager (now in `ThemeProvider` and local state).
  */
 interface UiState {
+  theme: 'light' | 'dark'
+  isMobileMenuOpen: boolean
+  activeModal: string | null
   toasts: Toast[]
   pushToast: (message: string, tone?: ToastTone, duration?: number) => void
   dismissToast: (id: string) => void

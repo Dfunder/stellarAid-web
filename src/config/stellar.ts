@@ -30,7 +30,19 @@ export const activeStellarNetwork: StellarNetwork = env.VITE_STELLAR_NETWORK
 /** Passphrase a connected wallet must report to match this build. */
 export const activeNetworkPassphrase: string = STELLAR_NETWORK_PASSPHRASES[activeStellarNetwork]
 
+/**
+ * Explicit allow-list of the passphrases a wallet connection may present. A
+ * wallet that reports anything else is not on this build's network, so signing
+ * is refused rather than producing a transaction that can never settle (#864).
+ */
+export const SUPPORTED_NETWORK_PASSPHRASES: readonly string[] =
+  Object.values(STELLAR_NETWORK_PASSPHRASES)
+
+export function isSupportedNetworkPassphrase(passphrase: string): boolean {
+  return SUPPORTED_NETWORK_PASSPHRASES.includes(passphrase)
+}
+
 /** Explorer account URL for `address` on `network`. */
 export function stellarAccountExplorerUrl(address: string, network: StellarNetwork): string {
-  return `${STELLAR_EXPLORER_URLS[network]}/account/${address}`
+  return `${STELLAR_EXPLORER_URLS[network]}/account/${encodeURIComponent(address)}`
 }
