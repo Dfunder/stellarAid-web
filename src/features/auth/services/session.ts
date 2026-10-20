@@ -1,3 +1,4 @@
+import { ensureSession, getSessionStatus } from '@/lib/session'
 import { ApiError, getErrorMessage, setAuthTokenProvider, setUnauthorizedHandler } from '@/services'
 import { queryClient } from '@/stores'
 import { getAccessToken, getStoredTokens as readTokens, useAuthStore } from '../stores/useAuthStore'
@@ -100,6 +101,15 @@ export async function bootstrapSession(): Promise<void> {
     useAuthStore.getState().clearSession()
     return
   }
+
+  // Enforce idle/absolute timeouts before restoring the session. A missing ID
+  // is the upgrade path for users who already have tokens in localStorage.
+  const sessionStatus = getSessionStatus()
+  if (sessionStatus === 'idle' || sessionStatus === 'expired') {
+    await endSession()
+    return
+  }
+  if (sessionStatus === 'missing') ensureSession()
 
   useAuthStore.getState().startLoading()
 

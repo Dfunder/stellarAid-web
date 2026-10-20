@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { activeStellarNetwork } from '@/config'
 import { useCopyToClipboard } from '@/hooks'
 import { truncateMiddle } from '@/lib'
+import { useUiStore } from '@/stores'
 
 interface ExplorerLinkProps {
   /** The hash or address to link to. */
@@ -36,6 +37,7 @@ export default function ExplorerLink({
 }: ExplorerLinkProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const { copy, isCopied } = useCopyToClipboard()
+  const pushToast = useUiStore((state) => state.pushToast)
 
   const displayValue = isExpanded ? value : truncateMiddle(value, 8, 6)
   const href = `${EXPLORER_ROOTS[network][type]}/${encodeURIComponent(value)}`
@@ -69,7 +71,10 @@ export default function ExplorerLink({
       </a>
       <button
         type="button"
-        onClick={() => void copy(value)}
+        onClick={async () => {
+          const ok = await copy(value)
+          pushToast(ok ? 'Copied to clipboard' : 'Failed to copy to clipboard', ok ? 'success' : 'error')
+        }}
         className="p-1 text-caption-sm text-muted hover:text-foreground transition-colors rounded"
         aria-label={isCopied(value) ? 'Copied to clipboard' : 'Copy to clipboard'}
         title={isCopied(value) ? 'Copied!' : 'Copy'}

@@ -19,7 +19,11 @@ export interface UseWalletAuth {
   pendingPublicKey: string | null
   error: string | null
   loginWithConnectedWallet: (options?: WalletAuthOptions) => Promise<User | null>
-  completeRegistration: (details: { name: string; username?: string; email?: string }) => Promise<User | null>
+  completeRegistration: (details: {
+    name: string
+    username?: string
+    email?: string
+  }) => Promise<User | null>
   cancel: () => void
 }
 
@@ -32,7 +36,9 @@ export function useWalletAuth(): UseWalletAuth {
   const [isAccountRequired, setIsAccountRequired] = useState(false)
   const [pendingPublicKey, setPendingPublicKey] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const pendingAuthRef = useRef<{ nonce: string; signature: string; publicKey: string } | null>(null)
+  const pendingAuthRef = useRef<{ nonce: string; signature: string; publicKey: string } | null>(
+    null,
+  )
   const abortControllerRef = useRef<AbortController | null>(null)
 
   const cancel = useCallback(() => {
@@ -64,24 +70,24 @@ export function useWalletAuth(): UseWalletAuth {
       abortControllerRef.current = abortController
 
       try {
-        // Step 1: Request challenge nonce from backend
-        let nonceData
-        try {
-          nonceData = await authApi.requestWalletNonce(connection.publicKey)
-        } catch (nonceError) {
-          // If the backend endpoint is not reachable or returns a fallback format
-          const fallbackNonce = `lumora-auth-nonce-${connection.publicKey.slice(0, 8)}-${Date.now()}`
-          nonceData = {
-            nonce: fallbackNonce,
-            challenge: `Sign this message to authenticate with Lumora:\nNonce: ${fallbackNonce}\nTimestamp: ${new Date().toISOString()}`,
-            expiresAt: new Date(Date.now() + 5 * 60_000).toISOString(),
-          }
-        }
+        // Step 1: Request challenge nonce from backend.
+        //
+        // A server-issued, single-use nonce is what makes this flow replay-safe.
+        // There is deliberately no client-side fallback: if the nonce endpoint is
+        // unreachable we surface the error and let the user retry, rather than
+        // fabricating a challenge the server never issued (#861, #934).
+        const nonceData = await authApi.requestWalletNonce(connection.publicKey)
 
         if (abortController.signal.aborted) return null
 
-        // Step 2: Request wallet signature with timeout
-        const signPromise = signWithConnectedWallet(nonceData.challenge || nonceData.nonce)
+        // An expired challenge must never be signed (#861).
+        if (nonceData.expiresAt && new Date(nonceData.expiresAt).getTime() <= Date.now()) {
+          throw new Error('Your authentication challenge has expired. Please try again.')
+        }
+
+        // Step 2: Request wallet signature with timeout. The challenge signed is
+        // always the server-issued value, never a locally generated one.
+        const signPromise = signWithConnectedWallet(nonceData.challenge)
         const timeoutPromise = new Promise<never>((_, reject) => {
           const timer = setTimeout(() => {
             reject(new WalletError('UNKNOWN', 'Signature request timed out. Please try again.'))
@@ -121,10 +127,10 @@ export function useWalletAuth(): UseWalletAuth {
           setIsSigningIn(false)
           return session.user
         } catch (loginErr) {
-          // Check for unknown address / user not found (404 or 400 with user unknown)
-          const isNotFound =
-            (loginErr instanceof ApiError && (loginErr.status === 404 || loginErr.status === 400)) ||
-            (loginErr instanceof Error && loginErr.message.toLowerCase().includes('not found'))
+          // Only a genuine "wallet not registered" 404 may create an account.
+          // A 400 (malformed request) or any error whose text merely contains
+          // "not found" must not silently register a duplicate account (#861).
+          const isNotFound = loginErr instanceof ApiError && loginErr.status === 404
 
           if (isNotFound) {
             // Check if options provides automatic or custom account registration

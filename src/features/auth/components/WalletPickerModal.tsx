@@ -1,5 +1,6 @@
 import { Button, Modal, Spinner } from '@/components/ui'
 import { useCopyToClipboard } from '@/hooks'
+import { useUiStore } from '@/stores'
 import { useWallet, type WalletOption } from '../hooks/useWallet'
 
 export interface WalletPickerModalProps {
@@ -51,6 +52,7 @@ export default function WalletPickerModal({ isOpen, onClose }: WalletPickerModal
     disconnect,
   } = useWallet()
   const { copy, isCopied } = useCopyToClipboard()
+  const pushToast = useUiStore((state) => state.pushToast)
 
   const installedOptions = options.filter((option) => option.isInstalled)
   const missingOptions = options.filter((option) => !option.isInstalled)
@@ -95,7 +97,10 @@ export default function WalletPickerModal({ isOpen, onClose }: WalletPickerModal
             {publicKey}
           </p>
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="secondary" onClick={() => void copy(publicKey)}>
+            <Button size="sm" variant="secondary" onClick={async () => {
+              const ok = await copy(publicKey)
+              pushToast(ok ? 'Copied to clipboard' : 'Failed to copy to clipboard', ok ? 'success' : 'error')
+            }}>
               {isCopied(publicKey) ? 'Copied' : 'Copy address'}
             </Button>
             <Button size="sm" variant="ghost" onClick={disconnect}>

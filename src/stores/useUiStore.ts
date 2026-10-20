@@ -48,10 +48,6 @@ interface UiState {
   isMobileMenuOpen: boolean
   activeModal: string | null
   toasts: Toast[]
-  setTheme: (theme: 'light' | 'dark') => void
-  setMobileMenuOpen: (open: boolean) => void
-  openModal: (modal: string) => void
-  closeModal: () => void
   pushToast: (message: string, tone?: ToastTone, duration?: number) => void
   dismissToast: (id: string) => void
   /** Freeze a toast's auto-dismiss timer, e.g. while the pointer is over it. */
@@ -83,14 +79,7 @@ export const useUiStore = create<UiState>((set, get) => {
   }
 
   return {
-    theme: 'light',
-    isMobileMenuOpen: false,
-    activeModal: null,
     toasts: [],
-    setTheme: (theme) => set({ theme }),
-    setMobileMenuOpen: (isMobileMenuOpen) => set({ isMobileMenuOpen }),
-    openModal: (activeModal) => set({ activeModal }),
-    closeModal: () => set({ activeModal: null }),
     pushToast: (message, tone = 'info', duration = TOAST_DURATION_MS) => {
       const id = createToastId()
       set((state) => ({

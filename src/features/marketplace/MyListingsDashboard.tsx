@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, ExplorerLink, Modal, Spinner, Select } from '@/components/ui'
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Button, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { formatDate, statusMeta } from '@/lib'
-import { formatDate } from '@/lib'
-import { Link } from 'react-router-dom'
 
 interface Listing {
   id: string
@@ -32,19 +30,14 @@ const SORT_LABELS: Record<ListingSort, string> = {
 
 const PAGE_SIZE = 10
 
-const STATUS_LABELS: Record<Listing['status'], string> = {
-  draft: 'Draft',
-  active: 'Active',
-  sold: 'Sold',
-  unpublished: 'Unpublished',
-}
-
-
 export default function MyListingsDashboard() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [pendingAction, setPendingAction] = useState<{ type: 'unpublish' | 'delete'; listing: Listing } | null>(null)
+  const [pendingAction, setPendingAction] = useState<{
+    type: 'unpublish' | 'delete'
+    listing: Listing
+  } | null>(null)
 
   // #837 — filter, sort and page live in the URL so the view is shareable and the
   // back button restores it, matching the pattern in ArtistProfilePage.
@@ -63,7 +56,7 @@ export default function MyListingsDashboard() {
     setSearchParams(next)
   }
 
-  const { data, isPending, isError, error, refetch } = useQuery({
+  const { data, isPending, isFetching, isError, error, refetch } = useQuery({
     queryKey: ['myListings', user?.id, statusFilter, sort, page],
     queryFn: async (): Promise<{ listings: Listing[]; total: number }> => {
       const params = new URLSearchParams()
@@ -71,12 +64,34 @@ export default function MyListingsDashboard() {
       params.set('sort', sort)
       params.set('page', page.toString())
       params.set('pageSize', PAGE_SIZE.toString())
-      const response = await http.get<{ listings: Listing[]; total: number }>(`/listings/mine?${params}`)
+      const response = await http.get<{ listings: Listing[]; total: number }>(
+        `/listings/mine?${params}`,
+      )
       // Older backends omit `total`; fall back to the page size so pagination
       // degrades to a single page instead of rendering a broken control.
       return { listings: response.listings, total: response.total ?? response.listings.length }
     },
+    // Keep only the columns the table renders so a new response field does not
+    // change row identity and re-render the whole table (#855).
+    select: (data): { listings: Listing[]; total: number } => ({
+      total: data.total,
+      listings: data.listings.map((listing) => ({
+        id: listing.id,
+        title: listing.title,
+        thumbnail: listing.thumbnail,
+        status: listing.status,
+        price: listing.price,
+        asset: listing.asset,
+        views: listing.views,
+        likes: listing.likes,
+        createdAt: listing.createdAt,
+        updatedAt: listing.updatedAt,
+      })),
+    }),
     enabled: !!user,
+    // Changing status, sort or page keeps the current rows mounted while the
+    // next response loads, so paging never blanks the table (#852).
+    placeholderData: keepPreviousData,
   })
 
   const listings = data?.listings ?? []
@@ -85,7 +100,8 @@ export default function MyListingsDashboard() {
   const allSelected = listings.length > 0 && listings.every((l) => selectedIds.has(l.id))
 
   const unpublishMutation = useMutation({
-    mutationFn: (listingId: string) => http.patch(`/listings/${listingId}`, { status: 'unpublished' }),
+    mutationFn: (listingId: string) =>
+      http.patch(`/listings/${listingId}`, { status: 'unpublished' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myListings'] })
       setSelectedIds(new Set())
@@ -120,7 +136,10 @@ export default function MyListingsDashboard() {
 
   const handleBulkUnpublish = () => {
     if (selectedIds.size === 0) return
-    setPendingAction({ type: 'unpublish', listing: { id: 'bulk', title: `${selectedIds.size} listings` } as Listing })
+    setPendingAction({
+      type: 'unpublish',
+      listing: { id: 'bulk', title: `${selectedIds.size} listings` } as Listing,
+    })
   }
 
   const handleConfirmAction = async () => {
@@ -185,16 +204,17 @@ export default function MyListingsDashboard() {
 
       <div className="rounded-card border border-line bg-surface shadow-card overflow-hidden">
         <div className="p-4 border-b border-line bg-surface-muted flex flex-wrap items-center gap-2">
-          <Select
-            label="Status"
+          <label className="text-caption-sm text-muted" htmlFor="listings-status">
+            Status:
+          </label>
+          <select
+            id="listings-status"
             value={statusFilter}
             onChange={(e) => {
               updateParams({ status: e.target.value }, true)
               setSelectedIds(new Set())
             }}
             className="rounded-control border border-line bg-background px-3 py-1.5 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            onChange={(e) => { setStatusFilter(e.target.value as typeof statusFilter); setSelectedIds(new Set()) }}
-            className="py-1.5 text-caption-sm"
           >
             <option value="all">All statuses</option>
             <option value="draft">Draft</option>
@@ -202,7 +222,9 @@ export default function MyListingsDashboard() {
             <option value="sold">Sold</option>
             <option value="unpublished">Unpublished</option>
           </select>
-          <label className="ml-2 text-caption-sm text-muted" htmlFor="listings-sort">Sort:</label>
+          <label className="ml-2 text-caption-sm text-muted" htmlFor="listings-sort">
+            Sort:
+          </label>
           <select
             id="listings-sort"
             value={sort}
@@ -210,22 +232,40 @@ export default function MyListingsDashboard() {
             className="rounded-control border border-line bg-background px-3 py-1.5 text-caption-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             {(Object.keys(SORT_LABELS) as ListingSort[]).map((key) => (
-              <option key={key} value={key}>{SORT_LABELS[key]}</option>
+              <option key={key} value={key}>
+                {SORT_LABELS[key]}
+              </option>
             ))}
           </select>
-          </Select>
         </div>
+
+        {/* Keeps stale rows visible on a page/filter change and only flags the
+            background refetch (#852). */}
+        {isFetching && !isPending && (
+          <p role="status" className="px-4 py-2 text-caption-sm text-muted border-b border-line">
+            Updating…
+          </p>
+        )}
 
         {listings.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-12 text-muted">
-            <svg className="h-12 w-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+            <svg
+              className="h-12 w-12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              aria-hidden="true"
+            >
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
               <path d="M9 9h6v6H9z" />
             </svg>
             {statusFilter === 'all' ? (
               <p className="text-caption">No listings yet. Create your first artwork listing!</p>
             ) : (
-              <p className="text-caption">No listings with status "{statusMeta(statusFilter).label}".</p>
+              <p className="text-caption">
+                No listings with status "{statusMeta(statusFilter).label}".
+              </p>
             )}
             {statusFilter === 'all' && (
               <Button asChild className="mt-4">
@@ -254,12 +294,17 @@ export default function MyListingsDashboard() {
                     <th className="px-4 py-3 text-caption-sm font-semibold text-muted">Views</th>
                     <th className="px-4 py-3 text-caption-sm font-semibold text-muted">Likes</th>
                     <th className="px-4 py-3 text-caption-sm font-semibold text-muted">Date</th>
-                    <th className="px-4 py-3 text-caption-sm font-semibold text-muted w-40">Actions</th>
+                    <th className="px-4 py-3 text-caption-sm font-semibold text-muted w-40">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {listings.map((listing) => (
-                    <tr key={listing.id} className="border-b border-line/50 hover:bg-surface-muted/50">
+                    <tr
+                      key={listing.id}
+                      className="border-b border-line/50 hover:bg-surface-muted/50"
+                    >
                       <td className="px-4 py-3">
                         <input
                           type="checkbox"
@@ -271,25 +316,41 @@ export default function MyListingsDashboard() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           {listing.thumbnail && (
-                            <img src={listing.thumbnail} alt="" className="h-10 w-10 rounded-card object-cover" />
+                            <img
+                              src={listing.thumbnail}
+                              alt=""
+                              className="h-10 w-10 rounded-card object-cover"
+                            />
                           )}
                           <div>
-                            <p className="text-caption font-medium text-foreground truncate max-w-xs">{listing.title}</p>
-                            <p className="text-caption-xs text-muted">ID: {listing.id.slice(0, 8)}…</p>
+                            <p className="text-caption font-medium text-foreground truncate max-w-xs">
+                              {listing.title}
+                            </p>
+                            <p className="text-caption-xs text-muted">
+                              ID: {listing.id.slice(0, 8)}…
+                            </p>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-caption-sm font-medium ${statusMeta(listing.status).className}`}>
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-caption-sm font-medium ${statusMeta(listing.status).className}`}
+                        >
                           {statusMeta(listing.status).label}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-caption-sm font-mono text-foreground">
                         {listing.price} {listing.asset}
                       </td>
-                      <td className="px-4 py-3 text-caption-sm text-muted">{(listing.views ?? 0).toLocaleString()}</td>
-                      <td className="px-4 py-3 text-caption-sm text-muted">{(listing.likes ?? 0).toLocaleString()}</td>
-                      <td className="px-4 py-3 text-caption-sm text-muted">{formatDate(listing.createdAt)}</td>
+                      <td className="px-4 py-3 text-caption-sm text-muted">
+                        {(listing.views ?? 0).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 text-caption-sm text-muted">
+                        {(listing.likes ?? 0).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 text-caption-sm text-muted">
+                        {formatDate(listing.createdAt)}
+                      </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap items-center gap-2">
                           {listing.status === 'draft' && (
@@ -383,11 +444,14 @@ export default function MyListingsDashboard() {
 
             {selectedIds.size > 0 && (
               <div className="p-4 border-t border-line bg-surface-muted flex flex-wrap items-center justify-between gap-4">
-                <span className="text-caption-sm text-muted">
-                  {selectedIds.size} selected
-                </span>
+                <span className="text-caption-sm text-muted">{selectedIds.size} selected</span>
                 <div className="flex items-center gap-2">
-                  <Button size="sm" variant="secondary" onClick={handleBulkUnpublish} disabled={unpublishMutation.isPending}>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={handleBulkUnpublish}
+                    disabled={unpublishMutation.isPending}
+                  >
                     Unpublish Selected
                   </Button>
                 </div>

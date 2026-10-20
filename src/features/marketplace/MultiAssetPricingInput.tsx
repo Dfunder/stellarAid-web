@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ChangeEvent } from 'react'
 import { Input } from '@/components/ui'
 import { DISPLAY_FALLBACK_PRECISION, getAssetMeta } from '@/config'
 
@@ -20,10 +20,6 @@ interface PriceInputProps {
   /** Whether the field is disabled */
   disabled?: boolean
 }
-
-
-
-
 
 /** Module-level default: an inline array literal is a new identity every render. */
 const DEFAULT_ASSETS: string[] = ['XLM', 'USDC', 'NGNT', 'EURC']
@@ -63,11 +59,8 @@ export default function MultiAssetPricingInput({
     const baseRate = meta?.conversionRate ?? 1
     const conversions: Record<string, string> = {}
 
-    assets.forEach((a) => {
-      if (a !== asset && getAssetMeta(a)?.conversionRate) {
-        const targetRate = getAssetMeta(a)?.conversionRate ?? 1
     assetsKey.split(',').forEach((a) => {
-      const targetRate = CONVERSION_RATES[a]
+      const targetRate = getAssetMeta(a)?.conversionRate
       if (a !== asset && targetRate) {
         const converted = (numValue * baseRate) / targetRate
         const targetPrecision = getAssetMeta(a)?.precision ?? 2
@@ -79,12 +72,9 @@ export default function MultiAssetPricingInput({
   }, [value, asset, assetsKey])
 
   // Rebuilt only when the asset's precision changes, not on every keystroke.
-  const precisionPattern = useMemo(
-    () => new RegExp(`^\\d*(\\.\\d{0,${precision}})?$`),
-    [precision]
-  )
+  const precisionPattern = useMemo(() => new RegExp(`^\\d*(\\.\\d{0,${precision}})?$`), [precision])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
     // Allow empty, or valid decimal with correct precision
     if (newValue === '' || precisionPattern.test(newValue)) {
@@ -103,15 +93,12 @@ export default function MultiAssetPricingInput({
 
   return (
     <div className="space-y-2">
-      <label className="block text-caption-sm font-medium text-foreground">
-        {label} {symbol}
-      </label>
-
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex-1">
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted">{symbol}</span>
             <Input
+              label={`${label} ${symbol}`.trim()}
               type="text"
               inputMode="decimal"
               value={value}
@@ -121,14 +108,16 @@ export default function MultiAssetPricingInput({
               disabled={disabled}
               error={error}
               className="pl-7"
-              aria-describedby={error ? 'price-error' : showHint ? 'price-hint' : undefined}
+              aria-describedby={showHint ? 'price-hint' : undefined}
             />
           </div>
-          {error && <p id="price-error" className="mt-1 text-caption-sm text-danger">{error}</p>}
         </div>
 
         <div className="sm:w-40">
-          <label htmlFor="asset-select" className="block text-caption-sm font-medium text-foreground mb-1">
+          <label
+            htmlFor="asset-select"
+            className="block text-caption-sm font-medium text-foreground mb-1"
+          >
             Asset
           </label>
           <select
@@ -154,7 +143,14 @@ export default function MultiAssetPricingInput({
           onClick={() => setShowHint(!showHint)}
           aria-expanded={showHint}
         >
-          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <svg
+            className="h-3.5 w-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+          >
             <polyline points="6 9 12 15 18 9" />
           </svg>
           {showHint ? 'Hide' : 'Show'} equivalent prices
@@ -168,7 +164,10 @@ export default function MultiAssetPricingInput({
             {Object.entries(convertedValues).map(([a, v]) => (
               <div key={a} className="flex justify-between">
                 <span className="text-muted">{getAssetMeta(a)?.label ?? a}</span>
-                <span className="font-mono text-foreground">{getAssetMeta(a)?.symbol ?? ''}{v}</span>
+                <span className="font-mono text-foreground">
+                  {getAssetMeta(a)?.symbol ?? ''}
+                  {v}
+                </span>
               </div>
             ))}
           </div>

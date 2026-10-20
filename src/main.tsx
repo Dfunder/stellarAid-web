@@ -8,8 +8,8 @@ import ConfigErrorScreen from '@/components/ui/ConfigErrorScreen'
 import ErrorBoundary from '@/components/ui/ErrorBoundary'
 import ThemeProvider from '@/components/ui/ThemeProvider'
 import App from '@/App'
-import { loadResult, loadRemoteFeatureFlags } from '@/config'
-import { analytics } from '@/lib'
+import { configError, loadRemoteFeatureFlags } from '@/config'
+import { analytics, setErrorReporter } from '@/lib/analytics'
 import { AuthProvider, bindSessionToHttp } from '@/features/auth'
 import { queryClient } from '@/stores'
 
@@ -25,6 +25,13 @@ if (import.meta.env.DEV) {
     },
   })
 }
+
+// #860 — render errors were only ever logged to the console. Register a reporter
+// so they are forwarded to the analytics provider and are observable in
+// production, not just in a user's devtools.
+setErrorReporter((error) => {
+  analytics.track('render_error', { message: error.message })
+})
 
 const root = document.getElementById('root')
 if (!root) throw new Error('Root element #root was not found')

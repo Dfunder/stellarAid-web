@@ -1,12 +1,18 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { __resetSessionForTests, createSession, getSession, isSessionIdActive } from '@/lib/session'
 import { getAccessToken, getStoredTokens, useAuthStore } from './useAuthStore'
 import type { AuthSession, User } from '../types'
 
 const user = { id: 'u1', email: 'a@b.co', role: 'artist' } as User
-const session: AuthSession = { user, tokens: { accessToken: 'access-1', refreshToken: 'refresh-1' } }
+const session: AuthSession = {
+  user,
+  tokens: { accessToken: 'access-1', refreshToken: 'refresh-1' },
+}
 
 beforeEach(() => {
   localStorage.clear()
+  sessionStorage.clear()
+  __resetSessionForTests()
   useAuthStore.getState().clearSession()
 })
 
@@ -59,5 +65,39 @@ describe('useAuthStore', () => {
   it('startLoading marks the session as loading', () => {
     useAuthStore.getState().startLoading()
     expect(useAuthStore.getState().status).toBe('loading')
+  })
+
+  it('rotates the session id on sign-in and invalidates the pre-auth id (#986)', () => {
+    const preAuth = createSession()
+
+    useAuthStore.getState().setSession(session)
+
+    const postAuth = getSession()
+    expect(postAuth).not.toBeNull()
+    expect(postAuth?.id).not.toBe(preAuth.id)
+    expect(isSessionIdActive(preAuth.id)).toBe(false)
+    expect(isSessionIdActive(postAuth!.id)).toBe(true)
+  })
+
+  it('rotates the session id on token refresh (#986)', () => {
+    useAuthStore.getState().setSession(session)
+    const afterLogin = getSession()!
+
+    useAuthStore.getState().setTokens({ accessToken: 'access-2', refreshToken: null })
+
+    const afterRefresh = getSession()!
+    expect(afterRefresh.id).not.toBe(afterLogin.id)
+    expect(isSessionIdActive(afterLogin.id)).toBe(false)
+    expect(isSessionIdActive(afterRefresh.id)).toBe(true)
+  })
+
+  it('invalidates the session id on logout (#986)', () => {
+    useAuthStore.getState().setSession(session)
+    const active = getSession()!
+
+    useAuthStore.getState().clearSession()
+
+    expect(getSession()).toBeNull()
+    expect(isSessionIdActive(active.id)).toBe(false)
   })
 })

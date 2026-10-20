@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, ExplorerLink, Input, Modal, Spinner, Select } from '@/components/ui'
+import { Button, ExplorerLink, Input, Select } from '@/components/ui'
 import { http } from '@/services'
-import { useAuth } from '@/features/auth'
+import { authKeys, useAuth } from '@/features/auth'
 import { formatDate, shortAddress } from '@/lib'
 import type { LinkedWallet } from '@/features/auth/types'
 import { DISPLAY_FALLBACK_PRECISION, getAssetMeta } from '@/config'
@@ -41,7 +41,9 @@ export default function ArtistWithdrawal() {
   const [showHistory, setShowHistory] = useState(false)
 
   const { data: wallets } = useQuery({
-    queryKey: ['linkedWallets'],
+    // Shares the auth `linked-wallets` factory so link/unlink invalidations
+    // refresh this withdrawal destination list instead of leaving it stale (#853).
+    queryKey: authKeys.linkedWallets(),
     queryFn: async (): Promise<LinkedWallet[]> => (await http.get<{ wallets: LinkedWallet[] }>('/wallets')).wallets,
   })
 

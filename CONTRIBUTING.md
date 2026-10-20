@@ -14,9 +14,26 @@ npm install
 npm run dev
 ```
 
+### Lockfile mismatch (`npm ci` fails)
+
+If `npm ci` fails with `Missing: <pkg> from lock file`, your `package-lock.json` is out of sync with `package.json` - usually after a dependency change. **Do not delete the lockfile.** Regenerate it from the manifests and commit the result:
+
+```bash
+npm install            # rewrites package-lock.json to match package.json
+npm ci                 # verify the committed lockfile installs cleanly
+```
+
+If several open PRs each add a dependency, regenerate once after they land to avoid lockfile churn.
+
 ## Before You Push
 
-Every change must pass these checks locally:
+Every change must pass these checks locally. Run them all with the single aggregate command:
+
+```bash
+npm run check
+```
+
+That runs, in order:
 
 ```bash
 npm run lint         # ESLint - zero errors
@@ -26,7 +43,7 @@ npm run test         # Unit tests (Vitest)
 npm run build        # Production build
 ```
 
-Use `npm run format` to fix formatting automatically. Editor setup (format-on-save, ESLint autofix) is described in the [README](./README.md#editor-integrations).
+Use `npm run format` to fix formatting automatically. `npm run check` is exactly what the [pre-push hook](#git-hooks) and CI run, so a green `npm run check` means a green pipeline (given your lockfile is in sync - see below). Editor setup (format-on-save, ESLint autofix) is described in the [README](./README.md#editor-integrations).
 
 ## Git Hooks
 
@@ -36,12 +53,11 @@ Use `npm run format` to fix formatting automatically. Editor setup (format-on-sa
 | Hook         | Runs                                                                                                                                                                                                                     |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `pre-commit` | `npx lint-staged`: `eslint --fix` + `prettier --write` on staged `*.ts`/`*.tsx`, `prettier --write` on staged `*.css`, `*.html`, `*.json`, `*.md`, `*.yml` / `*.yaml` (configured under `lint-staged` in `package.json`) |
-| `pre-push`   | `npm run type-check` (`tsc -b`), then `npm test --if-present`                                                                                                                                                            |
+| `pre-push`   | `npm run check` - the full documented gate (lint, format, type-check, test, build)                                                                                                                                       |
 
-**Known gap:** the hooks do **not** run `npm run lint` over the whole repo, `npm run format:check` or
-`npm run build`, even though [Before You Push](#before-you-push) lists them as required. Run those yourself. A push
-is rejected if the type check or the tests fail; if `main` itself fails the type check, every push is blocked until
-it is fixed.
+**Note:** the `pre-push` hook now runs the same `npm run check` gate CI runs, so a broken lint,
+format, type-check, test or build step blocks the push locally instead of only in CI. If `main`
+itself is red, every push is blocked until it is fixed.
 
 To skip the hooks temporarily (for example to push a work-in-progress branch), use `git push --no-verify` /
 `git commit --no-verify`, or set `HUSKY=0` for a single command (`HUSKY=0 git push`). CI-style checks still

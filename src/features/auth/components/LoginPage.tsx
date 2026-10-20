@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { analytics } from '@/lib'
+import { validateEmail } from '@/lib/email'
 import { getErrorMessage, isApiError } from '@/services'
 import { authService } from '../services/authService'
 import { useAuthStore } from '../stores/useAuthStore'
@@ -34,9 +35,15 @@ export default function LoginPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setSubmitting(true)
     setError(null)
     setUnverifiedEmail(null)
+    const emailError = validateEmail(email)
+    if (emailError) {
+      setError(emailError)
+      return
+    }
+    if (submitting) return
+    setSubmitting(true)
     try {
       const session = await authService.login({ email: email.trim(), password })
       setSession(session)

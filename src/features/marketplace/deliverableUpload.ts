@@ -41,6 +41,36 @@ export function uploadToPresignedUrl(
   })
 }
 
+/**
+ * Runs `task` over `items` with at most `limit` promises in flight at once,
+ * preserving input order in the results (#854).
+ *
+ * `task` is expected to resolve for every item — callers that need per-item
+ * failure handling should catch inside `task` so one rejected upload cannot
+ * cancel its siblings.
+ */
+export async function runWithConcurrency<T, R>(
+  items: readonly T[],
+  limit: number,
+  task: (item: T, index: number) => Promise<R>
+): Promise<R[]> {
+  const results = new Array<R>(items.length)
+  const workerCount = Math.max(1, Math.min(limit, items.length))
+  let nextIndex = 0
+
+  async function worker(): Promise<void> {
+    for (;;) {
+      const index = nextIndex
+      nextIndex += 1
+      if (index >= items.length) return
+      results[index] = await task(items[index]!, index)
+    }
+  }
+
+  await Promise.all(Array.from({ length: workerCount }, () => worker()))
+  return results
+}
+
 /** Result of applying the per-revision file-count cap. */
 export interface FileCap<T> {
   /** Incoming items that fit under the cap, in order. */

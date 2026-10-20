@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { formatDate, safeExternalUrl } from '@/lib'
 import { paymentResultRefetchInterval } from './polling'
+import { useQuery } from '@tanstack/react-query'
 
 interface PaymentResultData {
   id: string
@@ -281,17 +282,18 @@ export default function PaymentResultScreen() {
 }
 
 function Confetti() {
-  const [particles] = useState(
-    Array.from({ length: 50 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: -10 - Math.random() * 50,
-      size: 6 + Math.random() * 8,
-      color: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'][Math.floor(Math.random() * 5)],
-      speed: 1 + Math.random() * 3,
-      rotation: Math.random() * 360,
-      rotationSpeed: (Math.random() - 0.5) * 10,
-    }))
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 50 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        y: -10 - Math.random() * 50,
+        size: 6 + Math.random() * 8,
+        color: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'][Math.floor(Math.random() * 5)],
+        rotation: Math.random() * 360,
+        duration: 3 + Math.random() * 2,
+      })),
+    [],
   )
 
   return (
@@ -307,18 +309,10 @@ function Confetti() {
             height: `${p.size}px`,
             backgroundColor: p.color,
             transform: `rotate(${p.rotation}deg)`,
-            animation: `fall ${3 + Math.random() * 2}s linear forwards`,
+            animation: `fall ${p.duration}s linear forwards`,
           }}
         />
       ))}
-      <style jsx global>{`
-        @keyframes fall {
-          to {
-            transform: translateY(120vh) rotate(720deg);
-            opacity: 0;
-          }
-        }
-      `}</style>
     </>
   )
 }

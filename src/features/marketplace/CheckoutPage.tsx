@@ -1,14 +1,10 @@
 import { useState } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { useNavigate, useParams } from 'react-router-dom'
-import { Button, ErrorState, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useParams, Link, createSearchParams } from 'react-router-dom'
-import { Button, ExplorerLink, Input, Modal, Spinner } from '@/components/ui'
+import { useNavigate, useParams, Link, createSearchParams } from 'react-router-dom'
+import { Button, ErrorState, Modal, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { useAuth } from '@/features/auth'
 import { PaymentAssetSelector, WalletBalanceDisplay } from '@/features/payments'
-import { formatDate } from '@/lib'
 import { LICENSE_PRESETS } from './constants'
 import type { CheckoutArtwork, CheckoutSession } from '@/types'
 
@@ -28,9 +24,15 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [showLicense, setShowLicense] = useState(false)
 
-  const { data: artwork, isPending: artworkPending, isError: artworkError, refetch: refetchArtwork } = useQuery({
+  const {
+    data: artwork,
+    isPending: artworkPending,
+    isError: artworkError,
+    refetch: refetchArtwork,
+  } = useQuery({
     queryKey: ['artwork', artworkId],
-    queryFn: async (): Promise<CheckoutArtwork> => (await http.get<{ artwork: CheckoutArtwork }>(`/artworks/${artworkId}`)).artwork,
+    queryFn: async (): Promise<CheckoutArtwork> =>
+      (await http.get<{ artwork: CheckoutArtwork }>(`/artworks/${artworkId}`)).artwork,
     enabled: !!artworkId,
   })
 
@@ -67,7 +69,8 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
     navigate(`/payment/result?sessionId=${checkoutSession.id}`)
   }
 
-  const canProceed = !!artwork && !!selectedAsset && agreedToTerms && !!user && !createSessionMutation.isPending
+  const canProceed =
+    !!artwork && !!selectedAsset && agreedToTerms && !!user && !createSessionMutation.isPending
 
   if (artworkPending) {
     return (
@@ -127,7 +130,9 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
     <div className="container py-8 max-w-4xl mx-auto">
       <div className="mb-6">
         <h1 className="text-h2">Checkout</h1>
-        <p className="mt-1 text-caption text-muted">Review your purchase before proceeding to payment.</p>
+        <p className="mt-1 text-caption text-muted">
+          Review your purchase before proceeding to payment.
+        </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -143,7 +148,9 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
               <div className="flex-1 min-w-0">
                 <h3 className="text-body font-semibold text-foreground">{artwork.title}</h3>
                 <p className="mt-1 text-caption text-muted">by {artwork.seller.name}</p>
-                <p className="mt-2 text-caption-sm text-muted">{artwork.description.slice(0, 120)}…</p>
+                <p className="mt-2 text-caption-sm text-muted">
+                  {artwork.description.slice(0, 120)}…
+                </p>
               </div>
             </div>
           </div>
@@ -164,19 +171,27 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
               <div className="mt-4 space-y-3">
                 <div className="flex justify-between text-caption-sm">
                   <span className="text-muted">Artwork price</span>
-                  <span className="font-mono">{artwork.price} {selectedAsset}</span>
+                  <span className="font-mono">
+                    {artwork.price} {selectedAsset}
+                  </span>
                 </div>
                 <div className="flex justify-between text-caption-sm">
                   <span className="text-muted">Platform fee</span>
-                  <span className="font-mono">{session.platformFee} {selectedAsset}</span>
+                  <span className="font-mono">
+                    {session.platformFee} {selectedAsset}
+                  </span>
                 </div>
                 <div className="flex justify-between text-caption-sm">
                   <span className="text-muted">Est. network fee</span>
-                  <span className="font-mono">{session.networkFeeEstimate} {selectedAsset}</span>
+                  <span className="font-mono">
+                    {session.networkFeeEstimate} {selectedAsset}
+                  </span>
                 </div>
                 <div className="flex justify-between border-t border-line pt-3">
                   <span className="text-body font-semibold">Total</span>
-                  <span className="text-body font-bold font-mono">{session.total} {selectedAsset}</span>
+                  <span className="text-body font-bold font-mono">
+                    {session.total} {selectedAsset}
+                  </span>
                 </div>
               </div>
             </div>
@@ -195,10 +210,19 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
                 />
                 <div>
                   <p className="text-caption-sm text-foreground">
-                    I agree to the <button type="button" className="text-primary hover:underline" onClick={() => setShowLicense(true)}>license terms</button> for this artwork.
+                    I agree to the{' '}
+                    <button
+                      type="button"
+                      className="text-primary hover:underline"
+                      onClick={() => setShowLicense(true)}
+                    >
+                      license terms
+                    </button>{' '}
+                    for this artwork.
                   </p>
                   <p className="mt-1 text-caption-xs text-muted">
-                    {LICENSE_PRESETS.find((l) => l.value === artwork.licenseTerms)?.description ?? artwork.licenseTerms}
+                    {LICENSE_PRESETS.find((l) => l.value === artwork.licenseTerms)?.description ??
+                      artwork.licenseTerms}
                   </p>
                 </div>
               </label>
@@ -212,23 +236,31 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
             <div className="mt-4 space-y-3">
               <div className="flex justify-between text-caption-sm">
                 <span className="text-muted">Price</span>
-                <span className="font-mono">{artwork.price} {selectedAsset || artwork.asset}</span>
+                <span className="font-mono">
+                  {artwork.price} {selectedAsset || artwork.asset}
+                </span>
               </div>
               {session && (
                 <>
                   <div className="flex justify-between text-caption-sm">
                     <span className="text-muted">Platform fee</span>
-                    <span className="font-mono">{session.platformFee} {selectedAsset}</span>
+                    <span className="font-mono">
+                      {session.platformFee} {selectedAsset}
+                    </span>
                   </div>
                   <div className="flex justify-between text-caption-sm">
                     <span className="text-muted">Est. network fee</span>
-                    <span className="font-mono">{session.networkFeeEstimate} {selectedAsset}</span>
+                    <span className="font-mono">
+                      {session.networkFeeEstimate} {selectedAsset}
+                    </span>
                   </div>
                 </>
               )}
               <div className="flex justify-between border-t border-line pt-3">
                 <span className="text-body font-semibold">Total</span>
-                <span className="text-body font-bold font-mono">{session?.total ?? artwork.price} {selectedAsset || artwork.asset}</span>
+                <span className="text-body font-bold font-mono">
+                  {session?.total ?? artwork.price} {selectedAsset || artwork.asset}
+                </span>
               </div>
             </div>
 
@@ -246,7 +278,9 @@ export default function CheckoutPage({ artworkId: artworkIdProp }: { artworkId?:
 
             {createSessionMutation.isError && (
               <p className="mt-3 text-caption text-danger text-center" role="alert">
-                {createSessionMutation.error instanceof Error ? createSessionMutation.error.message : 'Failed to create session'}
+                {createSessionMutation.error instanceof Error
+                  ? createSessionMutation.error.message
+                  : 'Failed to create session'}
               </p>
             )}
 

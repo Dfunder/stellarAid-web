@@ -1,10 +1,39 @@
+import type { CSSProperties, ReactNode } from 'react'
+
+interface LoadingRegionProps {
+  /** Accessible label announced while the region is busy. */
+  label?: string
+  className?: string
+  children: ReactNode
+}
+
+/**
+ * Wraps a loading region so assistive technology is told the region is busy and
+ * hears a label, rather than total silence (#860). The skeletons it contains
+ * stay `aria-hidden`; this element carries the announcement.
+ */
+export function LoadingRegion({
+  label = 'Loading…',
+  className = '',
+  children,
+}: LoadingRegionProps) {
+  return (
+    <div role="status" aria-busy="true" aria-live="polite" aria-atomic="true" className={className}>
+      <span className="sr-only">{label}</span>
+      {children}
+    </div>
+  )
+}
+
 interface SkeletonProps {
   /** Width of the skeleton */
   width?: string | number
   /** Height of the skeleton */
   height?: string | number
+  /** CSS aspect-ratio, e.g. `1` for a square. Takes visual precedence over `height`. */
+  aspectRatio?: string | number
   /** Border radius */
-  radius?: 'none' | 'sm' | 'md' | 'lg' | 'full'
+  radius?: 'none' | 'sm' | 'md' | 'lg' | 'card' | 'full'
   /** Additional CSS classes */
   className?: string
 }
@@ -14,19 +43,27 @@ const RADIUS_CLASSES = {
   sm: 'rounded-sm',
   md: 'rounded-control',
   lg: 'rounded-card',
+  card: 'rounded-card',
   full: 'rounded-full',
 }
 
 export function Skeleton({
   width = '100%',
   height = '1rem',
+  aspectRatio,
   radius = 'md',
   className = '',
 }: SkeletonProps) {
+  const style: CSSProperties = { width }
+  // An explicit aspect-ratio takes visual precedence over height, matching
+  // the prop contract used by portfolio and listing skeletons.
+  if (aspectRatio !== undefined) style.aspectRatio = aspectRatio
+  else if (height !== undefined) style.height = height
+
   return (
     <div
       className={`animate-pulse bg-line relative overflow-hidden ${RADIUS_CLASSES[radius]} ${className}`}
-      style={{ width, height }}
+      style={style}
       aria-hidden="true"
     >
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
@@ -34,11 +71,21 @@ export function Skeleton({
   )
 }
 
-export function SkeletonText({ lines = 3, className = '', ...props }: { lines?: number; className?: string } & Omit<SkeletonProps, 'height'>) {
+export function SkeletonText({
+  lines = 3,
+  className = '',
+  ...props
+}: { lines?: number; className?: string } & Omit<SkeletonProps, 'height'>) {
   return (
     <div className={`flex flex-col gap-2 ${className}`} aria-hidden="true">
       {Array.from({ length: lines }, (_, i) => (
-        <Skeleton key={i} height={props.height ?? '1rem'} width={i === lines - 1 ? '60%' : '100%'} radius={props.radius} />
+        <Skeleton
+          key={i}
+          height={props.aspectRatio === undefined ? '1rem' : undefined}
+          width={i === lines - 1 ? '60%' : '100%'}
+          radius={props.radius}
+          aspectRatio={props.aspectRatio}
+        />
       ))}
     </div>
   )
@@ -46,7 +93,10 @@ export function SkeletonText({ lines = 3, className = '', ...props }: { lines?: 
 
 export function SkeletonCard({ className = '' }: { className?: string }) {
   return (
-    <div className={`rounded-card border border-line bg-surface p-6 shadow-card animate-pulse ${className}`} aria-hidden="true">
+    <div
+      className={`rounded-card border border-line bg-surface p-6 shadow-card animate-pulse ${className}`}
+      aria-hidden="true"
+    >
       <div className="flex items-start gap-4">
         <Skeleton width={80} height={80} radius="card" />
         <div className="flex-1 space-y-3">
@@ -60,7 +110,13 @@ export function SkeletonCard({ className = '' }: { className?: string }) {
   )
 }
 
-export function SkeletonTableRow({ columns = 4, className = '' }: { columns?: number; className?: string }) {
+export function SkeletonTableRow({
+  columns = 4,
+  className = '',
+}: {
+  columns?: number
+  className?: string
+}) {
   return (
     <tr className={`animate-pulse ${className}`} aria-hidden="true">
       {Array.from({ length: columns }, (_, i) => (
@@ -72,7 +128,13 @@ export function SkeletonTableRow({ columns = 4, className = '' }: { columns?: nu
   )
 }
 
-export function SkeletonList({ items = 5, className = '' }: { items?: number; className?: string }) {
+export function SkeletonList({
+  items = 5,
+  className = '',
+}: {
+  items?: number
+  className?: string
+}) {
   return (
     <div className={`space-y-3 ${className}`} aria-hidden="true">
       {Array.from({ length: items }, (_, i) => (
@@ -82,9 +144,21 @@ export function SkeletonList({ items = 5, className = '' }: { items?: number; cl
   )
 }
 
-export function SkeletonGrid({ columns = 3, rows = 2, className = '' }: { columns?: number; rows?: number; className?: string }) {
+export function SkeletonGrid({
+  columns = 3,
+  rows = 2,
+  className = '',
+}: {
+  columns?: number
+  rows?: number
+  className?: string
+}) {
   return (
-    <div className={`grid gap-6 ${className}`} style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }} aria-hidden="true">
+    <div
+      className={`grid gap-6 ${className}`}
+      style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
+      aria-hidden="true"
+    >
       {Array.from({ length: columns * rows }, (_, i) => (
         <SkeletonCard key={i} />
       ))}

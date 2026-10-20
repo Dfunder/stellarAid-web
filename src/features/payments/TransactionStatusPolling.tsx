@@ -20,8 +20,6 @@ interface TransactionStatusData {
   confirmedAt?: string
 }
 
-
-
 interface TransactionStatusPollingProps {
   /** Transaction hash to poll */
   txHash: string
@@ -48,19 +46,19 @@ export default function TransactionStatusPolling({
   maxPollTime = 5 * 60 * 1000,
   inline = false,
 }: TransactionStatusPollingProps) {
-  const [startTime] = useState(Date.now())
-  const [currentStatus, setCurrentStatus] = useState<TxStatus>(initialStatus?.status ?? 'submitted')
-  const [confirmations, setConfirmations] = useState(initialStatus?.confirmations ?? 0)
-  const [requiredConfirmations, setRequiredConfirmations] = useState(initialStatus?.requiredConfirmations ?? 1)
-  const [failureReason, setFailureReason] = useState<string | null>(null)
+  // Captured once per mount; lazy initialisation keeps the impure clock read
+  // out of the render path.
+  const [startTime] = useState(() => Date.now())
+  const [isSlow, setIsSlow] = useState(false)
 
-  const { data, isPending, isError, error, refetch } = useQuery({
+  const { data, isPending, refetch } = useQuery({
     queryKey: ['txStatus', txHash],
     queryFn: async (): Promise<TransactionStatusData> => {
       const response = await http.get<{ status: TransactionStatusData }>(
         `/transactions/${encodeURIComponent(txHash)}/status`,
         // A background poll must not raise a toast every few seconds (#865).
         { skipToast: true },
+        `/transactions/${txHash}/status`,
       )
       return response.status
     },
@@ -71,29 +69,41 @@ export default function TransactionStatusPolling({
       txStatusRefetchInterval(query, pollInterval, startTime, maxPollTime),
   })
 
-  // Update local state from query data
-  useEffect(() => {
-    if (data) {
-      setCurrentStatus(data.status)
-      setConfirmations(data.confirmations ?? 0)
-      setRequiredConfirmations(data.requiredConfirmations ?? 1)
-      if (data.failureReason) setFailureReason(data.failureReason)
+  // Derive the displayed status from the query instead of mirroring it into
+  // state, so a poll result is never one render behind.
+  const currentStatus: TxStatus = data?.status ?? initialStatus?.status ?? 'submitted'
+  const confirmations = data?.confirmations ?? initialStatus?.confirmations ?? 0
+  const requiredConfirmations =
+    data?.requiredConfirmations ?? initialStatus?.requiredConfirmations ?? 1
+  const failureReason =
+    data?.failureReason ?? (currentStatus === 'failed' ? 'Transaction failed' : null)
 
-      if (data.status === 'confirmed') {
-        onConfirmed?.(data)
-      } else if (data.status === 'failed') {
-        setFailureReason(data.failureReason ?? 'Transaction failed')
-        onFailed?.(data)
-      }
+  useEffect(() => {
+    if (!data) return
+    if (data.status === 'confirmed') {
+      onConfirmed?.(data)
+    } else if (data.status === 'failed') {
+      onFailed?.(data)
     }
   }, [data, onConfirmed, onFailed])
 
+  // Flag a confirming transaction as slow only once the network has had a
+  // reasonable window; the timer is cleared when the status moves on.
+  useEffect(() => {
+    if (currentStatus !== 'confirming') return
+    const timer = setTimeout(() => setIsSlow(true), 30_000)
+    return () => clearTimeout(timer)
+  }, [currentStatus])
+
   const isFinal = currentStatus === 'confirmed' || currentStatus === 'failed'
-  const isSlow = Date.now() - startTime > 30000 && currentStatus === 'confirming'
+  // The slow hint is only meaningful while the transaction is still confirming.
+  const showSlow = isSlow && currentStatus === 'confirming'
 
   if (inline) {
     return (
-      <div className={`rounded-card border border-line bg-surface p-4 shadow-card ${isFinal ? 'border-success/30' : ''}`}>
+      <div
+        className={`rounded-card border border-line bg-surface p-4 shadow-card ${isFinal ? 'border-success/30' : ''}`}
+      >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
             <div
@@ -101,19 +111,40 @@ export default function TransactionStatusPolling({
             >
               {currentStatus === 'confirming' && <Spinner className="h-5 w-5" />}
               {currentStatus === 'confirmed' && (
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true">
+                <svg
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  aria-hidden="true"
+                >
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               )}
               {currentStatus === 'failed' && (
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true">
+                <svg
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  aria-hidden="true"
+                >
                   <circle cx="12" cy="12" r="10" />
                   <line x1="15" y1="9" x2="9" y2="15" />
                   <line x1="9" y1="9" x2="15" y2="15" />
                 </svg>
               )}
               {currentStatus === 'submitted' && (
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                <svg
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  aria-hidden="true"
+                >
                   <path d="M21 12V7H5" />
                   <path d="M21 17H5" />
                   <path d="M7 7v10" />
@@ -131,11 +162,15 @@ export default function TransactionStatusPolling({
 
           {currentStatus === 'confirming' && confirmations > 0 && (
             <div className="flex items-center gap-2 text-caption-sm text-muted">
-              <span>Confirmations: {confirmations}/{requiredConfirmations}</span>
+              <span>
+                Confirmations: {confirmations}/{requiredConfirmations}
+              </span>
               <div className="h-2 w-32 bg-line rounded-full overflow-hidden">
                 <div
                   className="h-full bg-primary transition-all duration-500"
-                  style={{ width: `${Math.min((confirmations / requiredConfirmations) * 100, 100)}%` }}
+                  style={{
+                    width: `${Math.min((confirmations / requiredConfirmations) * 100, 100)}%`,
+                  }}
                 />
               </div>
             </div>
@@ -146,12 +181,12 @@ export default function TransactionStatusPolling({
           )}
         </div>
 
-        {isSlow && (
+        {showSlow && (
           <div className="mt-4 p-3 rounded-control bg-warning/10 border border-warning/30">
             <p className="text-caption-sm text-warning">
               <strong>Still processing…</strong> The Stellar network is taking longer than usual.
-              Your transaction is submitted and will confirm shortly. You can safely close this window
-              and check back later.
+              Your transaction is submitted and will confirm shortly. You can safely close this
+              window and check back later.
             </p>
           </div>
         )}
@@ -193,19 +228,40 @@ export default function TransactionStatusPolling({
           >
             {currentStatus === 'confirming' && <Spinner className="h-10 w-10" />}
             {currentStatus === 'confirmed' && (
-              <svg className="h-10 w-10 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+              <svg
+                className="h-10 w-10 text-success"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                aria-hidden="true"
+              >
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             )}
             {currentStatus === 'failed' && (
-              <svg className="h-10 w-10 text-danger" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+              <svg
+                className="h-10 w-10 text-danger"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                aria-hidden="true"
+              >
                 <circle cx="12" cy="12" r="10" />
                 <line x1="15" y1="9" x2="9" y2="15" />
                 <line x1="9" y1="9" x2="15" y2="15" />
               </svg>
             )}
             {currentStatus === 'submitted' && (
-              <svg className="h-10 w-10 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+              <svg
+                className="h-10 w-10 text-muted"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                aria-hidden="true"
+              >
                 <path d="M21 12V7H5" />
                 <path d="M21 17H5" />
                 <path d="M7 7v10" />
@@ -225,24 +281,29 @@ export default function TransactionStatusPolling({
         {currentStatus === 'confirming' && (
           <div className="mt-6 space-y-4">
             <div className="text-caption-sm text-muted">
-              Confirmations: <strong>{confirmations}/{requiredConfirmations}</strong>
+              Confirmations:{' '}
+              <strong>
+                {confirmations}/{requiredConfirmations}
+              </strong>
             </div>
             <div className="h-3 bg-line rounded-full overflow-hidden">
               <div
                 className="h-full bg-primary transition-all duration-500"
-                style={{ width: `${Math.min((confirmations / requiredConfirmations) * 100, 100)}%` }}
+                style={{
+                  width: `${Math.min((confirmations / requiredConfirmations) * 100, 100)}%`,
+                }}
               />
             </div>
             <p className="text-caption-xs text-muted">
               Submitted {formatDate(initialStatus?.submittedAt ?? new Date().toISOString())}
             </p>
 
-            {isSlow && (
+            {showSlow && (
               <div className="mt-4 p-4 rounded-control bg-warning/10 border border-warning/30">
                 <p className="text-caption-sm text-warning">
-                  <strong>Still processing…</strong> The Stellar network is taking longer than usual.
-                  Your transaction is submitted and will confirm shortly. You can safely close this window
-                  and check back later.
+                  <strong>Still processing…</strong> The Stellar network is taking longer than
+                  usual. Your transaction is submitted and will confirm shortly. You can safely
+                  close this window and check back later.
                 </p>
               </div>
             )}
@@ -254,9 +315,7 @@ export default function TransactionStatusPolling({
             <p className="text-caption text-muted">
               Confirmed at {data?.confirmedAt ? formatDate(data.confirmedAt) : 'just now'}
             </p>
-            {data?.txHash && (
-              <ExplorerLink value={data.txHash} type="tx" />
-            )}
+            {data?.txHash && <ExplorerLink value={data.txHash} type="tx" />}
           </div>
         )}
 

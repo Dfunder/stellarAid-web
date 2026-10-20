@@ -1,9 +1,8 @@
-import { useState, useCallback } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button, Input, Modal, Spinner } from '@/components/ui'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { Button, Spinner } from '@/components/ui'
 import { http } from '@/services'
-import { useAuth } from '@/features/auth'
-import { applyFileCap, uploadToPresignedUrl } from './deliverableUpload'
+import { applyFileCap, runWithConcurrency, uploadToPresignedUrl } from './deliverableUpload'
 
 import type { DeliverableFile, DeliverableKind } from './types'
 import {
@@ -17,6 +16,12 @@ export type { DeliverableFile, DeliverableKind } from './types'
 
 /** Default revision budget when the caller does not supply one. */
 const DEFAULT_MAX_REVISIONS = 3
+
+/** Upper bound on simultaneous deliverable uploads (#854). */
+const MAX_CONCURRENT_UPLOADS = 3
+
+/** How often buffered XHR progress is flushed to state, in ms (~4 Hz). */
+const PROGRESS_FLUSH_INTERVAL_MS = 250
 
 const PREVIEWABLE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 
@@ -58,7 +63,6 @@ export default function DeliverableUpload({
   onSubmitForReview,
   initialFiles = [],
 }: DeliverableUploadProps) {
-  const { user } = useAuth()
   const queryClient = useQueryClient()
   const [files, setFiles] = useState<DeliverableFile[]>(initialFiles)
   const [dragActive, setDragActive] = useState(false)
@@ -66,60 +70,103 @@ export default function DeliverableUpload({
   const [note, setNote] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const uploadMutation = useMutation({
-    mutationFn: async (file: DeliverableFile) => {
+  // Progress events arrive several times a second per file. Buffer the latest
+  // value per id and flush on a timer so a 20-file drop does not map the whole
+  // array hundreds of times a second (#854).
+  const progressBuffer = useRef<Record<string, number>>({})
+  const progressFlush = useRef<number | null>(null)
+
+  const flushProgress = useCallback(() => {
+    progressFlush.current = null
+    const pending = progressBuffer.current
+    progressBuffer.current = {}
+    if (Object.keys(pending).length === 0) return
+    setFiles((prev) => prev.map((f) => (f.id in pending ? { ...f, progress: pending[f.id]! } : f)))
+  }, [])
+
+  const queueProgress = useCallback(
+    (id: string, progress: number) => {
+      progressBuffer.current[id] = progress
+      if (progressFlush.current === null) {
+        progressFlush.current = window.setTimeout(flushProgress, PROGRESS_FLUSH_INTERVAL_MS)
+      }
+    },
+    [flushProgress],
+  )
+
+  useEffect(
+    () => () => {
+      if (progressFlush.current !== null) window.clearTimeout(progressFlush.current)
+    },
+    [],
+  )
+
+  /** Presign → PUT → confirm for a single file. Rejects so the pool can record it. */
+  const uploadSingle = useCallback(
+    async (file: DeliverableFile) => {
       // The descriptor itself is not uploadable — send the raw File it wraps.
       const rawFile = file.file
       if (!(rawFile instanceof Blob)) {
         throw new Error(
-          `"${file.name}" is no longer available in this browser session — remove it and add the file again`
+          `"${file.name}" is no longer available in this browser session — remove it and add the file again`,
         )
       }
 
       // Get presigned URL
       const { uploadUrl, fileId } = await http.post<{ uploadUrl: string; fileId: string }>(
         `/listings/${listingId}/deliverables/presigned-url`,
-        { fileName: file.name, fileType: file.type, fileSize: file.size }
+        { fileName: file.name, fileType: file.type, fileSize: file.size },
       )
 
       // Update status to uploading
       setFiles((prev) =>
-        prev.map((f) => (f.id === file.id ? { ...f, uploadStatus: 'uploading', progress: 0 } : f))
+        prev.map((f) => (f.id === file.id ? { ...f, uploadStatus: 'uploading', progress: 0 } : f)),
       )
 
-      // Upload to presigned URL with progress
-      await uploadToPresignedUrl(uploadUrl, rawFile, (progress) => {
-        setFiles((prev) =>
-          prev.map((f) => (f.id === file.id ? { ...f, progress } : f))
-        )
-      })
+      // Upload to presigned URL with throttled progress
+      await uploadToPresignedUrl(uploadUrl, rawFile, (progress) => queueProgress(file.id, progress))
 
       // Confirm upload
       await http.post(`/listings/${listingId}/deliverables/${fileId}/confirm`)
 
-      return fileId
-    },
-    onSuccess: (fileId, file) => {
       setFiles((prev) =>
         prev.map((f) =>
-          f.id === file.id ? { ...f, uploadStatus: 'completed', progress: 100 } : f
-        )
+          f.id === file.id ? { ...f, uploadStatus: 'completed', progress: 100 } : f,
+        ),
       )
       queryClient.invalidateQueries({ queryKey: ['deliverables', listingId] })
     },
-    onError: (error, file) => {
-      setFiles((prev) =>
-        prev.map((f) =>
-          f.id === file.id
-            ? { ...f, uploadStatus: 'failed', error: error instanceof Error ? error.message : 'Upload failed' }
-            : f
-        )
-      )
+    [listingId, queryClient, queueProgress],
+  )
+
+  // Fan a batch out through a bounded pool so at most MAX_CONCURRENT_UPLOADS
+  // XHRs are open at once. Each file records its own status/error, so one
+  // failure does not cancel its siblings (#854).
+  const startUploads = useCallback(
+    async (batch: DeliverableFile[]) => {
+      await runWithConcurrency(batch, MAX_CONCURRENT_UPLOADS, async (file) => {
+        try {
+          await uploadSingle(file)
+        } catch (error) {
+          setFiles((prev) =>
+            prev.map((f) =>
+              f.id === file.id
+                ? {
+                    ...f,
+                    uploadStatus: 'failed',
+                    error: error instanceof Error ? error.message : 'Upload failed',
+                  }
+                : f,
+            ),
+          )
+        }
+      })
     },
-  })
+    [uploadSingle],
+  )
 
   const validateFile = (file: File): string | null => {
-    if (!ALLOWED_TYPES.includes(file.type as typeof ALLOWED_TYPES[number])) {
+    if (!ALLOWED_TYPES.includes(file.type as (typeof ALLOWED_TYPES)[number])) {
       return `File type "${file.type}" is not allowed. Allowed: images, PDF, ZIP, video, audio.`
     }
     if (file.size > MAX_FILE_SIZE) {
@@ -161,15 +208,15 @@ export default function DeliverableUpload({
 
       if (validFiles.length > 0) {
         setFiles((prev) => [...prev, ...validFiles])
-        // Auto-upload
-        validFiles.forEach((f) => uploadMutation.mutate(f))
+        // Auto-upload through the bounded pool.
+        void startUploads(validFiles)
       }
 
       if (errors.length > 0) {
         alert(errors.join('\n'))
       }
     },
-    [files.length, listingId, uploadMutation, kind, revision, note]
+    [files.length, startUploads, kind, revision, note],
   )
 
   const handleDrop = useCallback(
@@ -178,7 +225,7 @@ export default function DeliverableUpload({
       setDragActive(false)
       handleFiles(e.dataTransfer.files)
     },
-    [handleFiles]
+    [handleFiles],
   )
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -195,20 +242,33 @@ export default function DeliverableUpload({
     setFiles((prev) => prev.filter((f) => f.id !== id))
   }, [])
 
-  const retryUpload = useCallback((file: DeliverableFile) => {
-    setFiles((prev) =>
-      prev.map((f) => (f.id === file.id ? { ...f, uploadStatus: 'pending', progress: 0, error: undefined } : f))
-    )
-    uploadMutation.mutate(file)
-  }, [uploadMutation])
+  const retryUpload = useCallback(
+    (file: DeliverableFile) => {
+      setFiles((prev) =>
+        prev.map((f) =>
+          f.id === file.id ? { ...f, uploadStatus: 'pending', progress: 0, error: undefined } : f,
+        ),
+      )
+      void startUploads([file])
+    },
+    [startUploads],
+  )
 
   const completedFiles = files.filter((f) => f.uploadStatus === 'completed')
-  const hasPendingUploads = files.some((f) => f.uploadStatus === 'pending' || f.uploadStatus === 'uploading')
+  const hasPendingUploads = files.some(
+    (f) => f.uploadStatus === 'pending' || f.uploadStatus === 'uploading',
+  )
 
   const revisionExhausted = revision > maxRevisions
-  const finalsThisRevision = completedFiles.filter((f) => f.kind === 'final' && f.revision === revision)
+  const finalsThisRevision = completedFiles.filter(
+    (f) => f.kind === 'final' && f.revision === revision,
+  )
   const canSubmit =
-    !!commissionId && !revisionExhausted && !hasPendingUploads && finalsThisRevision.length > 0 && !submitting
+    !!commissionId &&
+    !revisionExhausted &&
+    !hasPendingUploads &&
+    finalsThisRevision.length > 0 &&
+    !submitting
 
   // Status transition itself is enforced by the backend; this only reports intent.
   const handleSubmitForReview = useCallback(async () => {
@@ -299,8 +359,8 @@ export default function DeliverableUpload({
             {revisionExhausted
               ? `Revision budget of ${maxRevisions} used up. Contact support to request another round.`
               : finalsThisRevision.length === 0
-              ? 'Add at least one final deliverable before submitting for review.'
-              : `${finalsThisRevision.length} final file(s) ready for review.`}
+                ? 'Add at least one final deliverable before submitting for review.'
+                : `${finalsThisRevision.length} final file(s) ready for review.`}
           </p>
           <Button variant="primary" onClick={handleSubmitForReview} disabled={!canSubmit}>
             {submitting ? 'Submitting…' : `Submit revision ${revision} for review`}
@@ -324,7 +384,14 @@ export default function DeliverableUpload({
           }
         }}
       >
-        <svg className="h-12 w-12 mx-auto text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+        <svg
+          className="h-12 w-12 mx-auto text-muted"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          aria-hidden="true"
+        >
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
           <polyline points="17 8 12 3 7 8" />
           <line x1="12" y1="3" x2="12" y2="15" />
@@ -347,7 +414,9 @@ export default function DeliverableUpload({
               <div
                 key={file.id}
                 className={`flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-card ${
-                  file.uploadStatus === 'failed' ? 'border-danger/30 bg-danger/5' : 'border border-line bg-surface-muted'
+                  file.uploadStatus === 'failed'
+                    ? 'border-danger/30 bg-danger/5'
+                    : 'border border-line bg-surface-muted'
                 }`}
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -365,16 +434,30 @@ export default function DeliverableUpload({
                       file.uploadStatus === 'completed'
                         ? 'bg-success/10 text-success'
                         : file.uploadStatus === 'failed'
-                        ? 'bg-danger/10 text-danger'
-                        : 'bg-line text-muted'
+                          ? 'bg-danger/10 text-danger'
+                          : 'bg-line text-muted'
                     }`}
                   >
                     {file.uploadStatus === 'completed' ? (
-                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true">
+                      <svg
+                        className="h-5 w-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        aria-hidden="true"
+                      >
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                     ) : file.uploadStatus === 'failed' ? (
-                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden="true">
+                      <svg
+                        className="h-5 w-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        aria-hidden="true"
+                      >
                         <circle cx="12" cy="12" r="10" />
                         <line x1="15" y1="9" x2="9" y2="15" />
                         <line x1="9" y1="9" x2="15" y2="15" />
@@ -382,7 +465,14 @@ export default function DeliverableUpload({
                     ) : file.uploadStatus === 'uploading' ? (
                       <Spinner className="h-5 w-5" />
                     ) : (
-                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                      <svg
+                        className="h-5 w-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        aria-hidden="true"
+                      >
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                         <polyline points="14 2 14 8 20 8" />
                         <line x1="16" y1="13" x2="8" y2="13" />
@@ -401,27 +491,33 @@ export default function DeliverableUpload({
 
                 <div className="flex items-center gap-2 sm:w-48">
                   {file.uploadStatus === 'uploading' && (
-                    <div className="flex-1 h-1.5 bg-line rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-primary transition-all duration-300"
-                        style={{ width: `${file.progress}%` }}
-                      />
-                    </div>
-                    <span className="text-caption-xs text-muted w-10 text-right">{file.progress}%</span>
+                    <>
+                      <div className="flex-1 h-1.5 bg-line rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-primary transition-all duration-300"
+                          style={{ width: `${file.progress}%` }}
+                        />
+                      </div>
+                      <span className="text-caption-xs text-muted w-10 text-right">
+                        {file.progress}%
+                      </span>
+                    </>
                   )}
                   {file.uploadStatus === 'completed' && (
                     <span className="text-caption-xs text-success">Uploaded</span>
                   )}
                   {file.uploadStatus === 'failed' && (
                     <>
-                      <span className="text-caption-xs text-danger flex-1 text-right">{file.error}</span>
+                      <span className="text-caption-xs text-danger flex-1 text-right">
+                        {file.error}
+                      </span>
                       <Button size="sm" variant="ghost" onClick={() => retryUpload(file)}>
                         Retry
                       </Button>
                     </>
                   )}
                   {file.uploadStatus === 'pending' && (
-                    <Button size="sm" onClick={() => uploadMutation.mutate(file)}>
+                    <Button size="sm" onClick={() => void startUploads([file])}>
                       Upload
                     </Button>
                   )}
@@ -432,7 +528,14 @@ export default function DeliverableUpload({
                     disabled={file.uploadStatus === 'uploading'}
                     aria-label="Remove file"
                   >
-                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                    <svg
+                      className="h-4 w-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      aria-hidden="true"
+                    >
                       <polyline points="3 6 5 6 21 6" />
                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                     </svg>
@@ -445,7 +548,9 @@ export default function DeliverableUpload({
           {hasPendingUploads && (
             <div className="flex items-center gap-2 text-caption-sm text-muted">
               <Spinner className="h-4 w-4" />
-              <span>Uploading {files.filter((f) => f.uploadStatus === 'uploading').length} file(s)…</span>
+              <span>
+                Uploading {files.filter((f) => f.uploadStatus === 'uploading').length} file(s)…
+              </span>
             </div>
           )}
 
@@ -456,7 +561,12 @@ export default function DeliverableUpload({
       )}
 
       {files.length > 0 && onComplete && (
-        <Button className="mt-4" variant="secondary" onClick={() => onComplete(completedFiles)} disabled={hasPendingUploads}>
+        <Button
+          className="mt-4"
+          variant="secondary"
+          onClick={() => onComplete(completedFiles)}
+          disabled={hasPendingUploads}
+        >
           Done
         </Button>
       )}
@@ -528,14 +638,16 @@ export function DeliverableReviewPanel({
       {revisionsLeft === 0 && (
         <div className="mt-4 rounded-control bg-warning/10 p-4">
           <p className="text-caption text-warning">
-            This commission has used its full revision budget of {maxRevisions}. Requesting further changes
-            is no longer possible — accept the work or open a dispute.
+            This commission has used its full revision budget of {maxRevisions}. Requesting further
+            changes is no longer possible — accept the work or open a dispute.
           </p>
         </div>
       )}
 
       {deliverables.length === 0 ? (
-        <p className="mt-4 text-caption text-muted">Nothing has been submitted for this revision yet.</p>
+        <p className="mt-4 text-caption text-muted">
+          Nothing has been submitted for this revision yet.
+        </p>
       ) : (
         <ul className="mt-4 flex flex-col gap-3">
           {deliverables.map((file) => (
@@ -584,7 +696,9 @@ export function DeliverableReviewPanel({
       <div className="mt-6 flex flex-col gap-4 border-t border-line pt-6">
         {canRequestChanges && revisionsLeft > 0 && (
           <label className="flex flex-col gap-1.5">
-            <span className="text-caption-sm font-medium text-foreground">Feedback for the artist</span>
+            <span className="text-caption-sm font-medium text-foreground">
+              Feedback for the artist
+            </span>
             <textarea
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
