@@ -41,6 +41,22 @@ promoted down a layer (`lib/`, `hooks/`, `types/`, `components/ui/`) instead of 
 5. **Undocumented locations need a doc update first.** Where new code goes should never be a guess; if no row in
    "Where Does New Code Go?" fits, the table is extended in the same PR.
 
+## API errors
+
+Every failed API call is normalized into one shape (`ApiErrorResponse` in `src/types/api-error.ts`):
+
+```ts
+{ code: string; message: string; statusCode: number | null; timestamp: string }
+```
+
+`services/http.ts` produces it from the envelopes the backend and its gateways actually send (`{ message }`,
+`{ error }`, short plain text, HTML error pages), and `ApiError` implements the contract so `code`, `message`,
+`statusCode` and `timestamp` are always present. Errors that never reached a server use `statusCode: null`.
+
+At a boundary that may throw (`toApiErrorResponse`, `withErrorHandling` in `src/lib/api-errors.ts`), call
+`withErrorHandling` to get a discriminated result instead of a thrown error, and `toApiErrorResponse` to log or
+report the canonical payload. Do not format errors ad hoc in components; read `message` from the normalized error.
+
 ## Known exceptions
 
 These seven deep imports (they bypass a feature barrel) exist today. (`main.tsx` and `services/http.ts` no longer reach into feature internals.) They are tolerated, not endorsed: each lists why it

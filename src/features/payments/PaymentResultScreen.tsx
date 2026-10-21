@@ -5,7 +5,6 @@ import { Button, ExplorerLink, Spinner } from '@/components/ui'
 import { http } from '@/services'
 import { formatDate, safeExternalUrl } from '@/lib'
 import { paymentResultRefetchInterval } from './polling'
-import { useQuery } from '@tanstack/react-query'
 
 interface PaymentResultData {
   id: string

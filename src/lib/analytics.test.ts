@@ -30,12 +30,6 @@ function muxedAddress(): string {
   return 'M' + 'b'.repeat(68)
 }
 
-/** 56-char Stellar public key: G/M + 55 base32 characters. */
-function stellarAddress(prefix: string, casing: 'upper' | 'lower' = 'upper'): string {
-  const body = 'a'.repeat(55)
-  return prefix + (casing === 'upper' ? body.toUpperCase() : body)
-}
-
 describe('stripPii (via analytics.track)', () => {
   afterEach(() => {
     analytics.setProvider(null)

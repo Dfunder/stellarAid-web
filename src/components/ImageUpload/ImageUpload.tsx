@@ -1,5 +1,6 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useId, useRef } from 'react'
 import { Spinner } from '@/components/ui'
+import { MAX_ALT_TEXT_LENGTH, resolveAltText } from '@/lib/altText'
 
 interface ImageUploadProps {
   /** Current image URL to display */
@@ -24,6 +25,12 @@ interface ImageUploadProps {
   error?: string | null
   /** Disabled state */
   disabled?: boolean
+  /** Saved alt text for the current image; prefills the editable field. */
+  altText?: string
+  /** Called with the new value whenever the user edits the alt text. */
+  onAltTextChange?: (altText: string) => void
+  /** Wording used when neither the user nor the file name describes the image. */
+  altFallback?: string
 }
 
 const DEFAULT_MAX_SIZE = 10 * 1024 * 1024 // 10MB
@@ -41,9 +48,31 @@ export default function ImageUpload({
   uploadProgress = 0,
   error = null,
   disabled = false,
+  altText,
+  onAltTextChange,
+  altFallback,
 }: ImageUploadProps) {
   const [dragActive, setDragActive] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const altInputId = useId()
+  const altHintId = `${altInputId}-hint`
+  const fileInputId = useId()
+
+  // The field starts from the saved value; once the user types, their draft wins
+  // so an upload completing mid-edit cannot overwrite it.
+  const [draftAltText, setDraftAltText] = useState<string | null>(null)
+  const fallbackAlt = altFallback ?? `${label} image`
+  const altTextValue =
+    draftAltText ?? altText ?? (currentImage ? resolveAltText('', currentImage, fallbackAlt) : '')
+  const effectiveAltText = resolveAltText(altTextValue, currentImage, fallbackAlt)
+
+  const handleAltTextChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setDraftAltText(e.target.value)
+      onAltTextChange?.(e.target.value)
+    },
+    [onAltTextChange],
+  )
 
   const validateFile = (file: File): string | null => {
     if (!acceptedTypes.includes(file.type)) {
@@ -71,7 +100,7 @@ export default function ImageUpload({
 
       onFileSelect(file)
     },
-    [acceptedTypes, maxSize, onFileSelect]
+    [acceptedTypes, maxSize, onFileSelect],
   )
 
   const handleDrop = useCallback(
@@ -83,16 +112,19 @@ export default function ImageUpload({
         handleFiles(e.dataTransfer.files)
       }
     },
-    [disabled, handleFiles]
+    [disabled, handleFiles],
   )
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (!disabled) {
-      setDragActive(true)
-    }
-  }, [disabled])
+  const handleDragOver = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      if (!disabled) {
+        setDragActive(true)
+      }
+    },
+    [disabled],
+  )
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -106,7 +138,7 @@ export default function ImageUpload({
         handleFiles(e.target.files)
       }
     },
-    [handleFiles]
+    [handleFiles],
   )
 
   const handleClick = useCallback(() => {
@@ -120,7 +152,7 @@ export default function ImageUpload({
       e.stopPropagation()
       onRemove?.()
     },
-    [onRemove]
+    [onRemove],
   )
 
   const formatFileSize = (bytes: number): string => {
@@ -132,7 +164,9 @@ export default function ImageUpload({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex justify-between items-center">
-        <label className="text-caption-sm font-semibold text-foreground">{label}</label>
+        <label htmlFor={fileInputId} className="text-caption-sm font-semibold text-foreground">
+          {label}
+        </label>
         {currentImage && onRemove && !isUploading && (
           <button
             type="button"
@@ -142,6 +176,30 @@ export default function ImageUpload({
             Remove
           </button>
         )}
+      </div>
+
+      {/* Alt Text (#999): the uploader describes the image; file names are a last resort. */}
+      <div className="flex flex-col gap-1">
+        <label htmlFor={altInputId} className="flex flex-col gap-1">
+          <span className="text-caption-sm font-semibold text-foreground">
+            Alternative text (alt text)
+          </span>
+          <input
+            id={altInputId}
+            type="text"
+            value={altTextValue}
+            onChange={handleAltTextChange}
+            maxLength={MAX_ALT_TEXT_LENGTH}
+            placeholder="e.g. Watercolour painting of a harbour at dusk"
+            aria-describedby={altHintId}
+            disabled={disabled}
+            className="rounded-control border border-line bg-surface px-3 py-2 text-body text-foreground focus-visible:shadow-focus-ring disabled:opacity-50"
+          />
+        </label>
+        <p id={altHintId} className="text-caption-xs text-muted">
+          Describes the image for screen readers and search engines. Leave it blank and a
+          description is generated from the file name.
+        </p>
       </div>
 
       {/* Upload Zone */}
@@ -168,6 +226,7 @@ export default function ImageUpload({
       >
         <input
           ref={fileInputRef}
+          id={fileInputId}
           type="file"
           accept={acceptedTypes.join(',')}
           onChange={handleInputChange}
@@ -180,10 +239,10 @@ export default function ImageUpload({
           <div className="relative">
             <img
               src={currentImage}
-              alt="Current upload"
+              alt={effectiveAltText}
               className="w-full h-48 object-cover"
               onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none'
+                ;(e.target as HTMLImageElement).style.display = 'none'
               }}
             />
             <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-opacity">
@@ -233,7 +292,13 @@ export default function ImageUpload({
       {/* Error Message */}
       {error && (
         <p className="text-caption-sm text-danger flex items-center gap-1">
-          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            className="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <circle cx="12" cy="12" r="10" />
             <line x1="12" y1="8" x2="12" y2="12" />
             <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -244,7 +309,8 @@ export default function ImageUpload({
 
       {/* File Requirements */}
       <p className="text-caption-xs text-muted">
-        Max size: {formatFileSize(maxSize)} • Formats: {acceptedTypes.map((t) => t.split('/')[1]).join(', ')}
+        Max size: {formatFileSize(maxSize)} • Formats:{' '}
+        {acceptedTypes.map((t) => t.split('/')[1]).join(', ')}
       </p>
     </div>
   )
