@@ -2,6 +2,7 @@ import axios, { AxiosError, type AxiosInstance, type AxiosRequestConfig } from '
 import { env } from '@/config'
 import { redactUrl } from '@/lib/url'
 import type { ApiErrorDto } from '@/types/api'
+import type { ApiErrorResponse } from '@/types/api-error'
 import { useUiStore } from '@/stores/useUiStore'
 import { checkRequestRateLimit, validateRequestPath } from './requestValidation'
 
@@ -78,13 +79,23 @@ declare module 'axios' {
   }
 }
 
-/** A normalized, user-readable representation of a failed API call. */
-export class ApiError extends Error {
+/**
+ * A normalized, user-readable representation of a failed API call.
+ *
+ * Implements the canonical `ApiErrorResponse` contract (#998), so callers and
+ * telemetry can rely on `code`, `message`, `statusCode` and `timestamp` being
+ * present on every failure.
+ */
+export class ApiError extends Error implements ApiErrorResponse {
   readonly status: number | null
+  /** Same value as `status`, under the name the error contract uses. */
+  readonly statusCode: number | null
   readonly code: string
   /** Per-field validation messages sent by the server, keyed by field name. */
   readonly fieldErrors: Record<string, string>
   readonly requestId: string | null
+  /** ISO-8601 time at which the error was normalized. */
+  readonly timestamp: string
 
   constructor(
     status: number | null,
@@ -92,13 +103,26 @@ export class ApiError extends Error {
     message: string,
     fieldErrors: Record<string, string> = {},
     requestId: string | null = null,
+    timestamp: string = new Date().toISOString(),
   ) {
     super(message)
     this.name = 'ApiError'
     this.status = status
+    this.statusCode = status
     this.code = code
     this.fieldErrors = fieldErrors
     this.requestId = requestId
+    this.timestamp = timestamp
+  }
+
+  /** The canonical payload used for logging, telemetry and tests (#998). */
+  toJSON(): ApiErrorResponse {
+    return {
+      code: this.code,
+      message: this.message,
+      statusCode: this.statusCode,
+      timestamp: this.timestamp,
+    }
   }
 }
 
@@ -177,6 +201,29 @@ export function getApiErrorMessage(
   return API_ERROR_MESSAGES.HTTP_ERROR
 }
 
+/** Longest plain-text error body that is treated as a message, not a dump. */
+const MAX_TEXT_ERROR_LENGTH = 200
+
+/**
+ * Extracts the server's own message from the envelopes seen in practice:
+ * `{ message }`, `{ error }`, or a short plain-text body. HTML from a gateway
+ * is ignored — reading markup aloud is worse than the curated fallback (#998).
+ */
+export function readServerMessage(body: unknown): string | undefined {
+  if (typeof body === 'string') {
+    const text = body.trim()
+    return text.length > 0 && text.length <= MAX_TEXT_ERROR_LENGTH && !/[<>]/.test(text)
+      ? text
+      : undefined
+  }
+  if (typeof body === 'object' && body !== null) {
+    const { message, error } = body as ApiErrorDto
+    const candidate = typeof message === 'string' && message.trim() !== '' ? message : error
+    return typeof candidate === 'string' && candidate.trim() !== '' ? candidate : undefined
+  }
+  return undefined
+}
+
 function normalizeError(error: AxiosError): ApiError {
   const response = error.response
 
@@ -190,7 +237,7 @@ function normalizeError(error: AxiosError): ApiError {
     return new ApiError(
       response.status,
       code,
-      getApiErrorMessage(code, response.status, data?.message),
+      getApiErrorMessage(code, response.status, readServerMessage(body)),
       parseFieldErrors(data?.errors),
       data?.requestId ?? null,
     )
@@ -208,8 +255,7 @@ function reportUnexpectedError(error: ApiError, request: AxiosRequestConfig | un
     // The URL is redacted before it is logged: a password-reset token travels in
     // the path, and a console is a place session-replay tools read (#865).
     console.error('Unexpected API error', {
-      code: error.code,
-      status: error.status,
+      ...error.toJSON(),
       requestId: error.requestId,
       method: request?.method,
       url: redactUrl(request?.url),

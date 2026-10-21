@@ -35,6 +35,45 @@ describe('PortfolioGrid keyboard accessibility (#988)', () => {
     })
   })
 
+  it('announces its keyboard controls to assistive technology', () => {
+    render(<PortfolioGrid items={items} columns={2} label="Artist portfolio" />)
+
+    const grid = screen.getByRole('grid', { name: 'Artist portfolio' })
+    expect(grid).toHaveAccessibleDescription(/arrow keys/i)
+    expect(grid).toHaveAccessibleDescription(/Enter or Space/i)
+  })
+
+  it('includes the item status in the accessible name', () => {
+    render(
+      <PortfolioGrid
+        items={[{ id: '1', title: 'Nebula', category: 'Digital', status: 'Sold' }]}
+        columns={1}
+      />,
+    )
+
+    expect(screen.getByRole('gridcell', { name: 'Nebula, Digital, Sold' })).toBeInTheDocument()
+  })
+
+  it('moves tab focus into the grid and back out', async () => {
+    const user = userEvent.setup()
+    render(
+      <>
+        <button type="button">Before grid</button>
+        <PortfolioGrid items={items} columns={2} />
+      </>,
+    )
+
+    const cells = screen.getAllByRole('gridcell')
+    await user.tab()
+    expect(screen.getByRole('button', { name: 'Before grid' })).toHaveFocus()
+
+    await user.tab()
+    expect(cells[0]).toHaveFocus()
+
+    await user.tab()
+    expect(cells[0]).not.toHaveFocus()
+  })
+
   it('keeps exactly one cell in the tab order and moves it with the arrow keys', async () => {
     const user = userEvent.setup()
     render(<PortfolioGrid items={items} columns={2} />)

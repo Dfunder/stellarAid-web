@@ -9,6 +9,7 @@ export {
   getErrorMessage,
   http,
   isApiError,
+  readServerMessage,
   setAuthTokenProvider,
   setTokenRefresher,
   setUnauthorizedHandler,

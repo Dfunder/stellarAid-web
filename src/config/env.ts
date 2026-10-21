@@ -25,15 +25,19 @@ const envSchema = z.object({
 export type StellarNetwork = z.infer<typeof stellarNetworkSchema>
 export type AppEnv = z.infer<typeof envSchema>
 
-const REQUIRED_KEYS = ['VITE_API_URL', 'VITE_STELLAR_NETWORK', 'VITE_APP_URL'] as const
-type EnvKey = (typeof REQUIRED_KEYS)[number]
-type FlagEnvKey = 'VITE_FF_MESSAGING' | 'VITE_FF_NOTIFICATIONS' | 'VITE_FF_ADVANCED_FILTERS'
+/** Variables a build cannot run without. Exported so docs and tests stay in sync. */
+export const REQUIRED_ENV_KEYS = ['VITE_API_URL', 'VITE_STELLAR_NETWORK', 'VITE_APP_URL'] as const
+export type RequiredEnvKey = (typeof REQUIRED_ENV_KEYS)[number]
+export type FlagEnvKey = 'VITE_FF_MESSAGING' | 'VITE_FF_NOTIFICATIONS' | 'VITE_FF_ADVANCED_FILTERS'
+
+/** Raw, unvalidated values as read from `import.meta.env`. */
+export type RawEnv = Partial<Record<RequiredEnvKey | FlagEnvKey, string | undefined>>
 
 /**
  * Values used only while developing, so a fresh clone runs without a `.env`.
  * They are never applied to a production build.
  */
-const DEV_DEFAULTS: Record<EnvKey, string> = {
+const DEV_DEFAULTS: Record<RequiredEnvKey, string> = {
   VITE_API_URL: 'http://localhost:4000',
   VITE_STELLAR_NETWORK: 'testnet',
   VITE_APP_URL: 'http://localhost:5173',
@@ -54,7 +58,7 @@ const FALLBACK_ENV = {
  * Single access point for the raw `import.meta.env` values. No other module in
  * the app should touch `import.meta.env` directly.
  */
-function readRawEnv(): Partial<Record<EnvKey | FlagEnvKey, string | undefined>> {
+function readRawEnv(): RawEnv {
   return {
     VITE_API_URL: import.meta.env.VITE_API_URL,
     VITE_STELLAR_NETWORK: import.meta.env.VITE_STELLAR_NETWORK,
@@ -76,7 +80,7 @@ function invalidKeysOf(error: z.ZodError<AppEnv>): string[] {
   const keys = error.issues
     .map((issue) => issue.path[0])
     .filter((key): key is string => typeof key === 'string')
-  return REQUIRED_KEYS.filter((key) => keys.includes(key))
+  return REQUIRED_ENV_KEYS.filter((key) => keys.includes(key))
 }
 
 function buildMessage(details: string): string {
@@ -104,25 +108,26 @@ export interface EnvLoadResult {
   invalidKeys: string[]
 }
 
-/**
- * Resolves the runtime configuration without throwing at module scope, so an
- * invalid production build renders `ConfigErrorScreen` instead of a blank page
- * or an unhandled module-scope exception (#864).
- */
-function loadEnv(): EnvLoadResult {
-  const raw = readRawEnv()
-  const isProduction = import.meta.env.PROD
+export interface ValidateEnvOptions {
+  /** Production builds require every variable explicitly and reject plain HTTP. */
+  isProduction: boolean
+}
 
-  const values: Partial<Record<EnvKey | FlagEnvKey, string | undefined>> = { ...raw }
+/**
+ * Validates raw environment values without reading `import.meta.env` or
+ * throwing, so the rules can be unit-tested and so an invalid production build
+ * renders `ConfigErrorScreen` instead of a blank page or an unhandled
+ * module-scope exception (#864, #997).
+ */
+export function validateEnv(raw: RawEnv, { isProduction }: ValidateEnvOptions): EnvLoadResult {
+  const values: RawEnv = { ...raw }
   if (!isProduction) {
-    for (const key of REQUIRED_KEYS) {
+    for (const key of REQUIRED_ENV_KEYS) {
       if (values[key] === undefined || values[key] === '') values[key] = DEV_DEFAULTS[key]
     }
   }
 
-  const missing = REQUIRED_KEYS.filter(
-    (key) => values[key] === undefined || values[key] === '',
-  )
+  const missing = REQUIRED_ENV_KEYS.filter((key) => values[key] === undefined || values[key] === '')
 
   const apiUrlIssue = isProduction ? productionApiUrlIssue(values.VITE_API_URL) : null
 
@@ -156,6 +161,11 @@ function loadEnv(): EnvLoadResult {
     configError: buildMessage(details),
     invalidKeys: [...new Set(invalidKeys)],
   }
+}
+
+/** Reads `import.meta.env` and applies `validateEnv` to it. Never throws. */
+function loadEnv(): EnvLoadResult {
+  return validateEnv(readRawEnv(), { isProduction: import.meta.env.PROD })
 }
 
 /** Result of resolving the runtime configuration. Never throws. */

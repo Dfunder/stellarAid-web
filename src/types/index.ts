@@ -4,4 +4,5 @@
  * Types that belong to a single domain live inside that feature folder.
  */
 export * from './api'
+export * from './api-error'
 export type * from './views'
