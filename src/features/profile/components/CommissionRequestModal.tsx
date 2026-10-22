@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Button, Modal } from '@/components/ui'
+import { sanitizeMessage } from '@/lib/sanitize'
 import type { ArtistProfileExtended, ArtistServicePackage } from '../types'
 
 export interface CommissionRequestModalProps {
@@ -25,6 +26,11 @@ export default function CommissionRequestModal({
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
+    const cleanedBrief = sanitizeMessage(brief)
+    if (!cleanedBrief) {
+      return
+    }
+    setBrief(cleanedBrief)
     setIsSubmitting(true)
     setTimeout(() => {
       setIsSubmitting(false)
@@ -55,12 +61,15 @@ export default function CommissionRequestModal({
         <div className="flex flex-col items-center gap-4 py-4 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/15 text-success">
             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.5"
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           </div>
-          <p className="text-body font-semibold text-foreground">
-            Request submitted successfully
-          </p>
+          <p className="text-body font-semibold text-foreground">Request submitted successfully</p>
           <p className="text-caption text-muted">
             You will receive a notification once {profile.displayName} accepts your commission.
           </p>
@@ -70,9 +79,13 @@ export default function CommissionRequestModal({
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <label className="flex flex-col gap-1 text-caption-sm font-semibold">
+          <label
+            htmlFor="commission-brief"
+            className="flex flex-col gap-1 text-caption-sm font-semibold"
+          >
             Project Brief *
             <textarea
+              id="commission-brief"
               required
               rows={4}
               placeholder="Explain the project scope, required formats, character descriptions or references..."
@@ -83,9 +96,13 @@ export default function CommissionRequestModal({
           </label>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <label className="flex flex-col gap-1 text-caption-sm font-semibold">
+            <label
+              htmlFor="commission-budget"
+              className="flex flex-col gap-1 text-caption-sm font-semibold"
+            >
               Proposed Budget (XLM) *
               <input
+                id="commission-budget"
                 type="number"
                 min="10"
                 step="1"
@@ -96,9 +113,13 @@ export default function CommissionRequestModal({
               />
             </label>
 
-            <label className="flex flex-col gap-1 text-caption-sm font-semibold">
+            <label
+              htmlFor="commission-deadline"
+              className="flex flex-col gap-1 text-caption-sm font-semibold"
+            >
               Target Deadline (Optional)
               <input
+                id="commission-deadline"
                 type="date"
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
@@ -108,14 +129,19 @@ export default function CommissionRequestModal({
           </div>
 
           <div className="rounded-control bg-surface-muted p-3 text-caption-sm text-muted">
-            🔒 Payments on Lumora are secured via Stellar escrow smart contracts. Funds are only released when you approve completed milestones.
+            🔒 Payments on Lumora are secured via Stellar escrow smart contracts. Funds are only
+            released when you approve completed milestones.
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="ghost" onClick={handleReset}>
               Cancel
             </Button>
-            <Button type="submit" isLoading={isSubmitting} disabled={!brief.trim()}>
+            <Button
+              type="submit"
+              isLoading={isSubmitting}
+              disabled={!brief.trim() || !sanitizeMessage(brief)}
+            >
               Send Commission Request
             </Button>
           </div>

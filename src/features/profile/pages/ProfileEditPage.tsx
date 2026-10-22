@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type SyntheticEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Button, Input, Spinner } from '@/components/ui'
 import { useAuth } from '@/features/auth'
 import { useCheckUsername } from '../hooks/useCheckUsername'
 import { useUpdateProfile } from '../hooks/useUpdateProfile'
 import type { ProfileEditFormValues } from '../types'
+import { sanitizeText, sanitizeMessage } from '@/lib/sanitize'
 
 const MAX_NAME_LENGTH = 50
 const MAX_BIO_LENGTH = 500
@@ -37,6 +38,7 @@ export default function ProfileEditPage() {
 
   // Sync form when user profile data loads
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setForm(initialValues)
   }, [initialValues])
 
@@ -57,7 +59,6 @@ export default function ProfileEditPage() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
         e.preventDefault()
-        e.returnValue = ''
       }
     }
     window.addEventListener('beforeunload', handleBeforeUnload)
@@ -73,7 +74,7 @@ export default function ProfileEditPage() {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setSuccessMessage(null)
     setErrorMessage(null)
@@ -104,8 +105,15 @@ export default function ProfileEditPage() {
       return
     }
 
+    const sanitizedForm: ProfileEditFormValues = {
+      ...form,
+      displayName: sanitizeText(form.displayName),
+      bio: sanitizeMessage(form.bio),
+      location: form.location ? sanitizeText(form.location) : form.location,
+    }
+
     try {
-      await updateProfileMutation.mutateAsync(form)
+      await updateProfileMutation.mutateAsync(sanitizedForm)
       setSuccessMessage('Your profile changes have been saved successfully!')
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err: unknown) {
@@ -116,6 +124,20 @@ export default function ProfileEditPage() {
   }
 
   const previewUsername = form.username.trim() || user?.username || 'elena_art'
+
+  let usernameBorderClass = 'border-line'
+  if (isUsernameAvailable === false) {
+    usernameBorderClass = 'border-danger'
+  } else if (isUsernameAvailable === true) {
+    usernameBorderClass = 'border-success'
+  }
+
+  let usernameTextClass = 'text-muted'
+  if (isUsernameAvailable === false) {
+    usernameTextClass = 'text-danger'
+  } else if (isUsernameAvailable === true) {
+    usernameTextClass = 'text-success'
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-24">
@@ -137,8 +159,19 @@ export default function ProfileEditPage() {
               className="inline-flex items-center gap-1.5 rounded-control border border-line bg-surface px-4 py-2 text-caption font-semibold text-foreground shadow-card transition hover:bg-surface-muted focus-visible:shadow-focus-ring"
             >
               <span>Preview Public Profile</span>
-              <svg className="h-4 w-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              <svg
+                aria-hidden="true"
+                className="h-4 w-4 text-muted"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
               </svg>
             </Link>
           </div>
@@ -146,20 +179,31 @@ export default function ProfileEditPage() {
 
         {/* Unsaved Changes Banner */}
         {isDirty && (
-          <div
-            role="status"
+          <output
+            aria-live="polite"
             className="sticky top-4 z-40 my-4 flex items-center justify-between rounded-control border border-warning/40 bg-warning/15 p-3.5 text-caption backdrop-blur-md shadow-elevated"
           >
             <div className="flex items-center gap-2 text-warning font-semibold">
-              <svg className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              <svg
+                aria-hidden="true"
+                className="h-5 w-5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
               </svg>
               <span>You have unsaved changes</span>
             </div>
             <span className="text-caption-sm text-muted">
               Remember to click "Save Changes" before navigating away.
             </span>
-          </div>
+          </output>
         )}
 
         {/* Status Alerts */}
@@ -168,8 +212,19 @@ export default function ProfileEditPage() {
             role="alert"
             className="my-4 flex items-center gap-2 rounded-control border border-success bg-success/15 p-4 text-caption text-success"
           >
-            <svg className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            <svg
+              aria-hidden="true"
+              className="h-5 w-5 shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              />
             </svg>
             <span>{successMessage}</span>
           </div>
@@ -180,8 +235,19 @@ export default function ProfileEditPage() {
             role="alert"
             className="my-4 flex items-center gap-2 rounded-control border border-danger bg-danger/15 p-4 text-caption text-danger"
           >
-            <svg className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              aria-hidden="true"
+              className="h-5 w-5 shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <span>{errorMessage}</span>
           </div>
@@ -194,9 +260,13 @@ export default function ProfileEditPage() {
             <h2 className="text-h3 font-semibold text-foreground">Basic Identity</h2>
             <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
               {/* Display Name */}
-              <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="displayName"
+                aria-label="Display Name"
+                className="flex flex-col gap-1.5"
+              >
                 <div className="flex justify-between items-center text-caption-sm font-semibold">
-                  <label htmlFor="displayName">Display Name *</label>
+                  <span>Display Name *</span>
                   <span
                     className={`text-caption-sm ${
                       form.displayName.length > MAX_NAME_LENGTH ? 'text-danger' : 'text-muted'
@@ -214,12 +284,16 @@ export default function ProfileEditPage() {
                   onChange={(e) => handleChange('displayName', e.target.value)}
                   className="rounded-control border border-line bg-surface px-3.5 py-2.5 text-body text-foreground focus-visible:shadow-focus-ring"
                 />
-              </div>
+              </label>
 
               {/* Username with real-time availability check */}
-              <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="username"
+                aria-label="Username Handle"
+                className="flex flex-col gap-1.5"
+              >
                 <div className="flex justify-between items-center text-caption-sm font-semibold">
-                  <label htmlFor="username">Username Handle *</label>
+                  <span>Username Handle *</span>
                   {isCheckingUsername && (
                     <span className="flex items-center gap-1 text-caption-sm text-muted">
                       <Spinner className="h-3 w-3" /> Checking…
@@ -242,35 +316,19 @@ export default function ProfileEditPage() {
                     required
                     value={form.username}
                     onChange={(e) => handleChange('username', e.target.value.replace(/^@/, ''))}
-                    className={`w-full rounded-control border bg-surface pl-8 pr-3.5 py-2.5 text-body text-foreground focus-visible:shadow-focus-ring ${
-                      isUsernameAvailable === false
-                        ? 'border-danger'
-                        : isUsernameAvailable === true
-                        ? 'border-success'
-                        : 'border-line'
-                    }`}
+                    className={`w-full rounded-control border bg-surface pl-8 pr-3.5 py-2.5 text-body text-foreground focus-visible:shadow-focus-ring ${usernameBorderClass}`}
                   />
                 </div>
                 {usernameCheckMessage && (
-                  <p
-                    className={`text-caption-sm ${
-                      isUsernameAvailable === false
-                        ? 'text-danger'
-                        : isUsernameAvailable === true
-                        ? 'text-success'
-                        : 'text-muted'
-                    }`}
-                  >
-                    {usernameCheckMessage}
-                  </p>
+                  <p className={`text-caption-sm ${usernameTextClass}`}>{usernameCheckMessage}</p>
                 )}
-              </div>
+              </label>
             </div>
 
             {/* Bio Field with character counter */}
-            <div className="mt-6 flex flex-col gap-1.5">
+            <label htmlFor="bio" aria-label="Biography" className="mt-6 flex flex-col gap-1.5">
               <div className="flex justify-between items-center text-caption-sm font-semibold">
-                <label htmlFor="bio">Biography</label>
+                <span>Biography</span>
                 <span
                   className={`text-caption-sm ${
                     form.bio.length > MAX_BIO_LENGTH ? 'text-danger' : 'text-muted'
@@ -288,7 +346,7 @@ export default function ProfileEditPage() {
                 onChange={(e) => handleChange('bio', e.target.value)}
                 className="rounded-control border border-line bg-surface p-3 text-body text-foreground focus-visible:shadow-focus-ring"
               />
-            </div>
+            </label>
           </section>
 
           {/* Section: Profile Media & Visuals */}

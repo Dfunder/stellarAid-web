@@ -14,19 +14,30 @@ const SCRIPT_OR_STYLE = /<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi
 const UNCLOSED_SCRIPT_OR_STYLE = /<(script|style)\b[^>]*>[\s\S]*$/gi
 const ALL_TAGS = /<\/?[a-zA-Z][^>]*>/g
 const EVENT_ATTR = /\son\w+\s*=\s*(['"]).*?\1/gi
+const UNQUOTED_EVENT_ATTR = /\son\w+\s*=\s*[^>\s]+/gi
 const JS_URL = /javascript\s*:/gi
+const VBS_URL = /vbscript\s*:/gi
 const DATA_HTML = /data\s*:\s*text\/html/gi
 
 /** Remove active HTML/script content from a string. */
 export function sanitizeText(input: string): string {
-  return input
-    .replace(SCRIPT_OR_STYLE, '')
-    .replace(UNCLOSED_SCRIPT_OR_STYLE, '')
-    .replace(EVENT_ATTR, '')
-    .replace(JS_URL, '')
-    .replace(DATA_HTML, '')
-    .replace(ALL_TAGS, '')
-    .trim()
+  let current = input
+  let prev: string
+  // Loop until fixed-point so nested tags cannot bypass single-pass replacements.
+  do {
+    prev = current
+    current = current
+      .replace(SCRIPT_OR_STYLE, '')
+      .replace(UNCLOSED_SCRIPT_OR_STYLE, '')
+      .replace(EVENT_ATTR, '')
+      .replace(UNQUOTED_EVENT_ATTR, '')
+      .replace(JS_URL, '')
+      .replace(VBS_URL, '')
+      .replace(DATA_HTML, '')
+      .replace(ALL_TAGS, '')
+  } while (current !== prev)
+
+  return current.trim()
 }
 
 /** Sanitize a free-form message body and enforce a max length. */

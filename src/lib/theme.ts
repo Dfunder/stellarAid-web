@@ -19,13 +19,16 @@ function themeColorMeta(): HTMLMetaElement | null {
 
 /** Theme preferred by the operating system. */
 export function getSystemTheme(): Theme {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return 'light'
+  }
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
 /** Previously persisted choice, or `null` when the user has not chosen yet. */
 export function getStoredTheme(): Theme | null {
   try {
-    const stored = localStorage.getItem(THEME_STORAGE_KEY)
+    const stored = window.localStorage?.getItem?.(THEME_STORAGE_KEY)
     return stored === 'light' || stored === 'dark' ? stored : null
   } catch {
     return null
@@ -40,17 +43,29 @@ export function resolveInitialTheme(): Theme {
 /** Apply a theme to the document without persisting it. */
 export function setDocumentTheme(theme: Theme): void {
   document.documentElement.dataset.theme = theme
+  document.documentElement.style.colorScheme = theme
+  // Ensure no legacy filter: invert() is applied to document root (#942)
+  if (document.documentElement.style.filter.includes('invert')) {
+    document.documentElement.style.filter = 'none'
+  }
   const meta = themeColorMeta()
   if (meta) meta.content = themeColorFor(theme)
 }
 
 /** Persist a theme choice so it survives reloads. */
 export function persistTheme(theme: Theme): void {
-  localStorage.setItem(THEME_STORAGE_KEY, theme)
+  try {
+    window.localStorage?.setItem?.(THEME_STORAGE_KEY, theme)
+  } catch {
+    // Ignore storage errors in restricted contexts
+  }
 }
 
 /** Subscribe to OS theme changes; returns an unsubscribe function. */
 export function subscribeToSystemTheme(listener: (theme: Theme) => void): () => void {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return () => {}
+  }
   const query = window.matchMedia('(prefers-color-scheme: dark)')
   const onChange = (event: MediaQueryListEvent): void => listener(event.matches ? 'dark' : 'light')
   query.addEventListener('change', onChange)
