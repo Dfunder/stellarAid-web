@@ -24,6 +24,10 @@
 .DS_Store
 *.pem
 
+
+.freebuff
+
+
 # debug
 npm-debug.log*
 yarn-debug.log*
