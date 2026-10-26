@@ -1,8 +1,0 @@
-blank_issues_enabled: false
-contact_links:
-  - name: Report a security vulnerability
-    url: https://github.com/Dfunder/stellarAid-web/security/advisories/new
-    about: Please report security issues privately as described in SECURITY.md - never in a public issue.
-  - name: Questions and ideas
-    url: https://github.com/Dfunder/stellarAid-web/discussions
-    about: Ask questions or discuss ideas with the community.
