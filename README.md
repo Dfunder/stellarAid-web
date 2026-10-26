@@ -24,9 +24,7 @@ The platform supports multi-asset contributions, verifiable donation trails, aut
 /examples    → Sample integrations
 /scripts     → Dev and deployment utilities
 ```
-__________________________
 # 🔑 How StellarAid Works
-______________________
 - 1️⃣ User connects Stellar wallet (Freighter, Albedo, Lobstr)
 - 2️⃣ Creator launches a campaign → stored in backend + contract ref
 - 3️⃣ Donors contribute using Stellar assets
