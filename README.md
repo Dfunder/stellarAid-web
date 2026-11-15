@@ -42,6 +42,16 @@ The platform supports multi-asset contributions, verifiable donation trails, aut
 
 # 🛠 Tech Stack
 
+### Scripts
+
+| Script | Description |
+| --- | --- |
+| `npm run dev` | Start the Next.js development server. |
+| `npm run lint` | Run ESLint checks. |
+| `npm run type-check` | Run TypeScript type checking without emitting files. |
+| `npm run build` | Run type checking and create a production build. |
+| `npm start` | Start the production server.
+
 ### 🌐 Frontend DApp
 
 - Next.js
