@@ -25,8 +25,10 @@ The platform supports multi-asset contributions, verifiable donation trails, aut
 - the repo includes:
 
 ```
+/app         → Next.js app (routes and UI)
 /docs        → Technical documentation
 /examples    → Sample integrations
+/public      → Static assets
 /scripts     → Dev and deployment utilities
 ```
 
