@@ -55,6 +55,16 @@ The platform supports multi-asset contributions, verifiable donation trails, aut
 - Redis for caching + session flow
 - Optional IPFS for media (campaign images, proofs)
 
+# 💻 Available Scripts
+
+| Script | Command | Description |
+|---|---|---|
+| `npm run dev` | `next dev` | Starts the Next.js development server |
+| `npm run type-check` | `next typegen && tsc --noEmit` | Validates TypeScript types without emitting build files |
+| `npm run build` | `npm run type-check && next build` | Runs type checks before building for production |
+| `npm run start` | `next start` | Runs the built production application |
+| `npm run lint` | `eslint` | Runs ESLint to check code quality |
+
 # 🚀 Roadmap
 
 ### Phase 1 (MVP)
