@@ -7,9 +7,38 @@
 
 @custom-variant dark (@media (prefers-color-scheme: dark));
 
+/* ------------------------------------------------------------------ */
+/* Design tokens — semantic colour variables                           */
+/*                                                                    */
+/* Public tokens (used by UI primitives and the app shell):           */
+/*   --surface           page background                              */
+/*   --surface-raised     cards, headers, elevated panels              */
+/*   --text               primary text colour                          */
+/*   --text-muted         secondary / placeholder text                 */
+/*   --border             hairline borders, dividers                    */
+/*   --accent             primary action colour (buttons, links)       */
+/*   --accent-contrast    text colour that sits on top of --accent     */
+/*   --danger             destructive / error states                   */
+/*                                                                    */
+/* Internal aliases kept for backward compatibility:                  */
+/*   --background  → alias of --surface                                */
+/*   --foreground → alias of --text                                    */
+/*                                                                    */
+/* Every token has a dark-scheme counterpart defined in the            */
+/* @media (prefers-color-scheme: dark) block below.                    */
+/* ------------------------------------------------------------------ */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-danger: var(--danger);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -17,21 +46,45 @@
 @layer base {
   :root {
     color-scheme: light;
-    --background: #ffffff;
-    --foreground: #171717;
+
+    /* semantic tokens */
+    --surface: #ffffff;
+    --surface-raised: #f5f5f5;
+    --text: #171717;
+    --text-muted: #6b7280;
+    --border: #e5e7eb;
+    --accent: #171717;
+    --accent-contrast: #ffffff;
+    --danger: #dc2626;
+
+    /* backward-compatible aliases */
+    --background: var(--surface);
+    --foreground: var(--text);
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
       color-scheme: dark;
-      --background: #0a0a0a;
-      --foreground: #ededed;
+
+      /* semantic tokens — dark */
+      --surface: #0a0a0a;
+      --surface-raised: #171717;
+      --text: #ededed;
+      --text-muted: #9ca3af;
+      --border: #262626;
+      --accent: #ededed;
+      --accent-contrast: #0a0a0a;
+      --danger: #f87171;
+
+      /* backward-compatible aliases */
+      --background: var(--surface);
+      --foreground: var(--text);
     }
   }
 
   body {
-    background: var(--background);
-    color: var(--foreground);
+    background: var(--surface);
+    color: var(--text);
     font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   }
 }

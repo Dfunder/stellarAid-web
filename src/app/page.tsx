@@ -21,7 +21,7 @@ const valueProps = [
 
 export default function Home() {
   return (
-    <main className="flex flex-1 flex-col bg-background text-foreground">
+    <div className="flex flex-1 flex-col bg-background text-foreground">
       <Section className="flex min-h-[70vh] items-center">
         <div className="mx-auto flex max-w-3xl flex-col items-start gap-6">
           <p className="text-sm font-medium uppercase tracking-wide text-foreground/70">
@@ -60,6 +60,6 @@ export default function Home() {
           </div>
         </div>
       </Section>
-    </main>
+    </div>
   );
 }
