@@ -1,12 +1,11 @@
+/*
+ * Layer order: theme tokens, base element styles, components, utilities.
+ * Put element defaults in base, reusable classes in components, and
+ * project-specific helpers in utilities so Tailwind utilities can win.
+ */
 @import "tailwindcss";
 
 @custom-variant dark (@media (prefers-color-scheme: dark));
-
-:root {
-  color-scheme: light;
-  --background: #ffffff;
-  --foreground: #171717;
-}
 
 @theme inline {
   --color-background: var(--background);
@@ -15,16 +14,30 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    color-scheme: dark;
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    color-scheme: light;
+    --background: #ffffff;
+    --foreground: #171717;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --background: #0a0a0a;
+      --foreground: #ededed;
+    }
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+@layer components {
+}
+
+@layer utilities {
 }
