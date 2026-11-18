@@ -1,0 +1,28 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { Footer } from "./Footer";
+
+describe("Footer", () => {
+  it("renders a footer landmark with reachable links", () => {
+    render(<Footer />);
+
+    const footer = screen.getByRole("contentinfo");
+    expect(footer).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: /footer/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /^home/i })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: /github/i })).toHaveAttribute(
+      "href",
+      "https://github.com/Dfunder/stellarAid-web",
+    );
+    expect(screen.getByRole("link", { name: /documentation/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /report an issue/i })).toBeInTheDocument();
+  });
+
+  it("marks external links as opening in a new tab", () => {
+    render(<Footer />);
+
+    const github = screen.getByRole("link", { name: /github/i });
+    expect(github).toHaveAttribute("target", "_blank");
+    expect(github).toHaveAttribute("rel", "noopener noreferrer");
+  });
+});
