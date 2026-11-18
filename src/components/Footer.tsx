@@ -1,0 +1,34 @@
+import { siteRoutes } from "../config/routes";
+
+export function Footer() {
+  return (
+    <footer className="border-t border-foreground/10 px-6 py-8 text-sm text-foreground/70">
+      <nav aria-label="Footer">
+        <ul className="mx-auto flex max-w-5xl flex-wrap items-center gap-5">
+          {siteRoutes.map((route) => (
+            <li key={route.href}>
+              {route.external ? (
+                <a
+                  href={route.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors hover:text-foreground"
+                >
+                  {route.label}
+                  <span className="sr-only"> (opens in a new tab)</span>
+                </a>
+              ) : (
+                <a
+                  href={route.href}
+                  className="transition-colors hover:text-foreground"
+                >
+                  {route.label}
+                </a>
+              )}
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </footer>
+  );
+}

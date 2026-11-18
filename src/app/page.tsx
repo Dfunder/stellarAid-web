@@ -1,3 +1,4 @@
+import { siteConfig } from "@/config/site";
 import { Section } from "./components/section";
 
 const valueProps = [
@@ -24,14 +25,13 @@ export default function Home() {
       <Section className="flex min-h-[70vh] items-center">
         <div className="mx-auto flex max-w-3xl flex-col items-start gap-6">
           <p className="text-sm font-medium uppercase tracking-wide text-foreground/70">
-            StellarAid
+            {siteConfig.name}
           </p>
           <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
-            Blockchain-powered crowdfunding for global impact
+            {siteConfig.tagline}
           </h1>
           <p className="max-w-2xl text-lg text-foreground/80">
-            Launch and support campaigns on the Stellar network with transparent,
-            verifiable on-chain donations.
+            {siteConfig.description}
           </p>
           <a
             href="https://github.com/Dfunder/stellarAid-web#readme"

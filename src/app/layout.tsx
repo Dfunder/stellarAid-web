@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Footer } from "../components/Footer";
+import { siteConfig } from "@/config/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,12 +14,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const title = "StellarAid — Blockchain-powered crowdfunding";
-const description =
-  "StellarAid is a blockchain-powered crowdfunding platform on Stellar, enabling transparent, verifiable on-chain donations for global impact.";
+const title = `${siteConfig.name} - ${siteConfig.tagline}`;
+const description = siteConfig.description;
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://stellaraid.vercel.app"),
+  metadataBase: new URL(siteConfig.url),
   title,
   description,
   openGraph: {
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
     description,
     type: "website",
     url: "/",
-    siteName: "StellarAid",
+    siteName: siteConfig.name,
   },
   twitter: {
     card: "summary_large_image",
@@ -40,7 +41,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Footer />
+      </body>
     </html>
   );
 }

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { cn } from "../../lib/cn";
 
 type SectionProps = {
   children: ReactNode;
@@ -7,7 +8,7 @@ type SectionProps = {
 
 export function Section({ children, className = "" }: SectionProps) {
   return (
-    <section className={`w-full px-6 py-16 sm:px-10 ${className}`.trim()}>
+    <section className={cn("w-full px-6 py-16 sm:px-10", className)}>
       {children}
     </section>
   );

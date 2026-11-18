@@ -1,68 +1,68 @@
-# 🌟 StellarAid
+# StellarAid
 
-Blockchain-powered crowdfunding for global impact — transparent, borderless, and secure.
-StellarAid is an open-source, decentralized crowdfunding platform built on the Stellar Network & Soroban smart contracts. It enables creators to raise funds in XLM or any Stellar-based asset, while donors enjoy transparent, verifiable on-chain contributions.
-Whether it’s humanitarian campaigns, community causes, startups, or global charity projects — StellarAid brings trust, transparency, and financial accessibility to fundraising.
+Blockchain-powered crowdfunding for global impact: transparent, borderless, and secure.
+StellarAid is an open-source, decentralized crowdfunding platform built on the Stellar Network and Soroban smart contracts. It enables creators to raise funds in XLM or any Stellar-based asset, while donors enjoy transparent, verifiable on-chain contributions.
+Whether it is humanitarian campaigns, community causes, startups, or global charity projects, StellarAid brings trust, transparency, and financial accessibility to fundraising.
 
-# 📖 About StellarAid
+# About StellarAid
 
 StellarAid empowers individuals and organizations to launch fundraising campaigns with full blockchain transparency.
 The platform supports multi-asset contributions, verifiable donation trails, automated fund releases through Soroban smart contracts, and wallet-based authentication.
 
-- 🔐 Decentralized & Secure — Wallet-based login, non-custodial flows
-- 💸 Multi-Asset Support — XLM, USDC, NGNT, custom Stellar assets
-- 📊 Transparent — Every donation visible and verifiable on-chain
-- ⚙️ Modular & Open Source — Easy for contributors and developers
+- Decentralized and Secure: Wallet-based login, non-custodial flows
+- Multi-Asset Support: XLM, USDC, NGNT, custom Stellar assets
+- Transparent: Every donation visible and verifiable on-chain
+- Modular and Open Source: Easy for contributors and developers
 
-# 🏗 Organization Repositories
+# Organization Repositories
 
-- stellarAid-web → Frontend DApp (Next.js + Stellar SDK)
+- stellarAid-web -> Frontend DApp (Next.js + Stellar SDK)
   - Wallet connection (Freighter, Albedo, Lobstr)
-  - Campaign discovery & donation dashboard
+  - Campaign discovery and donation dashboard
   - Creator dashboard for managing projects
   - Admin UI for approvals and moderation
 
 - the repo includes:
 
 ```
-/docs        → Technical documentation
-/examples    → Sample integrations
-/scripts     → Dev and deployment utilities
+/docs        -> Technical documentation
+/examples    -> Sample integrations
+/scripts     -> Dev and deployment utilities
 ```
 
-# 🔑 How StellarAid Works
+# How StellarAid Works
 
-- 1️⃣ User connects Stellar wallet (Freighter, Albedo, Lobstr)
-- 2️⃣ Creator launches a campaign → stored in backend + contract ref
-- 3️⃣ Donors contribute using Stellar assets
-- 4️⃣ Soroban contract escrows funds safely
-- 5️⃣ Creators withdraw funds securely on-chain
-- 6️⃣ Admin tools handle verification, fraud detection & analytics
+- 1. User connects Stellar wallet (Freighter, Albedo, Lobstr)
+- 2. Creator launches a campaign -> stored in backend + contract ref
+- 3. Donors contribute using Stellar assets
+- 4. Soroban contract escrows funds safely
+- 5. Creators withdraw funds securely on-chain
+- 6. Admin tools handle verification, fraud detection and analytics
   Everything is transparent, globally accessible, and verifiable.
 
-# 🛠 Tech Stack
+# Tech Stack
 
-### 🌐 Frontend DApp
+### Frontend DApp
 
 - Next.js
-- Stellar Wallet SDK & Soroban Kit
+- Stellar Wallet SDK and Soroban Kit
 - TailwindCSS
 - React Query + Zustand
 
-### 🗄 Data Layer
+### Data Layer
 
 - PostgreSQL for core data
 - Redis for caching + session flow
 - Optional IPFS for media (campaign images, proofs)
 
-# 🚀 Roadmap
+# Roadmap
 
 ### Phase 1 (MVP)
 
 - User registration + wallet login
-- Create & approve campaigns
+- Create and approve campaigns
 - Donate using XLM/USDC
-- Basic dashboard & on-chain transparency
+- Basic dashboard and on-chain transparency
 - Core Soroban contract (escrow + withdraw)
 
 ### Phase 2
@@ -78,7 +78,7 @@ The platform supports multi-asset contributions, verifiable donation trails, aut
 - Automated payout schedules
 - Community governance
 - Cross-border NGO support
-- Trust badges & identity verification
+- Trust badges and identity verification
 
 ### Phase 4
 
@@ -86,7 +86,31 @@ The platform supports multi-asset contributions, verifiable donation trails, aut
 - Multi-chain campaign expansion
 - Ecosystem grant program
 
-# 🧑‍💻 Development
+# Development
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20.9.0 or newer
+- npm, included with Node.js
+
+### Install and run
+
+```bash
+git clone https://github.com/Dfunder/stellarAid-web.git
+cd stellarAid-web
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000` to view the app.
+
+Copy `.env.example` to `.env.local` if you need local environment values. The example file documents the placeholders used by the project.
+
+### Local quality gate
+
+Run `npm run lint`, `npm test` and `npm run build` before opening a pull request.
 
 ## Prerequisites
 
@@ -111,22 +135,22 @@ npm run dev
 | `npm run test:watch` | Run Vitest in watch mode |
 | `npm run test:coverage` | Run Vitest with coverage reporting |
 
-# 🤝 Contributing
+# Contributing
 
 StellarAid is fully open-source and welcomes contributions from:
 
 - Blockchain engineers
 - Rust/Soroban developers
 - Full-stack devs
-- Designers & documentation writers
+- Designers and documentation writers
 - Community moderators
 
 See CONTRIBUTING.md for contribution workflow, code style, and development setup.
 
-# 📜 License
+# License
 
-StellarAid is released under the MIT License, allowing free use, modification, and distribution with attribution.
+StellarAid is released under the [MIT License](LICENSE), allowing free use, modification, and distribution with attribution.
 
-# 🌐 Join the StellarAid Journey
+# Join the StellarAid Journey
 
-Together, we can expand access to transparent, borderless fundraising — empowering communities and creators worldwide.
+Together, we can expand access to transparent, borderless fundraising, empowering communities and creators worldwide.
