@@ -86,6 +86,19 @@ The platform supports multi-asset contributions, verifiable donation trails, aut
 - Multi-chain campaign expansion
 - Ecosystem grant program
 
+# 🧑‍💻 Development
+
+## Prerequisites
+
+- Node.js >= 20.9.0 (see `.nvmrc`)
+
+## Setup
+
+```bash
+npm install
+npm run dev
+```
+
 # 🤝 Contributing
 
 StellarAid is fully open-source and welcomes contributions from:
