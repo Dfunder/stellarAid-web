@@ -1,7 +1,24 @@
 {
-  "name": "lum",
+  "name": "stellaraid-web",
   "version": "0.1.0",
   "private": true,
+  "description": "Blockchain-powered crowdfunding platform on Stellar for transparent, verifiable donations.",
+  "license": "MIT",
+  "homepage": "https://github.com/Dfunder/stellarAid-web",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dfunder/stellarAid-web.git"
+  },
+  "keywords": [
+    "stellar",
+    "crowdfunding",
+    "soroban",
+    "nextjs"
+  ],
+  "author": "StellarAid contributors",
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
