@@ -18,13 +18,21 @@ export default function ErrorBoundary({ error, reset }: ErrorBoundaryProps) {
       <p className="max-w-md text-foreground/80">
         An unexpected error occurred. Please try again.
       </p>
-      <button
-        type="button"
-        onClick={reset}
-        className="rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
-      >
-        Try again
-      </button>
+      <div className="flex flex-wrap items-center justify-center gap-4">
+        <button
+          type="button"
+          onClick={reset}
+          className="rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
+        >
+          Try again
+        </button>
+        <a
+          href="/"
+          className="rounded-full border border-foreground/20 px-6 py-3 text-sm font-medium transition-colors hover:bg-foreground/5"
+        >
+          Return home
+        </a>
+      </div>
     </main>
   );
 }

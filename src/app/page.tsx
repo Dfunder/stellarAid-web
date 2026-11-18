@@ -1,5 +1,6 @@
 import { siteConfig } from "@/config/site";
 import { Section } from "./components/section";
+import { HowItWorks } from "./components/how-it-works";
 
 const valueProps = [
   {
@@ -60,6 +61,8 @@ export default function Home() {
           </div>
         </div>
       </Section>
+
+      <HowItWorks />
     </main>
   );
 }
