@@ -99,6 +99,18 @@ npm install
 npm run dev
 ```
 
+## Scripts
+
+| Script | Description |
+| --- | --- |
+| `npm run dev` | Start the Next.js development server |
+| `npm run build` | Create a production build |
+| `npm run start` | Start the production server |
+| `npm run lint` | Run ESLint |
+| `npm test` | Run the Vitest suite once |
+| `npm run test:watch` | Run Vitest in watch mode |
+| `npm run test:coverage` | Run Vitest with coverage reporting |
+
 # 🤝 Contributing
 
 StellarAid is fully open-source and welcomes contributions from:

@@ -1,7 +1,21 @@
 {
-  "name": "lum",
+  "name": "stellaraid-web",
   "version": "0.1.0",
   "private": true,
+  "description": "Blockchain-powered crowdfunding platform on Stellar for transparent, verifiable donations.",
+  "license": "MIT",
+  "homepage": "https://github.com/Dfunder/stellarAid-web",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dfunder/stellarAid-web.git"
+  },
+  "keywords": [
+    "stellar",
+    "crowdfunding",
+    "soroban",
+    "nextjs"
+  ],
+  "author": "StellarAid contributors",
   "engines": {
     "node": ">=20.9.0"
   },
@@ -9,7 +23,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "next": "16.4.3",
@@ -18,12 +35,17 @@
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^3.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
+    "jsdom": "^26.0.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.0.0"
   }
 }
