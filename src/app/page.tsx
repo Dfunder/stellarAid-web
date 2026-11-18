@@ -1,5 +1,6 @@
 import { siteConfig } from "@/config/site";
-import { Section } from "./components/section";
+import { Section } from "@/components/ui/Section";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 
 const valueProps = [
   {
@@ -43,21 +44,23 @@ export default function Home() {
       </Section>
 
       <Section className="border-t border-foreground/10">
-        <div className="mx-auto max-w-5xl">
-          <h2 className="text-2xl font-semibold">Why StellarAid</h2>
-          <div className="mt-8 grid gap-6 sm:grid-cols-3">
-            {valueProps.map((item) => (
-              <article
-                key={item.title}
-                className="rounded-2xl border border-foreground/10 bg-foreground/5 p-6"
-              >
-                <h3 className="text-lg font-medium">{item.title}</h3>
-                <p className="mt-3 text-sm leading-6 text-foreground/80">
-                  {item.description}
-                </p>
-              </article>
-            ))}
-          </div>
+        <SectionHeading
+          as="h2"
+          title="Why StellarAid"
+          description="Key benefits of fundraising on the Stellar network"
+        />
+        <div className="mt-8 grid gap-6 sm:grid-cols-3">
+          {valueProps.map((item) => (
+            <article
+              key={item.title}
+              className="rounded-2xl border border-foreground/10 bg-foreground/5 p-6"
+            >
+              <h3 className="text-lg font-medium">{item.title}</h3>
+              <p className="mt-3 text-sm leading-6 text-foreground/80">
+                {item.description}
+              </p>
+            </article>
+          ))}
         </div>
       </Section>
     </main>

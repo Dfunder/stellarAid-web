@@ -1,0 +1,32 @@
+export type Campaign = {
+  id: string;
+  title: string;
+  description: string;
+  asset: string;
+  raised: number;
+  target: number;
+};
+
+const mockCampaigns: Campaign[] = [
+  {
+    id: "clean-water-initiative",
+    title: "Clean Water Initiative",
+    description: "Providing access to clean drinking water for rural communities.",
+    asset: "XLM",
+    raised: 45000,
+    target: 100000,
+  },
+  {
+    id: "education-for-all",
+    title: "Education for All",
+    description: "Funding school supplies and teacher training in underserved areas.",
+    asset: "USDC",
+    raised: 25000,
+    target: 75000,
+  },
+];
+
+export async function getCampaign(id: string): Promise<Campaign | null> {
+  const campaign = mockCampaigns.find((c) => c.id === id);
+  return campaign ?? null;
+}
