@@ -88,6 +88,30 @@ The platform supports multi-asset contributions, verifiable donation trails, aut
 
 # 🧑‍💻 Development
 
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20.9.0 or newer
+- npm, included with Node.js
+
+### Install and run
+
+```bash
+git clone https://github.com/Dfunder/stellarAid-web.git
+cd stellarAid-web
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000` to view the app.
+
+Copy `.env.example` to `.env.local` if you need local environment values. The example file documents the placeholders used by the project.
+
+### Local quality gate
+
+Run `npm run lint`, `npm test` and `npm run build` before opening a pull request.
+
 ## Scripts
 
 | Script | Description |
