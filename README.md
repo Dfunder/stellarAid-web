@@ -138,7 +138,7 @@ See CONTRIBUTING.md for contribution workflow, code style, and development setup
 
 # License
 
-StellarAid is released under the MIT License, allowing free use, modification, and distribution with attribution.
+StellarAid is released under the [MIT License](LICENSE), allowing free use, modification, and distribution with attribution.
 
 # Join the StellarAid Journey
 
