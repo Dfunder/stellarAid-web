@@ -112,6 +112,17 @@ Copy `.env.example` to `.env.local` if you need local environment values. The ex
 
 Run `npm run lint`, `npm test` and `npm run build` before opening a pull request.
 
+## Prerequisites
+
+- Node.js >= 20.9.0 (see `.nvmrc`)
+
+## Setup
+
+```bash
+npm install
+npm run dev
+```
+
 ## Scripts
 
 | Script | Description |

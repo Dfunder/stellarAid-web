@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { metadata } from "../../app/layout";
+import { metadata } from "../app/layout";
 import { siteConfig } from "./site";
 
 describe("siteConfig", () => {
