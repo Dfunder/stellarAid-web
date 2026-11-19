@@ -30,7 +30,8 @@ Every command below exists in `package.json`:
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Start the Next.js development server |
-| `npm run build` | Create a production build |
+| `npm run type-check` | Check TypeScript types without emitting files |
+| `npm run build` | Check types and create a production build |
 | `npm run start` | Start the production server |
 | `npm run lint` | Run ESLint |
 | `npm test` | Run the Vitest suite once |
@@ -45,7 +46,7 @@ npm test
 npm run build
 ```
 
-There is no separate type-check script yet. TypeScript is checked by the build.
+`npm run build` runs `npm run type-check` first, so a type error cannot reach a production build.
 
 ## Branches and commits
 
