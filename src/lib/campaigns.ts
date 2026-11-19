@@ -29,4 +29,30 @@ const mockCampaigns: Campaign[] = [
 export async function getCampaign(id: string): Promise<Campaign | null> {
   const campaign = mockCampaigns.find((c) => c.id === id);
   return campaign ?? null;
+  {
+    id: "solar-energy-projects",
+    title: "Solar Energy Projects",
+    description: "Bringing solar power to off-grid communities.",
+    asset: "XLM",
+    raised: 60000,
+    target: 120000,
+  },
+  {
+    id: "food-security-program",
+    title: "Food Security Program",
+    description: "Supporting local food banks and community gardens.",
+    asset: "USDC",
+    raised: 15000,
+    target: 50000,
+  },
+];
+
+export async function getCampaigns(query?: string): Promise<Campaign[]> {
+  if (!query) return mockCampaigns;
+  const lower = query.toLowerCase();
+  return mockCampaigns.filter(
+    (c) =>
+      c.title.toLowerCase().includes(lower) ||
+      c.description.toLowerCase().includes(lower),
+  );
 }
