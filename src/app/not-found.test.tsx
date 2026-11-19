@@ -3,18 +3,22 @@ import { describe, expect, it } from "vitest";
 import NotFound from "./not-found";
 
 describe("not-found boundary", () => {
-  it("renders recovery links", () => {
+  it("renders the brand and recovery links from the shared route table", () => {
     render(<NotFound />);
 
     expect(
       screen.getByRole("heading", { name: /page not found/i }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /return home/i })).toHaveAttribute(
+
+    expect(screen.getByText(/stellaraid/i)).toBeInTheDocument();
+
+    expect(screen.getByRole("link", { name: /home/i })).toHaveAttribute(
       "href",
       "/",
     );
-    expect(
-      screen.getByRole("link", { name: /project repository/i }),
-    ).toHaveAttribute("href", "https://github.com/Dfunder/stellarAid-web");
+    expect(screen.getByRole("link", { name: /github/i })).toHaveAttribute(
+      "href",
+      "https://github.com/Dfunder/stellarAid-web",
+    );
   });
 });
