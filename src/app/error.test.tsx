@@ -19,4 +19,17 @@ describe("error boundary", () => {
     fireEvent.click(screen.getByRole("button", { name: /try again/i }));
     expect(reset).toHaveBeenCalledTimes(1);
   });
+
+  it("links back to the home route", () => {
+    const reset = vi.fn();
+    const error = new Error("test error");
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    render(<ErrorBoundary error={error} reset={reset} />);
+
+    expect(screen.getByRole("link", { name: /return home/i })).toHaveAttribute(
+      "href",
+      "/",
+    );
+  });
 });

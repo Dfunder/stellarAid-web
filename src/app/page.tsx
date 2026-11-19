@@ -1,4 +1,6 @@
 import { siteConfig } from "@/config/site";
+import { Section } from "./components/section";
+import { HowItWorks } from "./components/how-it-works";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
@@ -63,6 +65,9 @@ export default function Home() {
           ))}
         </div>
       </Section>
+
+      <HowItWorks />
+    </main>
     </div>
   );
 }
