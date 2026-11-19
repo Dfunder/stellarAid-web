@@ -1,17 +1,21 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { Footer } from "../components/Footer";
 import { siteConfig } from "@/config/site";
 import "./globals.css";
 
-const geistSans = Geist({
+// Self-hosted Geist variable fonts (SIL OFL 1.1). The .woff2 files live in
+// ./fonts and must be committed; nothing is fetched from Google at build time.
+const geistSans = localFont({
+  src: "./fonts/GeistVF.woff2",
   variable: "--font-geist-sans",
-  subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
+const geistMono = localFont({
+  src: "./fonts/GeistMonoVF.woff2",
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 const title = `${siteConfig.name} - ${siteConfig.tagline}`;
