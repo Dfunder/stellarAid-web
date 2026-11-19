@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { assetPrecision } from "@/config/assets";
+import { useFormSubmission } from "@/hooks/useFormSubmission";
 import {
   emptyDraft,
   validateCampaign,
@@ -15,6 +16,7 @@ export default function NewCampaignPage() {
   const [draft, setDraft] = useState<CampaignDraft>(emptyDraft);
   const [errors, setErrors] = useState<CampaignErrors>({});
   const [loaded, setLoaded] = useState(false);
+  const { isSubmitting, submit } = useFormSubmission();
 
   useEffect(() => {
     try {
@@ -40,9 +42,11 @@ export default function NewCampaignPage() {
     setDraft((d) => ({ ...d, [field]: value }));
 
   // Validation only: this form intentionally never submits anything.
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors(validateCampaign(draft));
+    await submit(() => {
+      setErrors(validateCampaign(draft));
+    });
   };
 
   const field = (
@@ -119,8 +123,13 @@ export default function NewCampaignPage() {
             onChange={(e) => update("deadline", e.target.value)}
           />,
         )}
-        <button type="submit" className="self-start rounded border px-4 py-2">
-          Validate draft
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          aria-busy={isSubmitting}
+          className="self-start rounded border px-4 py-2 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSubmitting ? "Submitting..." : "Validate draft"}
         </button>
       </form>
     </main>

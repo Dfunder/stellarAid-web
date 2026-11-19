@@ -2,6 +2,7 @@
 
 import { use, useState } from "react";
 import { getAssetPrecision } from "@/config/assets";
+import { useFormSubmission } from "@/hooks/useFormSubmission";
 
 type Params = Promise<{ id: string }>;
 
@@ -53,10 +54,13 @@ export default function DonatePage({ params }: { params: Params }) {
   const [result, setResult] = useState<
     { ok: true; stroopSafe: string } | { ok: false; error: string } | null
   >(null);
+  const { isSubmitting, submit } = useFormSubmission();
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setResult(validateAmount(amount, campaign.targetAmount, campaign.assetCode));
+    await submit(() => {
+      setResult(validateAmount(amount, campaign.targetAmount, campaign.assetCode));
+    });
   }
 
   return (
@@ -126,9 +130,11 @@ export default function DonatePage({ params }: { params: Params }) {
 
             <button
               type="submit"
+              disabled={isSubmitting}
+              aria-busy={isSubmitting}
               className="inline-flex items-center justify-center rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
             >
-              Continue
+              {isSubmitting ? "Submitting..." : "Continue"}
             </button>
           </form>
         </div>
