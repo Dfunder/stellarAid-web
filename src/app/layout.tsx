@@ -4,6 +4,7 @@ import { GeistMono } from "geist/font/mono";
 import { Footer } from "../components/Footer";
 import { Header } from "../components/Header";
 import { siteConfig } from "@/config/site";
+import { WalletProvider } from "../components/wallet/WalletProvider";
 import "./globals.css";
 
 // Geist and Geist Mono are self-hosted through the `geist` package (SIL OFL 1.1),
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <WalletProvider>{children}</WalletProvider>
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-foreground focus:px-4 focus:py-2 focus:text-background"
