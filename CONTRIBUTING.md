@@ -47,6 +47,10 @@ npm run build
 
 There is no separate type-check script yet. TypeScript is checked by the build.
 
+## Accessibility lint rules
+
+`npm run lint` includes the recommended `eslint-plugin-jsx-a11y` rule set in addition to the Next.js defaults. These rules check image alternative text, ARIA roles and properties, interactive element semantics, valid links, heading content and document language. Treat an accessibility lint error like any other build-blocking error and fix it in the component rather than disabling the rule.
+
 ## Branches and commits
 
 Create one branch per issue:
