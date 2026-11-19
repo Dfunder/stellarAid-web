@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { logError } from "../lib/error-tracking";
 
 type ErrorBoundaryProps = {
   error: Error & { digest?: string };
@@ -9,7 +10,7 @@ type ErrorBoundaryProps = {
 
 export default function ErrorBoundary({ error, reset }: ErrorBoundaryProps) {
   useEffect(() => {
-    console.error(error);
+    logError(error, { componentStack: error.stack });
   }, [error]);
 
   return (
