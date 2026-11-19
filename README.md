@@ -106,7 +106,7 @@ npm run dev
 
 Open `http://localhost:3000` to view the app.
 
-Copy `.env.example` to `.env.local` if you need local environment values. The example file documents the placeholders used by the project.
+Copy `.env.example` to `.env.local` if you need local environment values. See [docs/configuration.md](docs/configuration.md) for which values are safe for the browser bundle and which must stay server-only.
 
 ### Local quality gate
 
