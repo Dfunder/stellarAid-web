@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { siteRoutes } from "../config/routes";
 
 export function Footer() {
@@ -18,12 +19,12 @@ export function Footer() {
                   <span className="sr-only"> (opens in a new tab)</span>
                 </a>
               ) : (
-                <a
+                <Link
                   href={route.href}
                   className="transition-colors hover:text-foreground"
                 >
                   {route.label}
-                </a>
+                </Link>
               )}
             </li>
           ))}
