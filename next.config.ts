@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   output: "standalone",
+  poweredByHeader: false,
   experimental: {
     optimizePackageImports: ["@stellar/stellar-sdk"],
   },
