@@ -24,6 +24,11 @@ const mockCampaigns: Campaign[] = [
     raised: 25000,
     target: 75000,
   },
+];
+
+export async function getCampaign(id: string): Promise<Campaign | null> {
+  const campaign = mockCampaigns.find((c) => c.id === id);
+  return campaign ?? null;
   {
     id: "solar-energy-projects",
     title: "Solar Energy Projects",
