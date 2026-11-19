@@ -21,7 +21,8 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "type-check": "tsc --noEmit",
+    "build": "npm run type-check && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",

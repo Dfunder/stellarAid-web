@@ -128,7 +128,8 @@ npm run dev
 | Script | Description |
 | --- | --- |
 | `npm run dev` | Start the Next.js development server |
-| `npm run build` | Create a production build |
+| `npm run type-check` | Check TypeScript types without emitting files |
+| `npm run build` | Check types and create a production build |
 | `npm run start` | Start the production server |
 | `npm run lint` | Run ESLint |
 | `npm test` | Run the Vitest suite once |
