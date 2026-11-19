@@ -6,6 +6,7 @@ export type SiteRoute = {
 
 export const siteRoutes: SiteRoute[] = [
   { label: "Home", href: "/" },
+  { label: "Campaigns", href: "/campaigns" },
   {
     label: "GitHub",
     href: "https://github.com/Dfunder/stellarAid-web",
