@@ -145,7 +145,7 @@ StellarAid is fully open-source and welcomes contributions from:
 - Designers and documentation writers
 - Community moderators
 
-See CONTRIBUTING.md for contribution workflow, code style, and development setup.
+See CONTRIBUTING.md for contribution workflow, code style, and development setup. Report security vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
 
 # License
 

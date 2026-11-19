@@ -78,4 +78,4 @@ docs: clarify local setup
 
 Report ordinary bugs through the repository issue tracker. Include the steps to reproduce, the expected result, the actual result and any relevant logs.
 
-Do not report security vulnerabilities in a public issue. Use GitHub's private vulnerability reporting or contact the maintainers directly so the problem can be handled before disclosure.
+Do not report security vulnerabilities in a public issue. Use the private reporting path in [SECURITY.md](SECURITY.md) so the problem can be handled before disclosure.
