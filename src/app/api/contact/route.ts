@@ -3,7 +3,7 @@ import {
   checkContactRateLimit,
   normalizeContactInput,
   validateContactInput,
-} from "@/lib/contact";
+} from "../../../lib/contact";
 
 function getClientKey(request: Request) {
   const forwarded = request.headers.get("x-forwarded-for");
