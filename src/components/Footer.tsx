@@ -13,7 +13,7 @@ export function Footer() {
                   href={route.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-sm transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
+                  className="transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
                 >
                   {route.label}
                   <span className="sr-only"> (opens in a new tab)</span>
@@ -21,7 +21,7 @@ export function Footer() {
               ) : (
                 <Link
                   href={route.href}
-                  className="rounded-sm transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
+                  className="transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
                 >
                   {route.label}
                 </Link>

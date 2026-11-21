@@ -53,7 +53,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script
           dangerouslySetInnerHTML={{
             __html:
-              'try{var t=localStorage.getItem("stellaraid:theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}',
+              'try{var t=localStorage.getItem("stellaraid:theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch{}',
           }}
         />
       </head>

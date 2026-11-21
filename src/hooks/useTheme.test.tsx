@@ -1,51 +1,89 @@
 import { act, renderHook } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useTheme } from "./useTheme";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { THEME_STORAGE_KEY, useTheme } from "./useTheme";
 
-const media = {
-  matches: false,
-  addEventListener: vi.fn(),
-  removeEventListener: vi.fn(),
-};
+function stubSystemTheme(matches: boolean) {
+  const listeners = new Set<() => void>();
+  const media = {
+    matches,
+    addEventListener: (type: string, listener: () => void) => {
+      if (type === "change") listeners.add(listener);
+    },
+    removeEventListener: (type: string, listener: () => void) => {
+      if (type === "change") listeners.delete(listener);
+    },
+  };
+  vi.stubGlobal("matchMedia", vi.fn(() => media));
+
+  return {
+    setMatches(next: boolean) {
+      media.matches = next;
+      listeners.forEach((listener) => listener());
+    },
+  };
+}
 
 describe("useTheme", () => {
   beforeEach(() => {
     localStorage.clear();
     document.documentElement.removeAttribute("data-theme");
-    media.matches = false;
-    vi.stubGlobal("matchMedia", vi.fn(() => media));
+    stubSystemTheme(false);
   });
 
-  it("uses the system preference by default without setting data-theme", () => {
-    media.matches = true;
-    const { result } = renderHook(() => useTheme());
-    expect(result.current.theme).toBe("system");
-    expect(result.current.resolvedTheme).toBe("dark");
-    expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
-  it("applies and persists an explicit theme", () => {
+  it("restores a persisted theme and applies it to the document", () => {
+    localStorage.setItem(THEME_STORAGE_KEY, "dark");
+
     const { result } = renderHook(() => useTheme());
-    act(() => result.current.setTheme("dark"));
+
     expect(result.current.theme).toBe("dark");
-    expect(result.current.resolvedTheme).toBe("dark");
-    expect(document.documentElement.dataset.theme).toBe("dark");
-    expect(localStorage.getItem("stellaraid:theme")).toBe("dark");
+    expect(document.documentElement).toHaveAttribute("data-theme", "dark");
   });
 
-  it("restores a saved theme on mount", () => {
-    localStorage.setItem("stellaraid:theme", "light");
+  it("persists selections and removes data-theme when following the system", () => {
     const { result } = renderHook(() => useTheme());
-    expect(result.current.theme).toBe("light");
-    expect(document.documentElement.dataset.theme).toBe("light");
-  });
 
-  it("removes data-theme when switching back to system", () => {
-    const { result } = renderHook(() => useTheme());
     act(() => result.current.setTheme("light"));
-    expect(document.documentElement.dataset.theme).toBe("light");
-    act(() => result.current.setTheme("system"));
-    expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
-    expect(localStorage.getItem("stellaraid:theme")).toBe("system");
+    expect(result.current.theme).toBe("light");
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe("light");
+    expect(document.documentElement).toHaveAttribute("data-theme", "light");
+
+    act(() => result.current.cycleTheme());
+    expect(result.current.theme).toBe("dark");
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe("dark");
+    expect(document.documentElement).toHaveAttribute("data-theme", "dark");
+
+    act(() => result.current.cycleTheme());
+    expect(result.current.theme).toBe("system");
+    expect(document.documentElement).not.toHaveAttribute("data-theme");
+  });
+
+  it("tracks system preference changes through matchMedia", () => {
+    const system = stubSystemTheme(false);
+    const { result } = renderHook(() => useTheme());
+    expect(result.current.systemDark).toBe(false);
+
+    act(() => system.setMatches(true));
+    expect(result.current.systemDark).toBe(true);
+  });
+
+  it("reacts to theme changes made in another tab", () => {
+    const { result } = renderHook(() => useTheme());
+
+    act(() => {
+      localStorage.setItem(THEME_STORAGE_KEY, "dark");
+      window.dispatchEvent(
+        new StorageEvent("storage", {
+          key: THEME_STORAGE_KEY,
+          newValue: "dark",
+        }),
+      );
+    });
+
+    expect(result.current.theme).toBe("dark");
+    expect(document.documentElement).toHaveAttribute("data-theme", "dark");
   });
 });
