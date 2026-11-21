@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { assetPrecision } from "@/config/assets";
 import { useFormSubmission } from "@/hooks/useFormSubmission";
+import { SubmitButton } from "@/components/ui/SubmitButton";
 import {
   emptyDraft,
   validateCampaign,
@@ -123,14 +124,13 @@ export default function NewCampaignPage() {
             onChange={(e) => update("deadline", e.target.value)}
           />,
         )}
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          aria-busy={isSubmitting}
-          className="self-start rounded border px-4 py-2 disabled:cursor-not-allowed disabled:opacity-60"
+        <SubmitButton
+          isSubmitting={isSubmitting}
+          variant="ghost"
+          className="self-start rounded border px-4 py-2"
         >
-          {isSubmitting ? "Submitting..." : "Validate draft"}
-        </button>
+          Validate draft
+        </SubmitButton>
       </form>
     </main>
   );

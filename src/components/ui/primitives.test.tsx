@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Button } from "./Button";
+import { SubmitButton } from "./SubmitButton";
 import { Card } from "./Card";
 import { Container } from "./Container";
 
@@ -44,6 +45,26 @@ describe("Button", () => {
     const button = screen.getByRole("button", { name: /tiny/i });
     expect(button).toHaveClass("px-2");
     expect(button).not.toHaveClass("px-6");
+  });
+});
+
+describe("SubmitButton", () => {
+  it("renders a submit button with a normal label", () => {
+    render(<SubmitButton>Validate</SubmitButton>);
+
+    const button = screen.getByRole("button", { name: /validate/i });
+    expect(button).toHaveAttribute("type", "submit");
+    expect(button).not.toBeDisabled();
+    expect(button).not.toHaveAttribute("aria-busy");
+  });
+
+  it("disables the button and announces busy work while submitting", () => {
+    render(<SubmitButton isSubmitting>Validate</SubmitButton>);
+
+    const button = screen.getByRole("button", { name: /submitting/i });
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute("aria-busy", "true");
+    expect(screen.queryByText(/validate/i)).not.toBeInTheDocument();
   });
 });
 

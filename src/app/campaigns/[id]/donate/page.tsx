@@ -3,6 +3,7 @@
 import { use, useState } from "react";
 import { getAssetPrecision } from "@/config/assets";
 import { useFormSubmission } from "@/hooks/useFormSubmission";
+import { SubmitButton } from "@/components/ui/SubmitButton";
 
 type Params = Promise<{ id: string }>;
 
@@ -128,14 +129,9 @@ export default function DonatePage({ params }: { params: Params }) {
               </p>
             )}
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              aria-busy={isSubmitting}
-              className="inline-flex items-center justify-center rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
-            >
-              {isSubmitting ? "Submitting..." : "Continue"}
-            </button>
+            <SubmitButton isSubmitting={isSubmitting} className="px-6 py-3">
+              Continue
+            </SubmitButton>
           </form>
         </div>
       </section>

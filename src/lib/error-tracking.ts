@@ -1,29 +1,56 @@
+import { siteConfig } from "../config/site";
+
 export type ErrorTrackingContext = {
   componentStack?: string;
   route?: string;
 };
 
-export function logError(error: unknown, context: ErrorTrackingContext = {}) {
+export type ErrorReport = {
+  message: string;
+  stack?: string;
+  componentStack?: string;
+  route: string;
+  timestamp: string;
+};
+
+function reportEndpoint(): string {
+  if (typeof window !== "undefined") return "/api/errors";
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? siteConfig.url;
+  return `${base.replace(/\/+$/, "")}/api/errors`;
+}
+
+export function logError(
+  error: unknown,
+  context: ErrorTrackingContext = {},
+): ErrorReport {
   const normalized =
     error instanceof Error
       ? { message: error.message, stack: error.stack }
       : { message: String(error), stack: undefined };
 
-  const report = {
+  const report: ErrorReport = {
     ...normalized,
     componentStack: context.componentStack,
-    route: context.route ?? (typeof window === "undefined" ? undefined : window.location.pathname),
+    route:
+      context.route ??
+      (typeof window === "undefined" ? "server" : window.location.pathname),
     timestamp: new Date().toISOString(),
   };
 
-  if (typeof window !== "undefined") {
+  if (typeof console !== "undefined" && typeof console.error === "function") {
     console.error("Application error", report);
-    void fetch("/api/errors", {
+  }
+
+  try {
+    if (typeof fetch !== "function") return report;
+    void fetch(reportEndpoint(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(report),
       keepalive: true,
     }).catch(() => undefined);
+  } catch {
+    return report;
   }
 
   return report;
