@@ -40,11 +40,17 @@ export function PortfolioGrid({ items }: { items: PortfolioGridItem[] }) {
     }
 
     let next = index;
-    if (event.key === "ArrowRight" || event.key === "ArrowDown") next = (index + 1) % items.length;
-    else if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = (index - 1 + items.length) % items.length;
-    else if (event.key === "Home") next = 0;
-    else if (event.key === "End") next = items.length - 1;
-    else return;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      next = (index + 1) % items.length;
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      next = (index - 1 + items.length) % items.length;
+    } else if (event.key === "Home") {
+      next = 0;
+    } else if (event.key === "End") {
+      next = items.length - 1;
+    } else {
+      return;
+    }
 
     event.preventDefault();
     focusItem(next);

@@ -36,6 +36,10 @@ export function logError(
       (typeof window === "undefined" ? "server" : window.location.pathname),
     timestamp: new Date().toISOString(),
   };
+}
+
+export function logError(error: unknown, context: ErrorTrackingContext = {}) {
+  const report = buildErrorReport(error, context);
 
   if (typeof console !== "undefined" && typeof console.error === "function") {
     console.error("Application error", report);
