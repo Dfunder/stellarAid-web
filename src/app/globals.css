@@ -82,7 +82,7 @@
     }
   }
 
-  :root[data-theme='light'] {
+  :root[data-theme="light"] {
     color-scheme: light;
 
     --surface: #ffffff;
@@ -98,7 +98,7 @@
     --foreground: var(--text);
   }
 
-  :root[data-theme='dark'] {
+  :root[data-theme="dark"] {
     color-scheme: dark;
 
     --surface: #0a0a0a;
@@ -114,10 +114,20 @@
     --foreground: var(--text);
   }
 
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
   body {
     background: var(--surface);
     color: var(--text);
     font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 }
 

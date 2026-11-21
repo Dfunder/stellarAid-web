@@ -13,11 +13,11 @@ export function Header() {
     <header className="border-b border-foreground/10 bg-background">
       <nav
         aria-label="Primary"
-        className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-4"
+        className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-x-5 gap-y-2 px-6 py-4"
       >
         <a
           href="/"
-          className="text-base font-semibold text-foreground"
+          className="text-base font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
           aria-label={`${siteConfig.name} home`}
         >
           {siteConfig.name}

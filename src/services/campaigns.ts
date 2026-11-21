@@ -3,6 +3,7 @@ import {
   type ApiCampaign,
   type Campaign,
 } from "@/types/api";
+import { validateRouteParam } from "../lib/route-params";
 
 /**
  * Framework-agnostic campaign API client.
@@ -31,7 +32,9 @@ export async function getCampaign(
   id: string,
   fetchFn: FetchFn = fetch,
 ): Promise<Campaign> {
-  const res = await fetchFn(`${API_BASE_URL}/api/campaigns/${id}`);
+  const result = validateRouteParam(id);
+  if (!result.ok) throw new Error(result.error);
+  const res = await fetchFn(`${API_BASE_URL}/api/campaigns/${result.value}`);
   if (!res.ok) throw new Error(`Failed to fetch campaign ${id}: ${res.status}`);
   const data: ApiCampaign = await res.json();
   return mapCampaign(data);
