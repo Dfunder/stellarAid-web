@@ -2,22 +2,32 @@
 
 import { useTheme, type Theme } from "../hooks/useTheme";
 
-const order: Theme[] = ["light", "dark", "system"];
+const options: Array<{ value: Theme; label: string }> = [
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+  { value: "system", label: "System" },
+];
 
 export function ThemeToggle() {
-  const { theme, resolvedTheme, setTheme } = useTheme();
-  const next = order[(order.indexOf(theme) + 1) % order.length] ?? "system";
+  const { theme, setTheme } = useTheme();
 
   return (
-    <button
-      type="button"
-      onClick={() => setTheme(next)}
-      aria-label={`Theme: ${theme}. Switch to ${next}`}
-      title={`Theme: ${theme}`}
-      className="inline-flex items-center rounded-full border border-foreground/20 px-3 py-1.5 text-xs text-foreground transition-colors hover:bg-foreground/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
-    >
-      {resolvedTheme === "dark" ? "Dark" : "Light"}
-      {theme === "system" ? " (system)" : null}
-    </button>
+    <div className="flex items-center gap-2">
+      <label htmlFor="theme-toggle" className="text-sm text-foreground/70">
+        Theme
+      </label>
+      <select
+        id="theme-toggle"
+        value={theme}
+        onChange={(event) => setTheme(event.target.value as Theme)}
+        className="rounded border border-foreground/20 bg-background px-2 py-1 text-sm text-foreground"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }

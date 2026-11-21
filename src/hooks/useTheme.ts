@@ -4,84 +4,72 @@ import { useCallback, useEffect, useSyncExternalStore } from "react";
 
 export type Theme = "light" | "dark" | "system";
 
-const STORAGE_KEY = "stellaraid:theme";
-const listeners = new Set<() => void>();
-let fallbackTheme: Theme = "system";
+export const THEME_STORAGE_KEY = "stellaraid:theme";
 
-function mediaQuery(): MediaQueryList | null {
+const darkQuery = "(prefers-color-scheme: dark)";
+
+function isTheme(value: unknown): value is Theme {
+  return value === "light" || value === "dark" || value === "system";
+}
+
+function getMediaQuery(): MediaQueryList | undefined {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
-    return null;
+    return undefined;
   }
-  return window.matchMedia("(prefers-color-scheme: dark)");
+  return window.matchMedia(darkQuery);
 }
 
-function storedTheme(): Theme {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === "light" || saved === "dark" || saved === "system") {
-      return saved;
-    }
-  } catch {
-    return fallbackTheme;
-  }
-  return fallbackTheme;
-}
-
-function serverTheme(): Theme {
-  return "system";
-}
-
-function systemPrefersDark(): boolean {
-  return mediaQuery()?.matches ?? false;
-}
-
-function serverPrefersDark(): boolean {
-  return false;
-}
-
-function subscribe(onChange: () => void) {
-  listeners.add(onChange);
-  const media = mediaQuery();
-  if (typeof media?.addEventListener === "function") {
-    media.addEventListener("change", onChange);
-  }
+function subscribe(onChange: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  const media = getMediaQuery();
+  media?.addEventListener("change", onChange);
+  window.addEventListener("storage", onChange);
   return () => {
-    listeners.delete(onChange);
-    if (typeof media?.removeEventListener === "function") {
-      media.removeEventListener("change", onChange);
-    }
+    media?.removeEventListener("change", onChange);
+    window.removeEventListener("storage", onChange);
   };
 }
 
+function readTheme(): Theme {
+  if (typeof window === "undefined") return "system";
+  try {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    return isTheme(stored) ? stored : "system";
+  } catch {
+    return "system";
+  }
+}
+
+function readSystemTheme(): "light" | "dark" {
+  return getMediaQuery()?.matches ? "dark" : "light";
+}
+
+function persistTheme(next: Theme): void {
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, next);
+  } catch {
+    return;
+  }
+}
+
 export function useTheme() {
-  const theme = useSyncExternalStore(subscribe, storedTheme, serverTheme);
-  const systemDark = useSyncExternalStore(
+  const theme = useSyncExternalStore(subscribe, readTheme, () => "system");
+  const systemTheme = useSyncExternalStore(
     subscribe,
-    systemPrefersDark,
-    serverPrefersDark,
+    readSystemTheme,
+    () => "light",
   );
+  const resolvedTheme = theme === "system" ? systemTheme : theme;
 
   useEffect(() => {
-    const root = document.documentElement;
-    if (theme === "system") {
-      root.removeAttribute("data-theme");
-    } else {
-      root.setAttribute("data-theme", theme);
-    }
-  }, [theme]);
+    document.documentElement.dataset.theme = resolvedTheme;
+  }, [resolvedTheme]);
 
   const setTheme = useCallback((next: Theme) => {
-    fallbackTheme = next;
-    try {
-      localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      fallbackTheme = next;
-    }
-    listeners.forEach((listener) => listener());
+    if (typeof window === "undefined") return;
+    persistTheme(next);
+    window.dispatchEvent(new Event("storage"));
   }, []);
-
-  const resolvedTheme: Exclude<Theme, "system"> =
-    theme === "system" ? (systemDark ? "dark" : "light") : theme;
 
   return { theme, resolvedTheme, setTheme };
 }

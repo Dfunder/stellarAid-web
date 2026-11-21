@@ -1,89 +1,65 @@
 "use client";
 
 import { useState } from "react";
-import { useFormSubmission } from "@/hooks/useFormSubmission";
+import { useFormSubmission } from "../hooks/useFormSubmission";
 import {
-  normalizeContactInput,
-  validateContactInput,
-  type ContactErrors,
-  type ContactInput,
-} from "@/lib/contact";
+  HONEYPOT_FIELD_NAME,
+  isHoneypotFilled,
+  isValidEmail,
+  sanitizeMessage,
+} from "../lib/form-security";
 
-const initialForm: ContactInput = {
-  name: "",
-  email: "",
-  message: "",
-  company: "",
+export type ContactPayload = {
+  email: string;
+  message: string;
 };
 
-export function ContactForm() {
-  const [form, setForm] = useState<ContactInput>(initialForm);
+type ContactFormProps = {
+  onSubmit?: (payload: ContactPayload) => void | Promise<void>;
+};
+
+type ContactErrors = {
+  email?: string;
+  message?: string;
+};
+
+export function ContactForm({ onSubmit }: ContactFormProps) {
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [honeypot, setHoneypot] = useState("");
   const [errors, setErrors] = useState<ContactErrors>({});
-  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [submitted, setSubmitted] = useState(false);
   const { isSubmitting, submit } = useFormSubmission();
 
-  const update = (field: keyof ContactInput, value: string) => {
-    setForm((current) => ({ ...current, [field]: value }));
-  };
-
-  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const normalized = normalizeContactInput(form);
-    const nextErrors = validateContactInput(normalized);
+    const nextErrors: ContactErrors = {};
+    if (!isValidEmail(email)) {
+      nextErrors.email = "Enter a valid email address.";
+    }
+    if (message.trim().length < 10) {
+      nextErrors.message = "Message must be at least 10 characters.";
+    }
     setErrors(nextErrors);
-    setStatus("idle");
-
+    setSubmitted(false);
     if (Object.keys(nextErrors).length > 0) return;
 
-    try {
-      const ok = await submit(async () => {
-        const response = await fetch("/api/contact", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(normalized),
+    await submit(async () => {
+      if (!isHoneypotFilled(honeypot)) {
+        await onSubmit?.({
+          email: email.trim(),
+          message: sanitizeMessage(message),
         });
-        if (!response.ok) {
-          const data = (await response.json().catch(() => null)) as
-            | { errors?: ContactErrors }
-            | null;
-          if (data?.errors) setErrors(data.errors);
-          throw new Error("Contact submission failed");
-        }
-      });
-
-      if (ok) {
-        setForm(initialForm);
-        setErrors({});
-        setStatus("success");
       }
-    } catch {
-      setStatus("error");
-    }
-  };
+      setSubmitted(true);
+      setEmail("");
+      setMessage("");
+      setHoneypot("");
+    });
+  }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <label htmlFor="contact-name" className="font-medium">
-          Name
-        </label>
-        <input
-          id="contact-name"
-          name="name"
-          type="text"
-          value={form.name}
-          onChange={(event) => update("name", event.target.value)}
-          aria-invalid={errors.name ? true : undefined}
-          aria-describedby={errors.name ? "contact-name-error" : undefined}
-          className="rounded border px-3 py-2"
-        />
-        {errors.name ? (
-          <p id="contact-name-error" role="alert" className="text-sm text-red-600">
-            {errors.name}
-          </p>
-        ) : null}
-      </div>
-
+    <form onSubmit={handleSubmit} noValidate className="mt-8 flex flex-col gap-5">
       <div className="flex flex-col gap-1">
         <label htmlFor="contact-email" className="font-medium">
           Email
@@ -92,14 +68,18 @@ export function ContactForm() {
           id="contact-email"
           name="email"
           type="email"
-          value={form.email}
-          onChange={(event) => update("email", event.target.value)}
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
           aria-invalid={errors.email ? true : undefined}
           aria-describedby={errors.email ? "contact-email-error" : undefined}
           className="rounded border px-3 py-2"
         />
         {errors.email ? (
-          <p id="contact-email-error" role="alert" className="text-sm text-red-600">
+          <p
+            id="contact-email-error"
+            role="alert"
+            className="text-sm text-red-600"
+          >
             {errors.email}
           </p>
         ) : null}
@@ -112,30 +92,34 @@ export function ContactForm() {
         <textarea
           id="contact-message"
           name="message"
-          rows={5}
-          value={form.message}
-          onChange={(event) => update("message", event.target.value)}
+          rows={6}
+          value={message}
+          onChange={(event) => setMessage(event.target.value)}
           aria-invalid={errors.message ? true : undefined}
           aria-describedby={errors.message ? "contact-message-error" : undefined}
           className="rounded border px-3 py-2"
         />
         {errors.message ? (
-          <p id="contact-message-error" role="alert" className="text-sm text-red-600">
+          <p
+            id="contact-message-error"
+            role="alert"
+            className="text-sm text-red-600"
+          >
             {errors.message}
           </p>
         ) : null}
       </div>
 
-      <div className="hidden" aria-hidden="true">
-        <label htmlFor="contact-company">Company</label>
+      <div hidden>
+        <label htmlFor="contact-honeypot">Company website</label>
         <input
-          id="contact-company"
-          name="company"
+          id="contact-honeypot"
+          name={HONEYPOT_FIELD_NAME}
           type="text"
           tabIndex={-1}
           autoComplete="off"
-          value={form.company ?? ""}
-          onChange={(event) => update("company", event.target.value)}
+          value={honeypot}
+          onChange={(event) => setHoneypot(event.target.value)}
         />
       </div>
 
@@ -148,14 +132,9 @@ export function ContactForm() {
         {isSubmitting ? "Sending..." : "Send message"}
       </button>
 
-      {status === "success" ? (
-        <p role="status" className="text-sm text-green-700">
-          Message sent.
-        </p>
-      ) : null}
-      {status === "error" ? (
-        <p role="alert" className="text-sm text-red-600">
-          Unable to send message. Please try again.
+      {submitted ? (
+        <p role="status" className="text-sm text-foreground/80">
+          Thanks for reaching out. We will reply soon.
         </p>
       ) : null}
     </form>
