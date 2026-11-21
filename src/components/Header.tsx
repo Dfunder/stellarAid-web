@@ -1,4 +1,5 @@
 import { siteConfig } from "@/config/site";
+import { ThemeToggle } from "./ThemeToggle";
 
 /**
  * Application header shell.
@@ -22,21 +23,24 @@ export function Header() {
           {siteConfig.name}
         </a>
 
-        <ul className="flex flex-wrap items-center gap-x-5 gap-y-2">
-          {siteConfig.links.navigation.map((link) => (
-            <li key={link.href}>
-              <a
-                href={link.href}
-                {...(link.external
-                  ? { target: "_blank", rel: "noopener noreferrer" }
-                  : {})}
-                className="text-sm text-foreground/70 transition-colors hover:text-foreground"
-              >
-                {link.label}
-              </a>
-            </li>
-          ))}
-        </ul>
+        <div className="flex flex-wrap items-center gap-5">
+          <ul className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            {siteConfig.links.navigation.map((link) => (
+              <li key={link.href}>
+                <a
+                  href={link.href}
+                  {...(link.external
+                    ? { target: "_blank", rel: "noopener noreferrer" }
+                    : {})}
+                  className="text-sm text-foreground/70 transition-colors hover:text-foreground"
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+          <ThemeToggle />
+        </div>
       </nav>
     </header>
   );
