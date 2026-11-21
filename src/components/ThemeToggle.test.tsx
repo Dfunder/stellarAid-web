@@ -1,7 +1,12 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { THEME_STORAGE_KEY } from "../hooks/useTheme";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ThemeToggle } from "./ThemeToggle";
+
+const media = {
+  matches: false,
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
+};
 
 describe("ThemeToggle", () => {
   beforeEach(() => {
