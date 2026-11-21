@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { siteConfig } from "@/config/site";
+import { validateRouteParam } from "@/lib/route-params";
 
 type Campaign = {
   id: string;
@@ -84,7 +85,7 @@ export default async function CampaignPage({
 }): Promise<Metadata> {
   const { id } = await params;
 
-  if (!/^[a-z0-9-]+$/i.test(id)) {
+  if (!validateRouteParam(id).ok) {
     return { title: "Campaign not found" };
   }
 
@@ -110,7 +111,7 @@ export default async function CampaignDetailPage({
 }) {
   const { id } = await params;
 
-  if (!/^[a-z0-9-]+$/i.test(id)) {
+  if (!validateRouteParam(id).ok) {
     notFound();
   }
 

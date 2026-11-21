@@ -16,5 +16,8 @@ export async function GET(request: Request, { params }: RouteContext) {
     );
   }
 
-  return NextResponse.json({ id: result.value, path });
+  return NextResponse.json({
+    id: result.value,
+    name: `Marketplace ${result.value}`,
+  });
 }

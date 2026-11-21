@@ -1,4 +1,5 @@
 import { siteConfig } from "@/config/site";
+import { ThemeToggle } from "./ThemeToggle";
 
 /**
  * Application header shell.
@@ -16,7 +17,7 @@ export function Header() {
       >
         <a
           href="/"
-          className="text-base font-semibold text-foreground"
+          className="rounded-sm text-base font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
           aria-label={`${siteConfig.name} home`}
         >
           {siteConfig.name}
@@ -30,13 +31,15 @@ export function Header() {
                 {...(link.external
                   ? { target: "_blank", rel: "noopener noreferrer" }
                   : {})}
-                className="text-sm text-foreground/70 transition-colors hover:text-foreground"
+                className="rounded-sm text-sm text-foreground/70 transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
               >
                 {link.label}
               </a>
             </li>
           ))}
         </ul>
+
+        <ThemeToggle />
       </nav>
     </header>
   );

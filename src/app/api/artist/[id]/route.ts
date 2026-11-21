@@ -1,4 +1,15 @@
 import { NextResponse } from "next/server";
+import { validateRouteParam } from "../../../../lib/route-params";
+
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const result = validateRouteParam(id);
+  if (!result.ok) {
+    return NextResponse.json(
+      { error: "Invalid artist id", details: result.error },
 import { validateId } from "../../../../lib/id-validation";
 
 export const dynamic = "force-dynamic";
@@ -16,5 +27,5 @@ export async function GET(request: Request, { params }: RouteContext) {
     );
   }
 
-  return NextResponse.json({ id: result.value, path });
+  return NextResponse.json({ id: result.value, name: `Artist ${result.value}` });
 }
