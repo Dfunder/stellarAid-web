@@ -1,44 +1,56 @@
 import { NextResponse } from "next/server";
 
-const MAX_LENGTH = 2000;
+const MAX_MESSAGE_LENGTH = 4000;
+const MAX_STACK_LENGTH = 20000;
+const MAX_ROUTE_LENGTH = 500;
+const MAX_TIMESTAMP_LENGTH = 50;
 
-function sanitizeString(value: unknown) {
-  if (typeof value !== "string") return undefined;
-  const trimmed = value.trim();
-  if (!trimmed) return undefined;
-  return trimmed
-    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[redacted-email]")
-    .replace(/\bBearer\s+[A-Za-z0-9._-]+\b/g, "Bearer [redacted]")
-    .replace(/\b(?:sk|pk|api|key|token)_[A-Za-z0-9]+\b/gi, "[redacted-token]")
-    .slice(0, MAX_LENGTH);
+function readString(value: unknown, maxLength: number): string | undefined {
+  return typeof value === "string" && value.trim() !== ""
+    ? value.slice(0, maxLength)
+    : undefined;
+}
+
+function badRequest(error: string) {
+  return NextResponse.json({ error }, { status: 400 });
 }
 
 export async function POST(request: Request) {
-  let body: unknown;
+  let payload: unknown;
   try {
-    body = await request.json();
+    payload = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON payload." }, { status: 400 });
+    return badRequest("Invalid JSON payload");
   }
 
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
-    return NextResponse.json({ error: "Invalid payload." }, { status: 400 });
+  if (typeof payload !== "object" || payload === null || Array.isArray(payload)) {
+    return badRequest("Payload must be an object");
   }
 
-  const payload = body as Record<string, unknown>;
-  const message = sanitizeString(payload.message);
-  if (!message) {
-    return NextResponse.json({ error: "Invalid payload." }, { status: 400 });
+  const body = payload as Record<string, unknown>;
+  const message = readString(body.message, MAX_MESSAGE_LENGTH);
+  const stack = readString(body.stack, MAX_STACK_LENGTH);
+  const componentStack = readString(body.componentStack, MAX_STACK_LENGTH);
+  const route = readString(body.route, MAX_ROUTE_LENGTH);
+  const timestamp = readString(body.timestamp, MAX_TIMESTAMP_LENGTH);
+
+  if (
+    !message ||
+    (!stack && !componentStack) ||
+    !route ||
+    !timestamp ||
+    Number.isNaN(Date.parse(timestamp))
+  ) {
+    return badRequest("Missing or invalid error report fields");
   }
 
-  const report = {
+  console.error("[server-error] Application error", {
     message,
-    stack: sanitizeString(payload.stack),
-    componentStack: sanitizeString(payload.componentStack),
-    route: sanitizeString(payload.route),
-    timestamp: sanitizeString(payload.timestamp) ?? new Date().toISOString(),
-  };
+    stack,
+    componentStack,
+    route,
+    timestamp,
+  });
 
-  console.error("Client error report", report);
-  return NextResponse.json({ ok: true }, { status: 202 });
+  return NextResponse.json({ ok: true });
 }

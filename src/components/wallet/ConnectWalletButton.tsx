@@ -1,5 +1,6 @@
 "use client";
 
+import { useFormSubmission } from "@/hooks/useFormSubmission";
 import { formatAddress } from "../../lib/format";
 import { useWallet } from "./WalletProvider";
 
@@ -27,8 +28,14 @@ async function requestAddress(): Promise<string> {
 
 export function ConnectWalletButton() {
   const { address, status, error, connect, disconnect } = useWallet();
+  const { isSubmitting, submit } = useFormSubmission(0);
+  const connecting = isSubmitting || status === "connecting";
   const base =
     "inline-flex items-center rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-60";
+
+  const handleConnect = () => {
+    void submit(() => connect(requestAddress)).catch(() => undefined);
+  };
 
   return (
     <div className="flex flex-col items-start gap-2">
@@ -45,10 +52,11 @@ export function ConnectWalletButton() {
         <button
           type="button"
           className={base}
-          disabled={status === "connecting"}
-          onClick={() => connect(requestAddress)}
+          disabled={connecting}
+          aria-busy={connecting || undefined}
+          onClick={handleConnect}
         >
-          {status === "connecting" ? "Connecting..." : "Connect wallet"}
+          {connecting ? "Connecting..." : "Connect wallet"}
         </button>
       )}
       {error ? (
