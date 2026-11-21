@@ -10,7 +10,7 @@ type ErrorBoundaryProps = {
 
 export default function ErrorBoundary({ error, reset }: ErrorBoundaryProps) {
   useEffect(() => {
-    logError(error, { componentStack: error.stack });
+    logError(error);
   }, [error]);
 
   return (
