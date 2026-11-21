@@ -10,6 +10,19 @@ export async function GET(
   if (!result.ok) {
     return NextResponse.json(
       { error: "Invalid artist id", details: result.error },
+import { validateId } from "../../../../lib/id-validation";
+
+export const dynamic = "force-dynamic";
+
+type RouteContext = { params: Promise<{ id: string }> };
+
+export async function GET(request: Request, { params }: RouteContext) {
+  const path = request instanceof Request ? new URL(request.url).pathname : "";
+  const result = validateId((await params).id);
+
+  if (!result.ok) {
+    return NextResponse.json(
+      { error: "Invalid artist ID", message: result.error, path },
       { status: 400 },
     );
   }
