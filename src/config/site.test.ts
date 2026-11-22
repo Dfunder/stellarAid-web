@@ -1,4 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("geist/font/sans", () => ({
+  GeistSans: { variable: "--font-geist-sans" },
+}));
+vi.mock("geist/font/mono", () => ({
+  GeistMono: { variable: "--font-geist-mono" },
+}));
+
 import { metadata } from "../app/layout";
 import { siteConfig } from "./site";
 
@@ -25,7 +33,7 @@ describe("siteConfig", () => {
 
     expect(metadata.title).toBe(title);
     expect(metadata.description).toBe(siteConfig.description);
-    expect(metadata.metadataBase?.href).toBe(new URL(siteConfig.url).href);
+    expect(metadata.metadataBase?.toString()).toBe(new URL(siteConfig.url).href);
     expect(metadata.openGraph?.title).toBe(title);
     expect(metadata.twitter?.title).toBe(title);
   });

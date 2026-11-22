@@ -3,8 +3,6 @@ import { siteConfig } from "@/config/site";
 import { Section } from "./components/section";
 import { Roadmap } from "../components/Roadmap";
 import { HowItWorks } from "./components/how-it-works";
-import { Section } from "@/components/ui/Section";
-import { SectionHeading } from "@/components/ui/SectionHeading";
 
 const valueProps = [
   {
@@ -50,7 +48,7 @@ async function ValueProps() {
 
 export default function Home() {
   return (
-    <div className="flex flex-1 flex-col bg-background text-foreground">
+    <main className="flex flex-1 flex-col bg-background text-foreground">
       <Section className="flex min-h-[70vh] items-center">
         <div className="mx-auto flex max-w-3xl flex-col items-start gap-6">
           <p className="text-sm font-medium uppercase tracking-wide text-foreground/70">
@@ -91,29 +89,12 @@ export default function Home() {
           >
             <ValueProps />
           </Suspense>
-        <SectionHeading
-          as="h2"
-          title="Why StellarAid"
-          description="Key benefits of fundraising on the Stellar network"
-        />
-        <div className="mt-8 grid gap-6 sm:grid-cols-3">
-          {valueProps.map((item) => (
-            <article
-              key={item.title}
-              className="rounded-2xl border border-foreground/10 bg-foreground/5 p-6"
-            >
-              <h3 className="text-lg font-medium">{item.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-foreground/80">
-                {item.description}
-              </p>
-            </article>
-          ))}
         </div>
       </Section>
+
       <Roadmap />
 
       <HowItWorks />
     </main>
-    </div>
   );
 }

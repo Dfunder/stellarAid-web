@@ -25,6 +25,8 @@ describe("Footer", () => {
   });
 
   it("gives footer nav links a visible focus indicator", () => {
+    render(<Footer />);
+
     const home = screen.getByRole("link", { name: /^home/i });
     const github = screen.getByRole("link", { name: /github/i });
     for (const link of [home, github]) {

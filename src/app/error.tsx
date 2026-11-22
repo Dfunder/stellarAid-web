@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import { logError } from "../lib/error-tracking";
 
 type ErrorBoundaryProps = {
@@ -27,12 +28,12 @@ export default function ErrorBoundary({ error, reset }: ErrorBoundaryProps) {
         >
           Try again
         </button>
-        <a
+        <Link
           href="/"
           className="rounded-full border border-foreground/20 px-6 py-3 text-sm font-medium transition-colors hover:bg-foreground/5"
         >
           Return home
-        </a>
+        </Link>
       </div>
     </main>
   );

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { UnstakeForm } from "./UnstakeForm";
 
@@ -26,6 +26,34 @@ describe("UnstakeForm", () => {
       "aria-invalid",
       "true",
     );
+  });
+
+  it("blocks duplicate unstake submissions while one is in flight", async () => {
+    let resolveSubmit: (() => void) | undefined;
+    const onSubmit = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSubmit = resolve;
+        }),
+    );
+    render(<UnstakeForm stakedBalance="10" onSubmit={onSubmit} />);
+
+    fireEvent.change(screen.getByLabelText(/amount/i), {
+      target: { value: "2.25" },
+    });
+    const form = screen.getByRole("button", { name: /^unstake$/i }).closest("form");
+    if (!form) throw new Error("form not rendered");
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    const button = screen.getByRole("button", { name: /unstaking/i });
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute("aria-busy", "true");
+
+    await act(async () => {
+      resolveSubmit?.();
+    });
   });
 
   it("submits a validated unstake amount", async () => {

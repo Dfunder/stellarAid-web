@@ -32,7 +32,7 @@ describe("PortfolioGrid", () => {
     const first = screen.getByRole("gridcell", { name: "First project" });
     const third = screen.getByRole("gridcell", { name: "Third project" });
 
-    third.focus();
+    fireEvent.focus(third);
     expect(third).toHaveAttribute("tabindex", "0");
     expect(first).toHaveAttribute("tabindex", "-1");
 

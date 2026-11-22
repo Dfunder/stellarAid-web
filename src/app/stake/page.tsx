@@ -1,5 +1,5 @@
-import { StakeForm } from "../components/StakeForm";
-import { UnstakeForm } from "../components/UnstakeForm";
+import { StakeForm } from "@/components/StakeForm";
+import { UnstakeForm } from "@/components/UnstakeForm";
 
 export default function StakePage() {
   return (

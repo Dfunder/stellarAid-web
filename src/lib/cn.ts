@@ -11,7 +11,11 @@ function flatten(value: ClassValue, output: string[]): void {
   if (!value) return;
 
   if (typeof value === "string" || typeof value === "number") {
-    output.push(String(value));
+    output.push(
+      ...String(value)
+        .split(/\s+/)
+        .filter(Boolean),
+    );
     return;
   }
 

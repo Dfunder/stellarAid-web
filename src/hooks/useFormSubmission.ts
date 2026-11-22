@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 export function useFormSubmission(successCooldownMs = 2500) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submittingRef = useRef(false);
-  const cooldownRef = useRef<ReturnType<typeof setTimeout>>();
+  const cooldownRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const cooldownMsRef = useRef(successCooldownMs);
 
   useEffect(() => {

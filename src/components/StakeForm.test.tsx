@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { StakeForm } from "./StakeForm";
 
@@ -26,6 +26,34 @@ describe("StakeForm", () => {
       "aria-invalid",
       "true",
     );
+  });
+
+  it("blocks duplicate stake submissions while one is in flight", async () => {
+    let resolveSubmit: (() => void) | undefined;
+    const onSubmit = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSubmit = resolve;
+        }),
+    );
+    render(<StakeForm availableBalance="100" onSubmit={onSubmit} />);
+
+    fireEvent.change(screen.getByLabelText(/amount/i), {
+      target: { value: "5.5" },
+    });
+    const form = screen.getByRole("button", { name: /^stake$/i }).closest("form");
+    if (!form) throw new Error("form not rendered");
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    const button = screen.getByRole("button", { name: /staking/i });
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute("aria-busy", "true");
+
+    await act(async () => {
+      resolveSubmit?.();
+    });
   });
 
   it("submits a validated amount in stroops", async () => {
