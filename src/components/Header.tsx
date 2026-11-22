@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -15,27 +16,35 @@ export function Header() {
         aria-label="Primary"
         className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-x-5 gap-y-2 px-6 py-4"
       >
-        <a
+        <Link
           href="/"
           className="text-base font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
           aria-label={`${siteConfig.name} home`}
         >
           {siteConfig.name}
-        </a>
+        </Link>
 
         <div className="flex flex-wrap items-center gap-5">
           <ul className="flex flex-wrap items-center gap-x-5 gap-y-2">
             {siteConfig.links.navigation.map((link) => (
               <li key={link.href}>
-                <a
-                  href={link.href}
-                  {...(link.external
-                    ? { target: "_blank", rel: "noopener noreferrer" }
-                    : {})}
-                  className="text-sm text-foreground/70 transition-colors hover:text-foreground"
-                >
-                  {link.label}
-                </a>
+                {link.external ? (
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-foreground/70 transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
+                  >
+                    {link.label}
+                  </a>
+                ) : (
+                  <Link
+                    href={link.href}
+                    className="text-sm text-foreground/70 transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
+                  >
+                    {link.label}
+                  </Link>
+                )}
               </li>
             ))}
           </ul>

@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 
-export const dynamic = "force-dynamic";
-
 const TIMEOUT_MS = 3000;
 
 async function reachable(url: string | undefined): Promise<boolean> {

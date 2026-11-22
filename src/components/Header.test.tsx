@@ -30,6 +30,6 @@ describe("Header", () => {
     render(<Header />);
 
     const nav = screen.getByRole("navigation", { name: /primary/i });
-    expect(nav).toContainElement(screen.getByRole("button", { name: /color theme/i }));
+    expect(nav).toContainElement(screen.getByRole("combobox", { name: /theme/i }));
   });
 });

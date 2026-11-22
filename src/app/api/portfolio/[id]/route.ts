@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server";
-import { validateRouteParam } from "../../../../lib/route-params";
+import { validateId } from "../../../../lib/id-validation";
 
-export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const { id } = await params;
-  const result = validateRouteParam(id);
+type RouteContext = { params: Promise<{ id: string }> };
+
+export async function GET(request: Request, { params }: RouteContext) {
+  const path = request instanceof Request ? new URL(request.url).pathname : "";
+  const result = validateId((await params).id);
+
   if (!result.ok) {
     return NextResponse.json(
-      { error: "Invalid portfolio id", details: result.error },
+      { error: "Invalid portfolio ID", message: result.error, details: result.error, path },
       { status: 400 },
     );
   }
 
-  return NextResponse.json({ id: result.value, name: `Portfolio ${result.value}` });
+  return NextResponse.json({ id: result.value, name: `portfolio ${result.value}` });
 }

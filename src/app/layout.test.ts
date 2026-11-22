@@ -1,4 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("geist/font/sans", () => ({
+  GeistSans: { variable: "--font-geist-sans" },
+}));
+vi.mock("geist/font/mono", () => ({
+  GeistMono: { variable: "--font-geist-mono" },
+}));
+
 import { metadata } from "./layout";
 
 function text(value: unknown): string {
@@ -24,6 +32,6 @@ describe("metadata", () => {
 
   it("uses an absolute metadata base URL", () => {
     expect(metadata.metadataBase).toBeInstanceOf(URL);
-    expect(metadata.metadataBase?.protocol).toMatch(/^https?:$/);
+    expect((metadata.metadataBase as URL).protocol).toMatch(/^https?:$/);
   });
 });

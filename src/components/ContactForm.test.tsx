@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { HONEYPOT_FIELD_NAME } from "../lib/form-security";
 import { ContactForm } from "./ContactForm";
@@ -46,6 +46,38 @@ describe("ContactForm", () => {
         message: "Hello &lt;b&gt;world&lt;/b&gt; &amp; friends",
       }),
     );
+  });
+
+  it("blocks duplicate submissions while a submission is in flight", async () => {
+    let resolveSubmit: (() => void) | undefined;
+    const onSubmit = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSubmit = resolve;
+        }),
+    );
+    render(<ContactForm onSubmit={onSubmit} />);
+
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: "user@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText(/message/i), {
+      target: { value: "A valid message from a human." },
+    });
+    const form = screen.getByRole("button", { name: /send message/i }).closest("form");
+    if (!form) throw new Error("form not rendered");
+
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    const button = screen.getByRole("button", { name: /sending/i });
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute("aria-busy", "true");
+
+    await act(async () => {
+      resolveSubmit?.();
+    });
   });
 
   it("silently ignores submissions from a filled honeypot", async () => {

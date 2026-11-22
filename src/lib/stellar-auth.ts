@@ -38,5 +38,5 @@ export function requireSequenceAuth(
     throw new Error("A current Stellar account sequence number is required.");
   }
 
-  return { publicKey, sequenceNumber };
+  return { publicKey: auth.publicKey, sequenceNumber: auth.sequenceNumber };
 }

@@ -20,6 +20,8 @@ export async function fetchBalance(account: string) {
   });
   if (!res.ok) throw new Error(`Failed to load balance (${res.status})`);
   return res.json();
+}
+
 export type Campaign = {
   id: string;
   title: string;
@@ -46,11 +48,6 @@ const mockCampaigns: Campaign[] = [
     raised: 25000,
     target: 75000,
   },
-];
-
-export async function getCampaign(id: string): Promise<Campaign | null> {
-  const campaign = mockCampaigns.find((c) => c.id === id);
-  return campaign ?? null;
   {
     id: "solar-energy-projects",
     title: "Solar Energy Projects",
@@ -68,6 +65,11 @@ export async function getCampaign(id: string): Promise<Campaign | null> {
     target: 50000,
   },
 ];
+
+export async function getCampaign(id: string): Promise<Campaign | null> {
+  const campaign = mockCampaigns.find((c) => c.id === id);
+  return campaign ?? null;
+}
 
 export async function getCampaigns(query?: string): Promise<Campaign[]> {
   if (!query) return mockCampaigns;
